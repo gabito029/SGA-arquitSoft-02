@@ -1,0 +1,13 @@
+# Decisiones arquitectónicas
+
+| ID | Decisión arquitectónica | Driver relacionado | Justificación | Resultado |
+|---|---|---|---|---|
+| ADR-001 | Monolito modular | DA04 – Desarrollo individual | Organizar las funcionalidades en módulos independientes dentro de una sola aplicación desplegable, más fácil de construir y probar para una persona. | Módulos de Identidad, Catálogo, Solicitudes, Reglas, Firma, Inventario, Mensajería, Auditoría y Reportes. |
+| ADR-002 | Arquitectura en capas dentro de cada módulo | DA04 – Mantenibilidad | Separar la recepción de peticiones, las reglas de negocio y el acceso a datos. | Capas de API, Servicio, Repositorio y Modelos en cada módulo. |
+| ADR-003 | Una transacción por cada operación que modifica el stock | DA02 – Consistencia del inventario | Guardar el cambio de estado, los movimientos, las alertas y la auditoría juntos: todo o nada. | Aprobación de salidas, despachos y recepciones sin efectos a medias. |
+| ADR-004 | Firma digital con clave del sistema | DA01 – Integridad | Reemplazar la firma física por una firma verificable sin usar certificados de pago. | Huella SHA-256 y firma Ed25519 sobre cada documento, con PDF verificable. |
+| ADR-005 | Auditoría encadenada | DA01 – Integridad | Cada registro guarda la huella del anterior; si alguien modifica uno, la cadena se rompe. | Verificación de la integridad de la auditoría por el administrador. |
+| ADR-006 | Autenticación con JWT y control por rol y almacén | DA03 – Seguridad | Comprobar en cada petición quién es el usuario, qué rol tiene y a qué almacén pertenece. | Roles de almacenero, jefe de almacén y administrador. |
+| ADR-007 | Almacenamiento de documentos mediante una interfaz | DA05 – Bajo costo | Guardar los PDF en el disco local durante el desarrollo, con la opción de cambiar a otro almacenamiento sin modificar las reglas de negocio. | Implementaciones intercambiables de almacenamiento de documentos. |
+| ADR-008 | Prioridad calculada por el sistema | DA07 – Usabilidad | Evitar que todas las solicitudes se declaren urgentes y reducir los campos del formulario. | Prioridad obtenida a partir del nivel real de stock y del motivo de la solicitud. |
+| ADR-009 | Tecnologías de código abierto | DA05 – Bajo costo; DA06 – API REST | Usar herramientas gratuitas y adecuadas para construir una API REST y una interfaz web. | Python con FastAPI, PostgreSQL, React con TypeScript y Docker Compose. |
