@@ -1,5 +1,11 @@
 # Componentes arquitectónicos
 
+![Componentes del SGA](../../img/componentes-sga.png)
+
+> Archivo editable: `img/fuentes-svg/componentes-sga.svg`
+
+## Descripción de los componentes
+
 | Componente | Tipo | Responsabilidad | Requisitos funcionales | Alcance |
 |---|---|---|---|---|
 | **Identidad** | Módulo | Inicio de sesión, roles y acceso según el órgano del usuario. | RF01 | Prototipo |
@@ -14,24 +20,6 @@
 | **Nginx** | Infraestructura | Repartir las peticiones entre las instancias de la API. | — | Prototipo |
 | **PostgreSQL** | Infraestructura | Guardar la información del sistema. | — | Prototipo |
 | **Almacenamiento de documentos** | Infraestructura | Guardar los PDF firmados en el disco local. | — | Prototipo |
+| **Uptime Kuma** | Infraestructura | Revisar el estado de la API y registrar sus caídas. | — | Prototipo |
 
-## Relaciones principales entre módulos
-
-```mermaid
-flowchart LR
-    Requerimientos --> Catalogo["Catálogo"]
-    Requerimientos --> Reglas
-    Requerimientos --> Firma["Firma digital"]
-    Requerimientos --> Inventario
-    Requerimientos --> Auditoria["Auditoría"]
-    Requerimientos -.-> Mensajeria["Mensajería (fase 2)"]
-    Identidad --> Catalogo
-    Identidad --> Auditoria
-    Inventario --> Auditoria
-    Firma --> Auditoria
-    Reportes --> Requerimientos
-    Reportes --> Inventario
-    Firma --> Documentos[("Documentos PDF")]
-```
-
-> Las flechas significan "usa el servicio de". **Requerimientos** es el módulo central: coordina las reglas, la firma, el inventario y la auditoría. La línea punteada indica un módulo de la fase 2.
+> **Requerimientos** es el módulo central: coordina las reglas, la firma, el inventario y la auditoría. Un módulo usa a otro solo a través de sus casos de uso, nunca sus tablas.
