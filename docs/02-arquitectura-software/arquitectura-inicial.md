@@ -9,30 +9,32 @@ flowchart TD
 %% ACTORES
 %% =========================
 subgraph ACTORES["ACTORES"]
-    Almacenero["Almacenero"]
-    Jefe["Jefe de almacén"]
-    Admin["Administrador"]
+    Unidad["Unidad<br/>Oficial de logística · Comandante"]
+    GU["Gran Unidad<br/>Jefe de logística"]
+    COLOGE["COLOGE<br/>Jefe de Logística"]
+    Almacen["Almacén del servicio<br/>Jefe de almacén · Almacenero"]
+    Control["Control y soporte<br/>Auditor · Administrador"]
 end
 
 %% =========================
 %% PRESENTACIÓN
 %% =========================
 subgraph PRESENTACION["PRESENTACIÓN"]
-    Web["Aplicación Web responsiva"]
+    Web["Aplicación web responsiva"]
+    LB["Balanceador de carga"]
     API["API REST"]
 end
 
 %% =========================
 %% LÓGICA DE NEGOCIO
 %% =========================
-subgraph NEGOCIO["LÓGICA DE NEGOCIO"]
+subgraph NEGOCIO["LÓGICA DE NEGOCIO (monolito modular)"]
     Identidad["Identidad"]
     Catalogo["Catálogo"]
-    Solicitudes["Solicitudes"]
+    Requerimientos["Requerimientos"]
     Reglas["Reglas"]
     Firma["Firma digital"]
     Inventario["Inventario"]
-    Mensajeria["Mensajería"]
     Auditoria["Auditoría"]
     Reportes["Reportes"]
 end
@@ -49,7 +51,8 @@ end
 %% FLUJO PRINCIPAL
 %% =========================
 ACTORES --> Web
-Web --> API
+Web -->|"HTTPS / JSON"| LB
+LB --> API
 API --> NEGOCIO
 NEGOCIO --> BD
 Firma --> Docs
@@ -57,15 +60,16 @@ Firma --> Docs
 %% =========================
 %% DISTRIBUCIÓN HORIZONTAL
 %% =========================
-Almacenero ~~~ Jefe
-Jefe ~~~ Admin
+Unidad ~~~ GU
+GU ~~~ COLOGE
+COLOGE ~~~ Almacen
+Almacen ~~~ Control
 
 Identidad ~~~ Catalogo
-Catalogo ~~~ Solicitudes
-Solicitudes ~~~ Reglas
-Reglas ~~~ Firma
-Inventario ~~~ Mensajeria
-Mensajeria ~~~ Auditoria
+Catalogo ~~~ Requerimientos
+Requerimientos ~~~ Reglas
+Firma ~~~ Inventario
+Inventario ~~~ Auditoria
 Auditoria ~~~ Reportes
 
 %% =========================
@@ -81,9 +85,21 @@ style DATOS fill:#222,stroke:#fff,stroke-width:2px,color:#fff
 
 | Capa | Elementos | Responsabilidad |
 |---|---|---|
-| **Actores** | Almacenero, jefe de almacén, administrador | Usan el sistema desde el navegador de una computadora o un celular. |
-| **Presentación** | Aplicación web y API REST | Muestran las pantallas, reciben las peticiones y validan los datos de entrada. |
-| **Lógica de negocio** | Nueve módulos | Aplican las reglas del negocio: aprobación, firma, inventario, alertas, prioridad y auditoría. |
+| **Actores** | Usuarios de la unidad, la gran unidad, el COLOGE, el almacén del servicio, la Inspectoría General y la Dirección de Telemática | Usan el sistema desde el navegador de una computadora o un celular, según su rol y su órgano. |
+| **Presentación** | Aplicación web, balanceador de carga y API REST | Muestran las pantallas, reparten las peticiones entre las instancias de la API y validan los datos de entrada. |
+| **Lógica de negocio** | Ocho módulos | Aplican las reglas del negocio: conducto regular, firma digital, inventario, alertas y auditoría. |
 | **Datos** | Base de datos y documentos firmados | Guardan la información del sistema y los PDF firmados, que no se modifican. |
 
-> El proveedor externo solo se registra como origen de un pedido.
+## Componentes por capa
+
+| Capa | Componentes | Tecnología |
+|---|---|---|
+| Presentación | Aplicación web responsiva | React + TypeScript |
+| Presentación | Balanceador de carga | Nginx |
+| Presentación | API REST | Python + FastAPI |
+| Lógica de negocio | Identidad, Catálogo, Requerimientos, Reglas, Firma digital, Inventario, Auditoría y Reportes | Python + FastAPI (monolito modular) |
+| Datos | Base de datos | PostgreSQL |
+| Datos | Documentos PDF firmados | Disco local del servidor |
+| Infraestructura | Contenedores y reinicio automático | Docker Compose |
+
+> En esta versión el sistema no se integra con sistemas externos; el SIGA MEF queda fuera del alcance (RC12). El módulo de Mensajería se incorporará en la fase 2.
