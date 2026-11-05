@@ -1,7 +1,7 @@
 # Nivel 2 · Diagrama de contenedores
 
 > **Proyecto:** SGA
-> **Modelo:** C4 · Nivel 2 de 4 · **Versión:** 1.0
+> **Modelo:** C4 · Nivel 2 de 4 · **Versión:** 2.0
 
 ---
 
@@ -21,22 +21,9 @@ Abrir la caja «SGA» del nivel 1 y mostrar los **contenedores** que la forman: 
 
 ## 2. Diagrama
 
-```mermaid
-flowchart TB
-    Usuarios["Almacenero · Jefe de almacén · Administrador<br/>[Personas]"]
+![Diagrama de contenedores del SGA](../../img/nivel2-contenedores.png)
 
-    subgraph SGA["SGA"]
-        Web["Aplicación web<br/>[React + TypeScript]<br/>Pantallas responsivas"]
-        API["API SGA<br/>[Python + FastAPI]<br/>Monolito modular"]
-        BD[("Base de datos<br/>[PostgreSQL]")]
-        Docs[("Almacenamiento de documentos<br/>[Disco local]<br/>PDF firmados")]
-    end
-
-    Usuarios -->|"Usa desde el navegador"| Web
-    Web -->|"HTTPS / JSON"| API
-    API -->|"Consultas SQL"| BD
-    API -->|"Guarda y lee PDF"| Docs
-```
+> Archivo editable: `img/fuentes-svg/nivel2-contenedores.svg`
 
 ---
 
@@ -44,10 +31,12 @@ flowchart TB
 
 | Contenedor | Tecnología | Responsabilidad | Datos que maneja |
 |---|---|---|---|
-| **Aplicación web** | React + TypeScript | Interfaz responsiva para los tres roles. Se ejecuta en el navegador | Ninguno permanente; solo el estado de la pantalla |
-| **API SGA** | Python + FastAPI | Expone la API REST y aplica las reglas del negocio: aprobación, firma, inventario, alertas y auditoría. Es un **monolito modular** | Ninguno propio; usa la base de datos y el almacenamiento |
-| **Base de datos** | PostgreSQL | Almacena de forma permanente la información del negocio | Usuarios, almacenes, ítems, stock, solicitudes, firmas, movimientos, mensajes y auditoría |
-| **Almacenamiento de documentos** | Disco local del servidor | Guarda los PDF firmados, que no se modifican | Documentos de aprobación y actas de recepción |
+| **Aplicación web** | React + TypeScript | Interfaz responsiva para los ocho roles. Se ejecuta en el navegador | Ninguno permanente; solo el estado de la pantalla |
+| **Balanceador de carga** | Nginx | Recibe las peticiones y las reparte entre las instancias de la API (ADR-012) | Ninguno |
+| **API SGA** | Python + FastAPI | Expone la API REST y aplica las reglas del negocio: conducto regular, firma, inventario y auditoría. Es un **monolito modular** con Clean Architecture en cada módulo | Ninguno propio; no guarda sesiones (JWT) |
+| **Base de datos** | PostgreSQL | Almacena de forma permanente la información del negocio | Órganos, usuarios, almacenes, ítems, stock, requerimientos, firmas, movimientos y auditoría |
+| **Almacenamiento de documentos** | Volumen en disco del servidor | Guarda los PDF firmados, que no se modifican | Documentos de cada firma y actas de recepción |
+| **Monitoreo** | Uptime Kuma | Revisa el estado de la API y registra caídas y recuperaciones (ADR-013) | Historial de disponibilidad |
 
 ---
 
@@ -56,8 +45,10 @@ flowchart TB
 | Origen | Destino | Descripción | Protocolo |
 |---|---|---|---|
 | Personas | Aplicación web | Usan el sistema | HTTPS |
-| Aplicación web | API SGA | Envía peticiones con el token de sesión | HTTPS / JSON |
+| Aplicación web | Balanceador de carga | Envía las peticiones con el token de sesión | HTTPS / JSON |
+| Balanceador de carga | API SGA | Reparte las peticiones entre las instancias | HTTP |
 | API SGA | Base de datos | Lee y escribe información en transacciones | SQL |
 | API SGA | Almacenamiento de documentos | Guarda y lee los PDF firmados | Sistema de archivos |
+| Monitoreo | API SGA | Comprueba que la API responde | HTTP (`/health`) |
 
-> Al desplegar el sistema, todos los contenedores se ejecutan con Docker Compose.
+> Todos los contenedores se ejecutan con Docker Compose, con reinicio automático (`restart: always`).
