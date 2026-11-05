@@ -1,7 +1,7 @@
 # Nivel 3 · Diagrama de componentes
 
 > **Proyecto:** SGA · **Contenedor detallado:** API SGA
-> **Modelo:** C4 · Nivel 3 de 4 · **Versión:** 1.0
+> **Modelo:** C4 · Nivel 3 de 4 · **Versión:** 2.0
 
 ---
 
@@ -21,36 +21,9 @@ Abrir el contenedor **API SGA** del nivel 2 y mostrar sus **componentes**: los m
 
 ## 2. Diagrama
 
-```mermaid
-flowchart TB
-    Web["Aplicación web"] -->|"HTTPS / JSON"| Core
+![Diagrama de componentes de la API SGA](../../img/componentes-sga.png)
 
-    subgraph API["API SGA (FastAPI)"]
-        Core["API REST<br/>rutas, sesión, roles, errores"]
-        Identidad["Identidad<br/>inicio de sesión y roles"]
-        Catalogo["Catálogo<br/>almacenes, ítems, usuarios"]
-        Solicitudes["Solicitudes<br/>estados, seguimiento, prioridad"]
-        Reglas["Reglas<br/>aprobación automática o firma"]
-        Firma["Firma digital<br/>huella, firma, PDF, verificación"]
-        Inventario["Inventario<br/>stock, movimientos, alertas"]
-        Mensajeria["Mensajería<br/>mensajes y notificaciones"]
-        Auditoria["Auditoría<br/>registro encadenado"]
-        Reportes["Reportes<br/>panel y CSV"]
-    end
-
-    Core --> Identidad
-    Core --> Catalogo
-    Core --> Solicitudes
-    Core --> Reportes
-    Solicitudes --> Reglas
-    Solicitudes --> Firma
-    Solicitudes --> Inventario
-    Solicitudes --> Mensajeria
-    Solicitudes --> Auditoria
-    Inventario --> Mensajeria
-    Firma --> Docs[("Almacenamiento de documentos")]
-    API --> BD[("PostgreSQL")]
-```
+> Archivo editable: `img/fuentes-svg/componentes-sga.svg`
 
 ---
 
@@ -58,13 +31,21 @@ flowchart TB
 
 | Componente | Responsabilidad | Funcionalidades principales | Carpeta en el código |
 |---|---|---|---|
-| **API REST** | Punto de entrada HTTP del contenedor | Rutas `/api/v1`, verificación de la sesión, control de roles, manejo de errores | `backend/app/core/` |
-| **Identidad** | Identidad y acceso | Inicio de sesión, roles y acceso por almacén | `backend/app/modules/identity/` |
-| **Catálogo** | Datos maestros | Almacenes, ítems, usuarios e ítems habilitados por almacén | `backend/app/modules/catalog/` |
-| **Solicitudes** | Ciclo de vida de las solicitudes | Registro, estados, historial, despacho, recepción, prioridad y orden de atención | `backend/app/modules/requests/` |
-| **Reglas** | Decisión de aprobación | Evaluación de reglas en orden y administración de reglas | `backend/app/modules/rules/` |
+| **API REST** | Punto de entrada HTTP del contenedor | Rutas `/api/v1`, verificación del JWT, control de roles y manejo de errores | `backend/app/core/` |
+| **Identidad** | Identidad y acceso | Inicio de sesión, roles y acceso según el órgano | `backend/app/modules/identity/` |
+| **Catálogo** | Datos maestros | Órganos con su jerarquía, unidades, almacenes, ítems y usuarios | `backend/app/modules/catalog/` |
+| **Requerimientos** | Ciclo de vida del requerimiento | Registro, conducto regular, rechazos, recepción y línea de tiempo | `backend/app/modules/requests/` |
+| **Reglas** | Decisión del camino de aprobación | Autorización del COLOGE para material de guerra o montos altos, y aprobación automática | `backend/app/modules/rules/` |
 | **Firma digital** | Documentos firmados | Huella SHA-256, firma Ed25519, generación del PDF y verificación | `backend/app/modules/signing/` |
-| **Inventario** | Control de stock | Stock, registro de movimientos, umbrales, alertas y sugerencias de reposición | `backend/app/modules/inventory/` |
-| **Mensajería** | Comunicación | Mensajes dentro de cada solicitud y notificaciones | `backend/app/modules/messaging/` |
-| **Auditoría** | Trazabilidad | Registro encadenado de operaciones y verificación de la cadena | `backend/app/modules/audit/` |
-| **Reportes** | Consulta de información | Panel de control y reportes exportables en CSV | `backend/app/modules/reports/` |
+| **Inventario** | Control de stock | Stock, registro de movimientos, despachos, salidas y alertas | `backend/app/modules/inventory/` |
+| **Auditoría** | Trazabilidad | Registro encadenado, verificación de la cadena y consulta del auditor | `backend/app/modules/audit/` |
+| **Reportes** | Consulta de información | Panel de control con el estado de los requerimientos y del stock | `backend/app/modules/reports/` |
+| **Mensajería** | Comunicación (fase 2) | Mensajes dentro de cada requerimiento y notificaciones | `backend/app/modules/messaging/` |
+
+---
+
+## 4. Reglas del monolito modular
+
+1. Cada módulo se organiza con Clean Architecture: `dominio/`, `aplicacion/`, `infraestructura/` y `presentacion/`.
+2. Un módulo usa a otro solo a través de sus casos de uso, nunca sus tablas.
+3. **Requerimientos** es el módulo núcleo: coordina Reglas, Firma digital, Inventario y Auditoría.
