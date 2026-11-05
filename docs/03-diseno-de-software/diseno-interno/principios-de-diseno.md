@@ -12,6 +12,10 @@ Documentar cómo se aplican los principios SOLID en el backend del SGA, organiza
 
 ## SOLID en el módulo Requerimientos
 
+![SOLID en el módulo Requerimientos](../../../img/solid-modulo-requerimientos.png)
+
+> Archivo editable: `img/fuentes-svg/solid-modulo-requerimientos.svg`
+
 | Principio | Dónde se aplica (capa) | Cómo se cumple en el SGA | Archivos |
 |---|---|---|---|
 | **S** · Responsabilidad única | Todas las capas | La ruta recibe la petición, el caso de uso coordina la firma, la entidad aplica las reglas del conducto regular y el repositorio guarda en PostgreSQL. | `router.py`, `firmar_requerimiento.py`, `requerimiento.py`, `repositorio_postgres.py` |
