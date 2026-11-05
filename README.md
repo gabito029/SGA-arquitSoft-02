@@ -30,6 +30,7 @@ Ing. Lizbeth Jaico Quispe
 ### 01 · Análisis del sistema
 | Documento | Descripción |
 |---|---|
+| [Contexto organizacional](docs/01-analisis-de-sistema/00-contexto-organizacional.md) | Organigrama del Ejército del Perú y órganos relacionados |
 | [Actores](docs/01-analisis-de-sistema/01-actores.md) | Usuarios y participantes del sistema |
 | [Historias de usuario](docs/01-analisis-de-sistema/02-historias-de-usuario.md) | Necesidades de cada actor |
 | [Requisitos funcionales](docs/01-analisis-de-sistema/03-requisitos-funcionales.md) | Funciones del sistema y relación con las historias |
