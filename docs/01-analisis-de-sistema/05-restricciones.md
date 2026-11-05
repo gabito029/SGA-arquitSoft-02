@@ -11,3 +11,5 @@ Identificar las **restricciones** que condicionan las decisiones de diseño y ar
 | RC05 | **Bajo costo** | Durante el desarrollo solo deben utilizarse herramientas gratuitas o de código abierto. |
 | RC06 | **Firma electrónica del sistema** | La firma digital se realizará con una clave propia del sistema; no se utilizarán certificados digitales acreditados. |
 | RC07 | **Despliegue con contenedores** | El sistema completo debe poder ejecutarse mediante Docker Compose. |
+| RC08 | **Conducto regular** | Todo requerimiento debe seguir los niveles jerárquicos del Ejército: unidad, gran unidad, COLOGE cuando corresponda y almacén. |
+| RC09 | **Estructura orgánica del Ejército** | El sistema debe respetar la organización del Ejército del Perú: cada usuario, unidad y almacén pertenece a un órgano. |
