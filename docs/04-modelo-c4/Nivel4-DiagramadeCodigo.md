@@ -1,128 +1,59 @@
 # Nivel 4 · Diagrama de código
 
-> **Proyecto:** SGA · **Componentes detallados:** Solicitudes y Firma digital
-> **Modelo:** C4 · Nivel 4 de 4 · **Versión:** 1.0
+> **Proyecto:** SGA · **Componentes detallados:** Requerimientos y Firma digital
+> **Modelo:** C4 · Nivel 4 de 4 · **Versión:** 2.0
 
 ---
 
 ## 1. Objetivo
 
-Mostrar las **clases principales** de los módulos Solicitudes y Firma digital, y cómo colaboran cuando se aprueba una solicitud.
+Mostrar las **clases principales** del módulo Requerimientos y su relación con la firma digital, y cómo colaboran cuando un nivel del conducto regular firma un requerimiento.
 
 | Aspecto | Descripción |
 |---|---|
 | Pregunta que responde | ¿Qué clases existen dentro de un módulo y cómo se relacionan? |
 | Audiencia | Equipo de desarrollo |
 | Notación | UML (diagrama de clases y diagrama de secuencia). El modelo C4 recomienda UML para este nivel |
-| Por qué solo dos módulos | El nivel 4 es opcional en C4 y se dibuja solo para los componentes más importantes. Solicitudes y Firma digital concentran las reglas más críticas del sistema |
+| Por qué solo estos módulos | El nivel 4 es opcional en C4 y se dibuja solo para los componentes más importantes. Requerimientos y Firma digital concentran las reglas más críticas del sistema |
 | Nivel anterior | `Nivel3-DiagramadeComponentes.md` |
 
 ---
 
 ## 2. Diagrama de clases
 
-```mermaid
-classDiagram
-    class Request {
-        +UUID id
-        +str code
-        +RequestType type
-        +RequestStatus status
-        +Priority priority
-        +int version
-    }
-    class RequestItem {
-        +UUID item_id
-        +Decimal quantity
-        +Decimal quantity_shipped
-        +Decimal quantity_received
-    }
-    class RequestStatus {
-        <<enumeration>>
-        BORRADOR
-        PENDIENTE_FIRMA
-        APROBADA
-        EN_TRANSITO
-        CONFIRMADA
-        RECHAZADA
-        ANULADA
-    }
-    class RequestService {
-        +submit(request_id, actor)
-        +sign(request_id, actor, password)
-        +dispatch(request_id, actor, items)
-        +confirm_receipt(request_id, actor, items, note)
-    }
-    class RequestRepository {
-        +get_for_update(request_id)
-        +add(request)
-    }
-    class RulesService {
-        +evaluate(request) Decision
-    }
-    class SigningService {
-        +sign(request, purpose, signer) Signature
-        +verify(request, purpose) str
-    }
-    class Signature {
-        +str purpose
-        +str document_hash
-        +bytes signature
-        +str pdf_sha256
-    }
-    class ObjectStorage {
-        <<interface>>
-        +put(key, data)
-        +get(key) bytes
-    }
-    class LocalDiskStorage
+![Diagrama de clases del módulo Requerimientos](../../img/clases-modulo-requerimientos.png)
 
-    Request "1" *-- "1..*" RequestItem
-    Request --> RequestStatus
-    RequestService --> RequestRepository
-    RequestService --> RulesService
-    RequestService --> SigningService
-    SigningService --> Signature
-    SigningService --> ObjectStorage
-    ObjectStorage <|.. LocalDiskStorage
-```
+> Archivo editable: `img/fuentes-svg/clases-modulo-requerimientos.svg`
 
-### 2.1 Capas representadas
+### 2.1 Capas de Clean Architecture
 
 | Capa | Clases | Regla |
 |---|---|---|
-| **Modelos** | `Request`, `RequestItem`, `Signature` | Representan los datos guardados en la base de datos |
-| **Servicio** | `RequestService`, `RulesService`, `SigningService` | Contienen las reglas del negocio |
-| **Repositorio** | `RequestRepository` | Realiza las consultas a la base de datos |
-| **Interfaz y adaptador** | `ObjectStorage`, `LocalDiskStorage` | El servicio de firma depende de la interfaz, no del disco |
+| **Presentación** | `FirmasRouter` | Traduce la petición HTTP en una llamada al caso de uso |
+| **Aplicación** | `FirmarRequerimiento` | Coordina los pasos de la firma usando solo los puertos |
+| **Dominio** | `Requerimiento`, `ItemRequerimiento`, `FirmaNivel`, `EstadoRequerimiento` y los puertos | Contiene las reglas del conducto regular; no importa ninguna librería externa |
+| **Infraestructura** | `RepositorioPostgres`, `FirmadorEd25519`, `AlmacenDocumentosDisco`, `AuditoriaAdaptador` | Implementan los puertos con PostgreSQL, la librería `cryptography` y el disco |
+
+> **Regla de dependencia:** las flechas del código apuntan hacia el dominio; los adaptadores implementan los puertos que define el dominio.
 
 ---
 
-## 3. Diagrama de secuencia: salida aprobada automáticamente
+## 3. Diagrama de secuencia: visto bueno del comandante
 
-```mermaid
-sequenceDiagram
-    actor A as Almacenero
-    participant API as API Solicitudes
-    participant S as RequestService
-    participant R as RulesService
-    participant G as SigningService
-    participant I as InventoryService
-    participant AU as AuditService
-    participant DB as PostgreSQL
+![Diagrama de secuencia: firmar requerimiento](../../img/secuencia-firmar-requerimiento.png)
 
-    A->>API: Enviar solicitud
-    API->>S: submit(id, actor)
-    S->>DB: Iniciar transacción y bloquear la solicitud
-    S->>S: Calcular monto y prioridad
-    S->>R: evaluate(request)
-    R-->>S: Aprobación automática
-    S->>G: sign(request, APROBACION, SYSTEM)
-    G-->>S: Firma y PDF guardado
-    S->>I: Registrar salida y revisar alertas
-    S->>AU: Registrar evento en la auditoría
-    S->>DB: Confirmar transacción
-    API-->>A: Solicitud APROBADA
-```
+> Archivo editable: `img/fuentes-svg/secuencia-firmar-requerimiento.svg`
 
-> Si cualquier paso falla, la transacción se cancela y no se guarda ningún cambio.
+Si cualquier paso falla, la transacción se cancela y no se guarda ningún cambio (ADR-003). Si el comandante intenta firmar en un estado que no le corresponde, la entidad `Requerimiento` lanza `TransicionNoPermitida` y la API responde 409.
+
+---
+
+## 4. Patrones y principios que se ven en este nivel
+
+| Elemento del diagrama | Patrón o principio |
+|---|---|
+| `RepositorioRequerimientos` y `RepositorioPostgres` | Repository · Inversión de dependencias |
+| `FirmadorDocumentos` y `FirmadorEd25519` | Adapter · Sustitución de Liskov |
+| `EstadoRequerimiento` y `Requerimiento.firmar()` | State |
+| Transacción con bloqueo del requerimiento | Unit of Work |
+| `main.py` y `dependencias.py` | Dependency Injection |
