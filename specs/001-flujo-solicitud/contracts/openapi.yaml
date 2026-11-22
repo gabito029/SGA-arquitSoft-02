@@ -1,0 +1,682 @@
+openapi: 3.1.0
+info:
+  title: SGA — API del flujo principal de abastecimiento (incremento 001)
+  version: 0.1.0
+  description: >
+    Contrato de la API REST del incremento 001. La implementación (FastAPI) expone esta
+    documentación en /docs (Swagger UI) y /openapi.json. Todos los endpoints, salvo /health y
+    /api/v1/auth/login, requieren un token JWT en la cabecera Authorization: Bearer.
+servers:
+  - url: http://localhost:8080
+    description: Docker Compose local (Nginx → API)
+  - url: http://localhost:8000
+    description: API ejecutada directamente
+
+tags:
+  - name: Salud
+  - name: Identidad
+  - name: Catálogo
+  - name: Requerimientos
+  - name: Firmas
+  - name: Inventario
+
+security:
+  - bearerAuth: []
+
+paths:
+  /health:
+    get:
+      tags: [Salud]
+      summary: Estado de la API y de la conexión a la base de datos (ADR-013)
+      security: []
+      responses:
+        '200':
+          description: La API responde
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  estado: { type: string, enum: [OK] }
+                  base_datos: { type: string, enum: [OK, ERROR] }
+
+  /api/v1/auth/login:
+    post:
+      tags: [Identidad]
+      summary: Iniciar sesión (HU01, RF01)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [usuario, contrasena]
+              properties:
+                usuario: { type: string }
+                contrasena: { type: string, format: password }
+      responses:
+        '200':
+          description: Credenciales válidas
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Token' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '422': { $ref: '#/components/responses/Validacion' }
+
+  /api/v1/auth/me:
+    get:
+      tags: [Identidad]
+      summary: Datos del usuario autenticado (rol y órgano)
+      responses:
+        '200':
+          description: Usuario actual
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Usuario' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+
+  /api/v1/catalogo/items:
+    get:
+      tags: [Catálogo]
+      summary: Ítems activos del catálogo (con caché de 300 s)
+      parameters:
+        - name: categoria
+          in: query
+          schema: { $ref: '#/components/schemas/Categoria' }
+      responses:
+        '200':
+          description: Lista de ítems
+          headers:
+            Cache-Control:
+              schema: { type: string, example: 'private, max-age=300' }
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Item' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+
+  /api/v1/requerimientos:
+    get:
+      tags: [Requerimientos]
+      summary: Bandeja de requerimientos visibles para el usuario según su rol y órgano (FR-002, FR-029)
+      parameters:
+        - name: estado
+          in: query
+          schema: { $ref: '#/components/schemas/EstadoRequerimiento' }
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1, default: 1 }
+        - name: size
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+      responses:
+        '200':
+          description: Página de requerimientos
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaginaRequerimientos' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+    post:
+      tags: [Requerimientos]
+      summary: Registrar un requerimiento en BORRADOR (HU02, RF02)
+      description: Solo OFICIAL_LOGISTICA. La unidad y el almacén se deducen del usuario y de la categoría.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RequerimientoEntrada' }
+      responses:
+        '201':
+          description: Requerimiento creado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Requerimiento' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/SinPermiso' }
+        '422': { $ref: '#/components/responses/Validacion' }
+
+  /api/v1/requerimientos/{id}:
+    parameters:
+      - $ref: '#/components/parameters/RequerimientoId'
+    get:
+      tags: [Requerimientos]
+      summary: Detalle del requerimiento con ítems y acciones disponibles para el usuario
+      responses:
+        '200':
+          description: Detalle
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Requerimiento' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+    put:
+      tags: [Requerimientos]
+      summary: Editar los ítems de un requerimiento en BORRADOR (FR-008)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RequerimientoEntrada' }
+      responses:
+        '200':
+          description: Requerimiento actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Requerimiento' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/SinPermiso' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '409': { $ref: '#/components/responses/Conflicto' }
+        '422': { $ref: '#/components/responses/Validacion' }
+
+  /api/v1/requerimientos/{id}/enviar:
+    parameters:
+      - $ref: '#/components/parameters/RequerimientoId'
+    post:
+      tags: [Requerimientos]
+      summary: Enviar por el conducto regular (BORRADOR → PENDIENTE_VB_UNIDAD)
+      description: >
+        Aplica RN03. Si es de material de guerra o el monto alcanza el umbral, responde 409 con
+        codigo REQUIERE_COLOGE, registra ENVIO_BLOQUEADO en el historial y el estado no cambia (FR-012).
+      responses:
+        '200':
+          description: Requerimiento enviado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Requerimiento' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/SinPermiso' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '409': { $ref: '#/components/responses/Conflicto' }
+
+  /api/v1/requerimientos/{id}/anular:
+    parameters:
+      - $ref: '#/components/parameters/RequerimientoId'
+    post:
+      tags: [Requerimientos]
+      summary: Anular con motivo, solo desde BORRADOR (FR-022)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Motivo' }
+      responses:
+        '200':
+          description: Requerimiento anulado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Requerimiento' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/SinPermiso' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '409': { $ref: '#/components/responses/Conflicto' }
+        '422': { $ref: '#/components/responses/Validacion' }
+
+  /api/v1/requerimientos/{id}/firmas:
+    parameters:
+      - $ref: '#/components/parameters/RequerimientoId'
+    get:
+      tags: [Firmas]
+      summary: Firmas registradas del requerimiento
+      responses:
+        '200':
+          description: Firmas
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Firma' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+    post:
+      tags: [Firmas]
+      summary: Firmar (aprobar) o rechazar en el nivel actual del conducto regular (HU03, HU05, RF03, RF05)
+      description: >
+        El nivel se deduce del estado actual; el rol y el órgano del usuario deben corresponder a
+        ese nivel. Rechazar exige motivo. Un nivel que ya firmó, o un estado que no corresponde,
+        responde 409 (TRANSICION_NO_PERMITIDA).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DecisionFirma' }
+      responses:
+        '201':
+          description: Decisión firmada y registrada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Requerimiento' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/SinPermiso' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '409': { $ref: '#/components/responses/Conflicto' }
+        '422': { $ref: '#/components/responses/Validacion' }
+
+  /api/v1/requerimientos/{id}/despacho:
+    parameters:
+      - $ref: '#/components/parameters/RequerimientoId'
+    post:
+      tags: [Inventario]
+      summary: Despachar un requerimiento APROBADO y descontar el stock (HU07, RF06)
+      description: >
+        Solo ALMACENERO del almacén destino. Cantidad ≤ solicitada y ≤ stock. Una sola
+        transacción con bloqueo del stock (ADR-003). Stock insuficiente → 409 STOCK_INSUFICIENTE.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DespachoEntrada' }
+      responses:
+        '201':
+          description: Despacho registrado; el requerimiento pasa a EN_TRANSITO
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Requerimiento' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/SinPermiso' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '409': { $ref: '#/components/responses/Conflicto' }
+        '422': { $ref: '#/components/responses/Validacion' }
+
+  /api/v1/requerimientos/{id}/acta:
+    parameters:
+      - $ref: '#/components/parameters/RequerimientoId'
+    post:
+      tags: [Firmas]
+      summary: Firmar el acta de recepción (HU08, RF07)
+      description: Solo OFICIAL_LOGISTICA de la unidad solicitante, con el requerimiento EN_TRANSITO.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ActaEntrada' }
+      responses:
+        '201':
+          description: Acta firmada; el requerimiento pasa a CONFIRMADA
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Acta' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/SinPermiso' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '409': { $ref: '#/components/responses/Conflicto' }
+        '422': { $ref: '#/components/responses/Validacion' }
+    get:
+      tags: [Firmas]
+      summary: Consultar el acta de recepción
+      responses:
+        '200':
+          description: Acta
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Acta' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+
+  /api/v1/requerimientos/{id}/verificacion:
+    parameters:
+      - $ref: '#/components/parameters/RequerimientoId'
+    get:
+      tags: [Firmas]
+      summary: Verificar la integridad de cada firma y del acta (FR-024, FR-025, EQ-02)
+      responses:
+        '200':
+          description: Resultado por firma
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Verificacion' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+
+  /api/v1/requerimientos/{id}/historial:
+    parameters:
+      - $ref: '#/components/parameters/RequerimientoId'
+    get:
+      tags: [Requerimientos]
+      summary: Línea de tiempo del requerimiento (RF08, FR-028)
+      responses:
+        '200':
+          description: Entradas en orden cronológico
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/EntradaHistorial' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+
+  /api/v1/inventario/stock:
+    get:
+      tags: [Inventario]
+      summary: Stock del almacén del usuario (JEFE_ALMACEN, ALMACENERO)
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1, default: 1 }
+        - name: size
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+      responses:
+        '200':
+          description: Página de stock
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, total, page, size]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Stock' }
+                  total: { type: integer }
+                  page: { type: integer }
+                  size: { type: integer }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/SinPermiso' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    RequerimientoId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+
+  responses:
+    NoAutenticado:
+      description: Sin sesión o token inválido/expirado
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    SinPermiso:
+      description: El rol del usuario no puede realizar esta acción
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NoEncontrado:
+      description: No existe o no pertenece a la jurisdicción del usuario
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Conflicto:
+      description: >
+        Regla de negocio: TRANSICION_NO_PERMITIDA, NIVEL_YA_FIRMADO, REQUIERE_COLOGE,
+        STOCK_INSUFICIENTE o ESTADO_CAMBIADO (acción concurrente)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Validacion:
+      description: Datos de entrada inválidos
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+  schemas:
+    Error:
+      type: object
+      required: [codigo, mensaje]
+      properties:
+        codigo:
+          type: string
+          example: TRANSICION_NO_PERMITIDA
+        mensaje:
+          type: string
+          description: Mensaje comprensible en español
+          example: El requerimiento no está pendiente de su firma.
+        detalles:
+          type: array
+          items:
+            type: object
+            properties:
+              campo: { type: string }
+              mensaje: { type: string }
+
+    Token:
+      type: object
+      required: [access_token, token_type, expira_en, usuario]
+      properties:
+        access_token: { type: string }
+        token_type: { type: string, enum: [bearer] }
+        expira_en: { type: integer, description: Segundos }
+        usuario: { $ref: '#/components/schemas/Usuario' }
+
+    Rol:
+      type: string
+      enum: [OFICIAL_LOGISTICA, COMANDANTE_UNIDAD, JEFE_LOGISTICA_GU, JEFE_ALMACEN, ALMACENERO, AUDITOR]
+
+    Categoria:
+      type: string
+      enum: [INTENDENCIA, MATERIAL_GUERRA]
+
+    EstadoRequerimiento:
+      type: string
+      enum:
+        - BORRADOR
+        - PENDIENTE_VB_UNIDAD
+        - PENDIENTE_CONFORMIDAD
+        - PENDIENTE_AUTORIZACION_COLOGE
+        - PENDIENTE_APROBACION
+        - APROBADA
+        - RECHAZADA
+        - ANULADA
+        - EN_TRANSITO
+        - CONFIRMADA
+
+    NivelFirma:
+      type: string
+      enum: [VB_UNIDAD, CONFORMIDAD_GU, APROBACION_ALMACEN, ACTA_RECEPCION]
+
+    OrganoResumen:
+      type: object
+      required: [id, codigo, nombre]
+      properties:
+        id: { type: string, format: uuid }
+        codigo: { type: string }
+        nombre: { type: string }
+
+    Usuario:
+      type: object
+      required: [id, usuario, nombre_completo, rol, organo]
+      properties:
+        id: { type: string, format: uuid }
+        usuario: { type: string }
+        nombre_completo: { type: string }
+        rol: { $ref: '#/components/schemas/Rol' }
+        organo: { $ref: '#/components/schemas/OrganoResumen' }
+        almacen_id: { type: [string, 'null'], format: uuid }
+
+    Item:
+      type: object
+      required: [id, codigo, nombre, categoria, unidad_medida, valor_unitario]
+      properties:
+        id: { type: string, format: uuid }
+        codigo: { type: string }
+        nombre: { type: string }
+        categoria: { $ref: '#/components/schemas/Categoria' }
+        unidad_medida: { type: string }
+        valor_unitario: { type: string, description: Decimal como texto, example: '35.50' }
+
+    RequerimientoEntrada:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [item_id, cantidad]
+            properties:
+              item_id: { type: string, format: uuid }
+              cantidad: { type: integer, minimum: 1 }
+
+    ItemRequerimiento:
+      type: object
+      required: [item, cantidad_solicitada]
+      properties:
+        item: { $ref: '#/components/schemas/Item' }
+        cantidad_solicitada: { type: integer }
+        cantidad_despachada: { type: [integer, 'null'] }
+        cantidad_recibida: { type: [integer, 'null'] }
+        observacion: { type: [string, 'null'] }
+
+    Requerimiento:
+      type: object
+      required: [id, codigo, estado, categoria, unidad, items, creado_en, acciones_disponibles]
+      properties:
+        id: { type: string, format: uuid }
+        codigo: { type: string, example: REQ-2026-000123 }
+        estado: { $ref: '#/components/schemas/EstadoRequerimiento' }
+        categoria: { $ref: '#/components/schemas/Categoria' }
+        unidad: { $ref: '#/components/schemas/OrganoResumen' }
+        gran_unidad: { $ref: '#/components/schemas/OrganoResumen' }
+        almacen: { $ref: '#/components/schemas/OrganoResumen' }
+        monto_total: { type: [string, 'null'] }
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/ItemRequerimiento' }
+        creado_en: { type: string, format: date-time }
+        actualizado_en: { type: string, format: date-time }
+        acciones_disponibles:
+          type: array
+          description: Acciones que el usuario actual puede ejecutar (la interfaz solo muestra estas)
+          items:
+            type: string
+            enum: [EDITAR, ENVIAR, ANULAR, FIRMAR, RECHAZAR, DESPACHAR, FIRMAR_ACTA]
+
+    PaginaRequerimientos:
+      type: object
+      required: [items, total, page, size]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Requerimiento' }
+        total: { type: integer }
+        page: { type: integer }
+        size: { type: integer }
+
+    Motivo:
+      type: object
+      required: [motivo]
+      properties:
+        motivo: { type: string, minLength: 5, maxLength: 500 }
+
+    DecisionFirma:
+      type: object
+      required: [decision]
+      properties:
+        decision: { type: string, enum: [APROBAR, RECHAZAR] }
+        motivo:
+          type: string
+          minLength: 5
+          maxLength: 500
+          description: Obligatorio cuando decision = RECHAZAR
+
+    DespachoEntrada:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [item_id, cantidad]
+            properties:
+              item_id: { type: string, format: uuid }
+              cantidad: { type: integer, minimum: 0 }
+
+    ActaEntrada:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [item_id, cantidad_recibida]
+            properties:
+              item_id: { type: string, format: uuid }
+              cantidad_recibida: { type: integer, minimum: 0 }
+              observacion: { type: string, maxLength: 500 }
+
+    Firma:
+      type: object
+      required: [id, nivel, decision, firmante, rol, organo, huella_sha256, metodo, firmado_en]
+      properties:
+        id: { type: string, format: uuid }
+        nivel: { $ref: '#/components/schemas/NivelFirma' }
+        decision: { type: string, enum: [APROBAR, RECHAZAR] }
+        firmante: { type: string, description: Nombre completo }
+        rol: { $ref: '#/components/schemas/Rol' }
+        organo: { $ref: '#/components/schemas/OrganoResumen' }
+        huella_sha256: { type: string, pattern: '^[0-9a-f]{64}$' }
+        metodo: { type: string, example: ed25519-sha256-v1 }
+        firmado_en: { type: string, format: date-time }
+
+    Acta:
+      type: object
+      required: [id, requerimiento_id, firma, tiene_diferencias, items]
+      properties:
+        id: { type: string, format: uuid }
+        requerimiento_id: { type: string, format: uuid }
+        firma: { $ref: '#/components/schemas/Firma' }
+        tiene_diferencias: { type: boolean }
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/ItemRequerimiento' }
+
+    Verificacion:
+      type: object
+      required: [requerimiento_id, resultado, firmas]
+      properties:
+        requerimiento_id: { type: string, format: uuid }
+        resultado:
+          type: string
+          enum: [INTEGRA, ALTERADA]
+          description: ALTERADA si cualquiera de las firmas no se verifica
+        firmas:
+          type: array
+          items:
+            type: object
+            required: [firma_id, nivel, resultado, firmante, firmado_en]
+            properties:
+              firma_id: { type: string, format: uuid }
+              nivel: { $ref: '#/components/schemas/NivelFirma' }
+              resultado: { type: string, enum: [INTEGRA, ALTERADA] }
+              firmante: { type: string }
+              firmado_en: { type: string, format: date-time }
+
+    EntradaHistorial:
+      type: object
+      required: [accion, estado_nuevo, usuario, rol, organo, ocurrido_en]
+      properties:
+        accion:
+          type: string
+          enum: [CREAR, ENVIAR, ENVIO_BLOQUEADO, FIRMAR, RECHAZAR, ANULAR, DESPACHAR, FIRMAR_ACTA]
+        estado_anterior:
+          oneOf:
+            - $ref: '#/components/schemas/EstadoRequerimiento'
+            - type: 'null'
+        estado_nuevo: { $ref: '#/components/schemas/EstadoRequerimiento' }
+        usuario: { type: string, description: Nombre completo }
+        rol: { $ref: '#/components/schemas/Rol' }
+        organo: { $ref: '#/components/schemas/OrganoResumen' }
+        motivo: { type: [string, 'null'] }
+        ocurrido_en: { type: string, format: date-time }
+
+    Stock:
+      type: object
+      required: [item, cantidad]
+      properties:
+        item: { $ref: '#/components/schemas/Item' }
+        cantidad: { type: integer, minimum: 0 }
