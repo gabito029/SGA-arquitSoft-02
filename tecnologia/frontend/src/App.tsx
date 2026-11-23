@@ -1,14 +1,78 @@
-// Raíz de la interfaz. Las rutas (/ingresar, /bandeja, /solicitudes/...) se configuran en T053
-// (US1); por ahora solo se monta el contexto de sesión.
-import { SesionProveedor } from './auth/SesionContexto';
+// Raíz de la interfaz: sesión, rutas y encabezado. Cada ruta protegida exige sesión y, si
+// corresponde, el rol; el backend vuelve a validar rol y órgano en cada petición.
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import type { ReactNode } from 'react';
+import { RUTA_INGRESO, RutaProtegida } from './auth/RutaProtegida';
+import { SesionProveedor, useSesion } from './auth/SesionContexto';
+import { Bandeja } from './paginas/Bandeja';
+import { DetalleSolicitud } from './paginas/DetalleSolicitud';
+import { InicioSesion, RUTA_BANDEJA } from './paginas/InicioSesion';
+import { NuevaSolicitud } from './paginas/NuevaSolicitud';
+
+function Encabezado() {
+  const { usuario, cerrarSesion } = useSesion();
+  if (!usuario) return null;
+  return (
+    <header className="encabezado">
+      <strong>SGA</strong>
+      <span>
+        {usuario.nombre_completo} · {usuario.organo.codigo}
+      </span>
+      <button type="button" className="boton--secundario" onClick={cerrarSesion}>
+        Cerrar sesión
+      </button>
+    </header>
+  );
+}
+
+function Protegida({ children, soloOficial = false }: { children: ReactNode; soloOficial?: boolean }) {
+  return (
+    <RutaProtegida roles={soloOficial ? ['OFICIAL_LOGISTICA'] : undefined}>{children}</RutaProtegida>
+  );
+}
+
+export function Rutas() {
+  return (
+    <>
+      <Encabezado />
+      <Routes>
+        <Route path={RUTA_INGRESO} element={<InicioSesion />} />
+        <Route
+          path={RUTA_BANDEJA}
+          element={
+            <Protegida>
+              <Bandeja />
+            </Protegida>
+          }
+        />
+        <Route
+          path="/solicitudes/nueva"
+          element={
+            <Protegida soloOficial>
+              <NuevaSolicitud />
+            </Protegida>
+          }
+        />
+        <Route
+          path="/solicitudes/:id"
+          element={
+            <Protegida>
+              <DetalleSolicitud />
+            </Protegida>
+          }
+        />
+        <Route path="*" element={<Navigate to={RUTA_BANDEJA} replace />} />
+      </Routes>
+    </>
+  );
+}
 
 export default function App() {
   return (
     <SesionProveedor>
-      <main className="contenedor">
-        <h1>SGA — Gestión de Almacén</h1>
-        <p>Incremento 001 en construcción.</p>
-      </main>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <Rutas />
+      </BrowserRouter>
     </SesionProveedor>
   );
 }

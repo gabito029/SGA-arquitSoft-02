@@ -114,6 +114,7 @@ def datos_limpios(motor: Engine) -> Iterator[None]:
         # CASCADE vacía también item_requerimiento, historial, firma y acta (claves foráneas).
         conexion.execute(text(f"TRUNCATE {TABLAS_DE_NEGOCIO} RESTART IDENTITY CASCADE"))
         conexion.execute(text("UPDATE usuario SET activo = true WHERE NOT activo"))
+        conexion.execute(text("UPDATE item SET activo = true WHERE NOT activo"))
     _cargar_seeds()
     CACHE_CATALOGO.invalidar()
     yield

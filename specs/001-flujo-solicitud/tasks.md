@@ -134,7 +134,7 @@ del plan de 4 días, y al final está el [calendario por día](#calendario-por-d
 
 ### Tests for User Story 1
 
-- [ ] T042 [P] [US1] Prueba de integración en `tecnologia/backend/tests/integracion/test_registro_envio.py` con los escenarios 1 a 6 de la US1 de `spec.md`:
+- [X] T042 [P] [US1] Prueba de integración en `tecnologia/backend/tests/integracion/test_registro_envio.py` con los escenarios 1 a 6 de la US1 de `spec.md`:
   - Crear y enviar.
   - Guardar en BORRADOR.
   - Sin ítems, cantidad 0 o ítem repetido → 422.
@@ -144,41 +144,41 @@ del plan de 4 días, y al final está el [calendario por día](#calendario-por-d
   - Ítem inactivo → 422.
   - Editar fuera de BORRADOR → 409.
   - La bandeja paginada solo muestra lo de su unidad.
-- [ ] T043 [P] [US1] Prueba Jest en `tecnologia/frontend/tests/logica/validacionSolicitud.test.ts`: al menos un ítem, cantidad entera > 0, sin ítems repetidos, una sola categoría y 5 campos visibles como máximo
+- [X] T043 [P] [US1] Prueba Jest en `tecnologia/frontend/tests/logica/validacionSolicitud.test.ts`: al menos un ítem, cantidad entera > 0, sin ítems repetidos, una sola categoría y 5 campos visibles como máximo
 
 ### Implementation for User Story 1
 
-- [ ] T044 [US1] Definir los puertos en `tecnologia/backend/app/modules/requests/dominio/puertos.py` (`RepositorioRequerimientos`, `ConsultaCatalogo` y `RegistroAuditoria`) e implementarlos en `.../requests/infraestructura/repositorio_postgres.py`:
+- [X] T044 [US1] Definir los puertos en `tecnologia/backend/app/modules/requests/dominio/puertos.py` (`RepositorioRequerimientos`, `ConsultaCatalogo` y `RegistroAuditoria`) e implementarlos en `.../requests/infraestructura/repositorio_postgres.py`:
   - `obtener_para_actualizar` con `SELECT … FOR UPDATE`.
   - `guardar`.
   - `agregar_historial`, según `data-model.md historial_requerimiento.accion` y `historial_requerimiento.motivo`.
   - `listar_paginado`, usando los índices de data-model.md §8.
 
   Registrar los adaptadores en `.../requests/infraestructura/dependencias.py`.
-- [ ] T045 [US1] Implementar la política de acceso en `tecnologia/backend/app/modules/requests/aplicacion/politica_acceso.py`: la visibilidad por rol de data-model.md §7 (lo ajeno responde 404, FR-002 y FR-003) y el cálculo de `acciones_disponibles` para el usuario actual
-- [ ] T046 [US1] Implementar `tecnologia/backend/app/modules/requests/aplicacion/registrar_requerimiento.py`, con las operaciones registrar y editar:
+- [X] T045 [US1] Implementar la política de acceso en `tecnologia/backend/app/modules/requests/aplicacion/politica_acceso.py`: la visibilidad por rol de data-model.md §7 (lo ajeno responde 404, FR-002 y FR-003) y el cálculo de `acciones_disponibles` para el usuario actual
+- [X] T046 [US1] Implementar `tecnologia/backend/app/modules/requests/aplicacion/registrar_requerimiento.py`, con las operaciones registrar y editar:
   - Deduce `data-model.md requerimiento.unidad_id`, `requerimiento.gran_unidad_id` (el padre de la unidad) y `requerimiento.almacen_id` (el de la categoría).
   - Genera `requerimiento.codigo` con el formato `REQ-AAAA-NNNNNN`.
   - Valida que `item_requerimiento.item_id` esté activo y sea de la categoría.
   - Registra `CREAR` en el historial y en la auditoría.
   - Todo en una Unidad de Trabajo (FR-005 a FR-008).
-- [ ] T047 [US1] Implementar `tecnologia/backend/app/modules/requests/aplicacion/enviar_requerimiento.py`:
+- [X] T047 [US1] Implementar `tecnologia/backend/app/modules/requests/aplicacion/enviar_requerimiento.py`:
   - Calcula `data-model.md requerimiento.monto_total`.
   - Consulta `ReglaAprobacion` (T031).
   - Si se exige el COLOGE, registra `ENVIO_BLOQUEADO` con su motivo, confirma la transacción y lanza `RequiereCologe` (409).
   - Si no, pasa a PENDIENTE_VB_UNIDAD con su historial y su auditoría (FR-012).
-- [ ] T048 [US1] Implementar `tecnologia/backend/app/modules/requests/aplicacion/consultar_requerimientos.py`, con la bandeja paginada (`page` y `size` ≤ 50, filtro por `estado`) y el detalle con `acciones_disponibles` (FR-029)
-- [ ] T049 [US1] Implementar `tecnologia/backend/app/modules/requests/presentacion/esquemas.py` y `router.py` con `GET` y `POST /api/v1/requerimientos`, `GET` y `PUT /api/v1/requerimientos/{id}` y `POST /api/v1/requerimientos/{id}/enviar`, según `contracts/openapi.yaml`; y registrarlo en `tecnologia/backend/app/main.py`
-- [ ] T050 [P] [US1] Implementar `tecnologia/frontend/src/logica/validacionSolicitud.ts`, con las reglas que prueba T043
-- [ ] T051 [US1] Implementar `tecnologia/frontend/src/paginas/InicioSesion.tsx`: usuario y contraseña, validación, estado de carga y mensaje ante un 401. Después de entrar, redirige a la bandeja
-- [ ] T052 [US1] Implementar `tecnologia/frontend/src/paginas/NuevaSolicitud.tsx`:
+- [X] T048 [US1] Implementar `tecnologia/backend/app/modules/requests/aplicacion/consultar_requerimientos.py`, con la bandeja paginada (`page` y `size` ≤ 50, filtro por `estado`) y el detalle con `acciones_disponibles` (FR-029)
+- [X] T049 [US1] Implementar `tecnologia/backend/app/modules/requests/presentacion/esquemas.py` y `router.py` con `GET` y `POST /api/v1/requerimientos`, `GET` y `PUT /api/v1/requerimientos/{id}` y `POST /api/v1/requerimientos/{id}/enviar`, según `contracts/openapi.yaml`; y registrarlo en `tecnologia/backend/app/main.py`
+- [X] T050 [P] [US1] Implementar `tecnologia/frontend/src/logica/validacionSolicitud.ts`, con las reglas que prueba T043
+- [X] T051 [US1] Implementar `tecnologia/frontend/src/paginas/InicioSesion.tsx`: usuario y contraseña, validación, estado de carga y mensaje ante un 401. Después de entrar, redirige a la bandeja
+- [X] T052 [US1] Implementar `tecnologia/frontend/src/paginas/NuevaSolicitud.tsx`:
   - Campos: categoría, ítem, cantidad y agregar o quitar ítem; 5 campos como máximo por pantalla.
   - Usa la validación de T050.
   - Botones Guardar y Enviar.
   - Muestra el aviso de COLOGE ante REQUIERE_COLOGE.
   - Muestra el estado de carga mientras espera la respuesta.
-- [ ] T053 [US1] Configurar las rutas en `tecnologia/frontend/src/App.tsx` y `tecnologia/frontend/src/main.tsx` (`/ingresar`, `/bandeja`, `/solicitudes/nueva` y `/solicitudes/:id`) con `RutaProtegida` por rol, y crear una `Bandeja.tsx` mínima, solo una lista con su estado, en `tecnologia/frontend/src/paginas/Bandeja.tsx`
-- [ ] T054 [P] [US1] Pruebas Jest en `tecnologia/frontend/tests/paginas/InicioSesion.test.tsx` y `NuevaSolicitud.test.tsx`, con `fetch` simulado:
+- [X] T053 [US1] Configurar las rutas en `tecnologia/frontend/src/App.tsx` y `tecnologia/frontend/src/main.tsx` (`/ingresar`, `/bandeja`, `/solicitudes/nueva` y `/solicitudes/:id`) con `RutaProtegida` por rol, y crear una `Bandeja.tsx` mínima, solo una lista con su estado, en `tecnologia/frontend/src/paginas/Bandeja.tsx`
+- [X] T054 [P] [US1] Pruebas Jest en `tecnologia/frontend/tests/paginas/InicioSesion.test.tsx` y `NuevaSolicitud.test.tsx`, con `fetch` simulado:
   - Inicio de sesión correcto y erróneo.
   - El envío bloqueado muestra el aviso del COLOGE.
   - Los errores 422 se muestran por campo.

@@ -10,6 +10,7 @@ Quién puede actuar (rol, órgano y jurisdicción) lo valida la capa de aplicaci
 
 import uuid
 from dataclasses import dataclass
+from datetime import datetime
 from decimal import Decimal
 
 from app.modules.catalog.dominio.tipos import Categoria
@@ -241,6 +242,9 @@ class Requerimiento:
     monto_total: Decimal | None = None
     version: int = 1
     niveles_firmados: set[NivelFirma] | None = None
+    # Los fija la persistencia; no intervienen en las transiciones.
+    creado_en: datetime | None = None
+    actualizado_en: datetime | None = None
 
     def __post_init__(self) -> None:
         if self.niveles_firmados is None:

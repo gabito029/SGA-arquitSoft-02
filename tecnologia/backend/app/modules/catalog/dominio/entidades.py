@@ -25,3 +25,11 @@ class Item:
     unidad_medida: str
     valor_unitario: Decimal
     activo: bool
+
+
+@dataclass(frozen=True)
+class Almacen:
+    id: uuid.UUID
+    nombre: str
+    organo_id: uuid.UUID
+    categoria: Categoria

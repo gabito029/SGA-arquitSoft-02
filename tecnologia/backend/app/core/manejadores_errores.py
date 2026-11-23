@@ -51,6 +51,11 @@ def _cuerpo(codigo: str, mensaje: str, detalles: list[dict[str, str]] | None = N
 
 
 def _mensaje_validacion(error: dict[str, Any]) -> str:
+    if error.get("type") == "value_error":
+        # Validadores propios (``raise ValueError("…")``): su mensaje ya está en español.
+        causa = (error.get("ctx") or {}).get("error")
+        if causa is not None and str(causa):
+            return str(causa)
     plantilla = MENSAJES_VALIDACION.get(error.get("type", ""))
     if plantilla is None:
         return "Valor no válido."

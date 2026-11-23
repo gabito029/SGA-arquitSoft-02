@@ -214,6 +214,77 @@ button:disabled {
   color: var(--color-error);
 }
 
+/* --- Encabezado, barras y listas --- */
+.encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px var(--espacio);
+  background: var(--color-superficie);
+  border-bottom: 1px solid var(--color-borde);
+}
+
+.contenedor--angosto {
+  max-width: 420px;
+}
+
+.barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.boton {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.formulario__acciones,
+.lineas {
+  grid-column: 1 / -1;
+}
+
+.formulario__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.lineas ul,
+.lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lineas__fila,
+.lista__fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-borde);
+}
+
+.lineas__fila .campo__error {
+  flex-basis: 100%;
+}
+
+.paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: var(--espacio);
+}
+
 /* --- Escritorio --- */
 @media (min-width: 768px) {
   .contenedor {

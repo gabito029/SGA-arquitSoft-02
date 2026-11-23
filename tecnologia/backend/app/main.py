@@ -10,6 +10,7 @@ from app.core.manejadores_errores import registrar_manejadores
 from app.core.salud import router as router_salud
 from app.modules.catalog.presentacion.router import router as router_catalogo
 from app.modules.identity.presentacion.router import router as router_identidad
+from app.modules.requests.presentacion.router import router as router_requerimientos
 
 DESCRIPCION = (
     "API REST del flujo principal de abastecimiento (incremento 001). Todos los endpoints, "
@@ -29,6 +30,7 @@ def crear_app() -> FastAPI:
     app.include_router(router_salud)
     app.include_router(router_identidad)
     app.include_router(router_catalogo)
+    app.include_router(router_requerimientos)
     return app
 
 

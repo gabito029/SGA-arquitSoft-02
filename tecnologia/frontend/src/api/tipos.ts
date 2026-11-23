@@ -80,8 +80,8 @@ export interface Item {
   valor_unitario: string;
 }
 
+/** La categoría y el almacén los deduce la API a partir de los ítems. */
 export interface RequerimientoEntrada {
-  categoria: Categoria;
   items: { item_id: string; cantidad: number }[];
 }
 
