@@ -6,9 +6,11 @@ info:
     Contrato de la API REST del incremento 001. La implementación (FastAPI) expone esta
     documentación en /docs (Swagger UI) y /openapi.json. Todos los endpoints, salvo /health y
     /api/v1/auth/login, requieren un token JWT en la cabecera Authorization: Bearer.
+    En este incremento el entorno local usa HTTP; HTTPS llega en el incremento 002 junto con el
+    despliegue (desviación temporal DT-02 de la constitución v1.2.0).
 servers:
   - url: http://localhost:8080
-    description: Docker Compose local (Nginx → API)
+    description: Docker Compose local (Nginx → API). Solo HTTP en 001 (DT-02)
   - url: http://localhost:8000
     description: API ejecutada directamente
 
@@ -101,6 +103,9 @@ paths:
     get:
       tags: [Requerimientos]
       summary: Bandeja de requerimientos visibles para el usuario según su rol y órgano (FR-002, FR-029)
+      description: >
+        Aplica la visibilidad por rol de data-model.md §7. Los requerimientos en BORRADOR solo los
+        ven los oficiales de logística de su unidad.
       parameters:
         - name: estado
           in: query
@@ -321,6 +326,11 @@ paths:
     get:
       tags: [Firmas]
       summary: Verificar la integridad de cada firma y del acta (FR-024, FR-025, EQ-02)
+      description: >
+        Reconstruye el contenido canónico de cada firma con los datos actuales y los campos fijos de
+        su nivel (research §3; nunca estado ni version) y responde INTEGRA o ALTERADA. En el
+        incremento 001 es el único medio de verificación; el PDF verificable llega en 002
+        (desviación temporal DT-01 de la constitución v1.2.0).
       responses:
         '200':
           description: Resultado por firma

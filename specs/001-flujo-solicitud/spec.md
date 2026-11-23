@@ -50,7 +50,7 @@ su lista con estado "En visto bueno de la unidad" y su primera entrada en el his
    estado "En visto bueno de la unidad", asociada a U1, y el historial registra el usuario, la
    fecha y hora, el estado anterior (Registrada) y el nuevo.
 2. **Dado** un oficial que registra una solicitud, **Cuando** la guarda sin enviarla, **Entonces**
-   queda en estado "Registrada" y solo él y los usuarios de su unidad la ven.
+   queda en estado "Registrada" y solo la ven los oficiales de logística de su unidad.
 3. **Dado** un formulario de solicitud, **Cuando** el oficial intenta enviarla sin ítems, con
    cantidad cero o negativa, o con un ítem repetido, **Entonces** el envío se rechaza con un
    mensaje que indica el campo y el motivo.
@@ -265,7 +265,9 @@ visible en su lista y en su historial.
 - **FR-002**: El sistema DEBE permitir a cada usuario ver y operar solo lo que corresponde a su
   rol y órgano: el oficial de logística y el comandante, las solicitudes de su unidad; el jefe de
   logística de la División/Brigada, las de las unidades de su jurisdicción; el jefe de almacén y
-  el almacenero, las dirigidas a su almacén desde que llegan a "En aprobación del almacén".
+  el almacenero, las dirigidas a su almacén desde que llegan a "En aprobación del almacén". Una
+  solicitud en "Registrada" solo la ven los oficiales de logística de su unidad; ningún otro rol,
+  ni siquiera el comandante o el auditor, la ve antes del envío.
 - **FR-003**: Ante una acción sin sesión, sin permiso o sobre una solicitud ajena, el sistema DEBE
   rechazarla distinguiendo los tres casos; una solicitud de otra unidad o jurisdicción DEBE
   tratarse como inexistente.
@@ -394,13 +396,16 @@ visible en su lista y en su historial.
 - **SC-005** (Usabilidad, EQ-05): un oficial de logística registra y envía una solicitud desde un
   celular sin ayuda, con 5 campos como máximo, y las pantallas de inicio de sesión, registro y
   bandeja obtienen 80 o más en las auditorías de accesibilidad y buenas prácticas en modo celular.
+  *Se valida en el incremento 002 (Lighthouse); en 001 el formulario ya respeta los 5 campos.*
 - **SC-006** (Trazabilidad, EQ-08): después de recorrer el flujo completo, el 100 % de los pasos
   (envío, visto bueno, conformidad, aprobación, despacho y acta) aparece en la línea de tiempo con
   usuario, órgano, fecha y hora y estado anterior.
 - **SC-007** (Escalabilidad, EQ-09): al duplicar los usuarios simultáneos a 40 y duplicar las
   instancias de la aplicación, el 95 % de las respuestas sigue por debajo de 2 segundos.
+  *Se valida en el incremento 002 (k6); en 001 solo se escribe el script.*
 - **SC-008** (Disponibilidad, EQ-06): si la aplicación se detiene inesperadamente, vuelve a
-  responder sola en menos de 1 minuto.
+  responder sola en menos de 1 minuto. *Se valida en el incremento 002 (`docker kill` y Uptime
+  Kuma); en 001 ya están `restart: always` y `/health`.*
 - **SC-009** (Flujo completo): una solicitud recorre el flujo completo, del registro al acta
   firmada, en menos de 10 minutos de trabajo acumulado de todos los participantes, frente a los
   días que toma hoy con oficios en papel.
@@ -413,7 +418,11 @@ visible en su lista y en su historial.
 - "Comandante/encargado de la División o Brigada" del pedido corresponde al rol **Jefe de
   logística de la Gran Unidad** de `docs/01-analisis-de-sistema/01-actores.md`.
 - La firma digital usa la clave del sistema según ADR-004 y no tiene validez legal plena (RC01);
-  el PDF del acta (RF05) se puede incorporar en un incremento posterior, según la constitución.
+  en este incremento la firma de cada nivel y del acta se verifica con el endpoint de verificación
+  (Íntegra o Alterada), y el PDF verificable de cada firma y del acta (RF05) se implementa
+  obligatoriamente en el incremento 002 (desviación temporal DT-01 de la constitución v1.2.0).
+- En este incremento el entorno local usa HTTP; HTTPS (AC01) se implementa en el incremento 002
+  junto con el despliegue (desviación temporal DT-02 de la constitución v1.2.0).
 - La aprobación del jefe de almacén no reserva stock; el stock se valida y descuenta solo al
   despachar.
 - El auditor existe solo como usuario de prueba con acceso de consulta y verificación; las

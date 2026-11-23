@@ -105,7 +105,10 @@ Los ítems solo pueden cambiar en `BORRADOR`. Después, lo despachado y lo recib
 
 **Protección del acta (FR-023)**: además de la regla del dominio, un disparador rechaza cualquier
 `UPDATE` o `DELETE` sobre `requerimiento` e `item_requerimiento` cuando el requerimiento está en un
-estado final (CONFIRMADA, RECHAZADA o ANULADA). Así, un acta firmada solo se puede alterar
+estado final (CONFIRMADA, RECHAZADA o ANULADA). En `requerimiento` se evalúa `OLD.estado`, para no
+bloquear la propia transición a un estado final; en `item_requerimiento` se mira el estado actual
+del requerimiento padre, por eso el caso de uso del acta escribe los ítems antes de cambiar el
+estado. Así, un acta firmada solo se puede alterar
 desactivando el disparador a propósito, que es lo que hace la prueba de EQ-02, y en ese caso la
 verificación responde ALTERADA.
 
@@ -134,7 +137,7 @@ verificación responde ALTERADA.
 | decision | enum | `APROBAR`, `RECHAZAR` (el acta siempre `APROBAR`) |
 | firmante_id | uuid FK → usuario | |
 | rol, organo_id | copia al momento | |
-| contenido_canonico | text | JSON canónico firmado (research §3) |
+| contenido_canonico | text | JSON canónico firmado, con los campos fijos por nivel de research §3 (nunca `estado` ni `version`) |
 | huella_sha256 | char(64) | hex |
 | firma | text | Ed25519 en base64 |
 | metodo | text | `ed25519-sha256-v1` |
@@ -198,12 +201,14 @@ lee de la configuración (ADR-008); valor por defecto ficticio: 50 000,00.
 
 | Rol | Ve los requerimientos donde… |
 |---|---|
-| OFICIAL_LOGISTICA, COMANDANTE_UNIDAD | `unidad_id = usuario.organo_id` (el comandante no ve los `BORRADOR`) |
+| OFICIAL_LOGISTICA | `unidad_id = usuario.organo_id`, incluidos los `BORRADOR` |
+| COMANDANTE_UNIDAD | `unidad_id = usuario.organo_id` y estado ≠ BORRADOR |
 | JEFE_LOGISTICA_GU | `gran_unidad_id = usuario.organo_id` y estado ≠ BORRADOR |
 | JEFE_ALMACEN, ALMACENERO | `almacen_id = usuario.almacen_id` y estado ∈ {PENDIENTE_APROBACION, APROBADA, EN_TRANSITO, CONFIRMADA} o rechazado en su nivel |
-| AUDITOR | todos, solo lectura y verificación |
+| AUDITOR | todos salvo los `BORRADOR`, solo lectura y verificación |
 
-Fuera de esa regla, la solicitud responde 404.
+Un `BORRADOR` solo lo ven los oficiales de logística de su unidad (FR-002). Fuera de esa regla, la
+solicitud responde 404.
 
 ## 8. Índices para las consultas críticas
 

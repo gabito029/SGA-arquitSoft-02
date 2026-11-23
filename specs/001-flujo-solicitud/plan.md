@@ -27,7 +27,8 @@ compilar el frontend
 `cryptography` (Ed25519), PyJWT, bcrypt · React 18, React Router, Vite
 
 **Storage**: PostgreSQL 16. Caché en memoria del proceso solo para el catálogo, con TTL de 300 s
-(research §7). Los PDF en disco llegan en el incremento 002.
+(research §7). Los PDF en disco llegan en el incremento 002 (desviación temporal DT-01 de la
+constitución v1.2.0).
 
 **Testing**: backend con pytest, pytest + httpx (`TestClient`) contra PostgreSQL real, pytest-cov
 y Ruff. Frontend con **Jest** + React Testing Library (jsdom), con reporte de cobertura, más ESLint
@@ -59,11 +60,11 @@ unos 12 usuarios; 5 pantallas; 19 operaciones REST; 7 de los 8 módulos (Reporte
 | III. Desarrollo incremental | Flujo completo en 001 con la secuencia de 4 días; lo demás va a 002 (ver abajo) | ✅ |
 | IV. API REST documentada | `contracts/openapi.yaml`; FastAPI expone `/docs` y `/openapi.json`; `/health` | ✅ |
 | V. Diseño limpio | Patrones de `docs/` más Strategy en las reglas y la firma, justificados abajo | ✅ |
-| VI. Pruebas con pytest (NO NEGOCIABLE) | Backend: unitarias de dominio, integración con PostgreSQL, cobertura ≥ 60 % en módulos críticos y Ruff. Frontend: Jest con cobertura (agregado; no contradice VI, que regula el backend). Todo en GitHub Actions en push y PR | ✅ |
+| VI. Pruebas automatizadas: pytest en el backend y Jest en el frontend (NO NEGOCIABLE) | Backend: unitarias de dominio, integración con PostgreSQL, cobertura ≥ 60 % en módulos críticos y Ruff. Frontend: Jest con cobertura ≥ 60 % en `src/logica`, `src/auth` y `src/api`. Todo en GitHub Actions en push y PR | ✅ |
 | VII. Atributos de calidad | EQ-01, 02, 03, 07 (parcial) y 08 (adaptado) en 001; EQ-04, 05, 06, 09 y estrés en 002; evidencias en `evidencias/`. La herramienta de carga es k6 en lugar de Locust; las medidas de `docs/` no cambian | ✅ con desviaciones declaradas (DV-03, DV-07) |
 | VIII. Datos y caché | Índices, paginación, transacciones con bloqueo, migraciones Alembic, seeds; caché sin contenedor nuevo | ✅ |
-| IX. Reglas de dominio | Máquina de estados de `docs/`, firma Ed25519 por nivel y acta, auditoría encadenada, nada se borra | ✅ con desviaciones temporales (DV-01, DV-02) |
-| X. Actores y seguridad | JWT, rol y órgano en cada petición; 401/403/404; bcrypt; secretos en `.env` | ✅ (HTTPS en 002, DV-04) |
+| IX. Reglas de dominio | Máquina de estados de `docs/`, firma Ed25519 por nivel y acta, auditoría encadenada, nada se borra. La firma se verifica con el endpoint de verificación (INTEGRA/ALTERADA); el PDF verificable llega en 002 | ✅ con desviaciones temporales (DV-01, DV-02 y DV-09 = DT-01 de la constitución) |
+| X. Actores y seguridad | JWT, rol y órgano en cada petición; 401/403/404; bcrypt; secretos en `.env` | ✅ con desviación temporal (DV-04 = DT-02 de la constitución: HTTP en local, HTTPS en 002) |
 | XI. Español y Conventional Commits | Código, comentarios y documentación en español sin tildes en los nombres | ✅ |
 
 **Conflictos reportados (principio I)**:
@@ -79,13 +80,10 @@ unos 12 usuarios; 5 pantallas; 19 operaciones REST; 7 de los 8 módulos (Reporte
 3. **Jest en el frontend y Postman**: `docs/` no define pruebas del frontend ni una colección de
    API, así que son **ampliaciones**, no contradicciones. Cubren el requisito del entregable de
    "pruebas automatizadas con Jest y reporte de cobertura".
-
-> **Seguimiento de la constitución**: la tabla de conflictos de la constitución v1.0.0 dice
-> "Locust; la prueba de 2 000 usuarios es estrés adicional", y el principio VII nombra Locust para
-> EQ-04 y EQ-09. Esta decisión de la autora la sustituye por k6. Se recomienda enmendarla con
-> `/speckit-constitution` (PATCH a v1.0.1: cambio de herramienta, sin cambio de significado) para
-> que la constitución y el plan no queden desalineados. Hasta entonces, DV-07 deja el cambio
-> justificado y visible.
+4. **PDF verificable y HTTPS**: ADR-004 y RF05 piden la firma con PDF verificable, y AC01 pide
+   HTTPS. Por decisión de la autora (2026-11-22) se posponen al incremento 002 como desviaciones
+   temporales DT-01 y DT-02 de la constitución v1.2.0, con cierre obligatorio en 002 dentro del
+   Sprint 2. Quedan registradas como DV-09 y DV-04.
 
 **Resultado del gate**: aprobado. Las desviaciones están en Complexity Tracking.
 **Re-evaluación tras la Fase 1 y los ajustes**: aprobado. Jest, Postman/Newman y k6 son
@@ -102,7 +100,7 @@ C4. El modelo de datos y el contrato no cambian.
 | `catalog` | Lectura de órganos, almacenes e ítems, con caché | Altas, bajas y cambios (HU11) |
 | `requests` | Registrar, editar, enviar, anular, firmar o rechazar, línea de tiempo, bandejas | — (módulo núcleo) |
 | `rules` | `ReglaAprobacion`: exige COLOGE por material de guerra o monto alto | Aprobación automática (RN04) |
-| `signing` | Huella SHA-256, firma Ed25519, verificación | PDF y `AlmacenDocumentos` (ADR-010) |
+| `signing` | Huella SHA-256, firma Ed25519, verificación por endpoint (INTEGRA/ALTERADA) | PDF y `AlmacenDocumentos` (ADR-010), en 002 por DT-01 |
 | `inventory` | Stock, movimientos, despacho con bloqueo | Salidas propias (HU09), alertas (HU10) |
 | `audit` | Registro encadenado dentro de cada transacción | Verificación de la cadena por el auditor (HU12) |
 | `reports` | — | Panel de control (HU13) |
@@ -293,13 +291,18 @@ del día 4 (pasa a 002).
 
 ## Pendiente para el incremento 002
 
+El incremento 002 forma parte del Sprint 2. Ahí se ejecuta la prueba de estrés de 2 000 VU que
+exige el principio VII, y ahí **deben cerrarse** las desviaciones temporales DT-01 y DT-02 de la
+constitución v1.2.0: el incremento 002 no está terminado mientras sigan abiertas.
+
 - Nivel del COLOGE (HU04, RN03 completa) y aprobación automática (RN04, HU06).
-- PDF de cada firma y del acta (RF05, ADR-010, ReportLab).
+- **Cierre de DT-01**: PDF verificable de cada firma y del acta (RF05, ADR-010, ReportLab).
 - Verificación de la auditoría encadenada por el auditor (HU12, RF11).
 - EQ-04, EQ-05, EQ-06 y EQ-09, más la prueba de estrés de 2 000 usuarios; Uptime Kuma; escalamiento
   con Nginx; la prueba de EQ-07 sobre el cambio de regla; EQ-08 con los 6 pasos.
-- HTTPS (AC01) con certificado local o de un servicio gratuito, y evaluar Redis solo si EQ-04 lo
-  justifica.
+- **Cierre de DT-02**: HTTPS (AC01) junto con el despliegue, con certificado local o de un
+  servicio gratuito.
+- Evaluar Redis solo si EQ-04 lo justifica.
 
 ## Complexity Tracking
 
@@ -308,8 +311,9 @@ del día 4 (pasa a 002).
 | DV-01: las solicitudes que requieren al COLOGE se bloquean al enviarlas (RN03 sin el nivel del COLOGE) | El nivel del COLOGE no entra en la demo de 4 días; la spec (FR-012) y la constitución lo piden así | Permitir el envío saltando al COLOGE rompería RN02; incluir el COLOGE pone en riesgo el plazo |
 | DV-02: la aprobación automática (RN04) se pospone y todas las solicitudes pasan por el jefe de almacén | Simplifica el MVP; agrega un control, no lo quita | Implementarla ahora suma reglas y pruebas sin aportar a la demo |
 | DV-03: EQ-04, 05, 06 y 09 se validan en 002, y EQ-07 y EQ-08 de forma parcial | Una persona en 4 días; primero se prueba la lógica crítica (principio VI) | Correr carga y Lighthouse sin el flujo terminado no valida nada |
-| DV-04: HTTPS (AC01) en 002; en local se usa HTTP | El entorno local de la demo no expone el sistema | Certificados en el día 1 consumen tiempo sin cambiar la lógica |
+| DV-04: HTTPS (AC01) en 002; en local se usa HTTP. Es la desviación temporal **DT-02** de la constitución v1.2.0, con cierre obligatorio en 002 junto con el despliegue | El entorno local de la demo no expone el sistema; el resto de la seguridad del principio X (JWT, rol y órgano, bcrypt, secretos fuera del repositorio) rige desde 001 | Certificados en el día 1 consumen tiempo sin cambiar la lógica |
 | DV-05: Alembic como herramienta de migraciones, que `docs/` no nombra | La constitución (VIII) exige migraciones versionadas; Alembic pertenece al ecosistema SQLAlchemy que fija `docs/` | Crear el esquema con `create_all` impide versionar cambios |
 | DV-06: el código va en `tecnologia/` en lugar de la raíz `backend/` del diseño interno | Lo indica el README; la estructura interna se mantiene idéntica | Mover `backend/` a la raíz contradiría el README sin aportar nada |
-| DV-07: **k6** en lugar de Locust para EQ-04, EQ-09 y el estrés de 2 000 VU (EQ-04 y EQ-09 de `docs/` nombran Locust) | Lo exige explícitamente el entregable del Sprint 2; k6 no depende del lenguaje del backend; tiene rampas `ramping-vus` y umbrales `p(95)` declarativos que coinciden con las medidas de `docs/`. Decisión de la autora del 2026-11-22 | Locust cumple las medidas de `docs/`, pero no el requisito explícito del entregable; usar ambos duplica scripts sin aportar nada. Las medidas de `docs/` no cambian, solo la herramienta |
-| DV-08: **Jest** en el frontend y **Postman/Newman** para la API (`docs/` no los define) | El entregable exige "pruebas automatizadas con Jest y reporte de cobertura"; Postman da una colección del flujo que sirve de prueba de API y de respaldo para la demo | Dejar el frontend sin pruebas no cumple el entregable; usar Jest en el backend contradice ADR-011. Son herramientas de prueba que no agregan componentes al C4 |
+| DV-07: **k6** en lugar de Locust para EQ-04, EQ-09 y el estrés de 2 000 VU (EQ-04 y EQ-09 de `docs/` nombran Locust) | Lo exige explícitamente el entregable del Sprint 2; k6 no depende del lenguaje del backend; tiene rampas `ramping-vus` y umbrales `p(95)` declarativos que coinciden con las medidas de `docs/`. Decisión de la autora del 2026-11-22, registrada en la constitución vigente (v1.2.0; aprobada en v1.1.0, principio VII) | Locust cumple las medidas de `docs/`, pero no el requisito explícito del entregable; usar ambos duplica scripts sin aportar nada. Las medidas de `docs/` no cambian, solo la herramienta |
+| DV-08: **Jest** en el frontend y **Postman/Newman** para la API (`docs/` no los define) | El entregable exige "pruebas automatizadas con Jest y reporte de cobertura"; Postman da una colección del flujo que sirve de prueba de API y de respaldo para la demo. Ampliaciones registradas en la constitución vigente (v1.2.0; aprobadas en v1.1.0, principios VI y VII) | Dejar el frontend sin pruebas no cumple el entregable; usar Jest en el backend contradice ADR-011. Son herramientas de prueba que no agregan componentes al C4 |
+| DV-09: el PDF verificable de cada firma y del acta (RF05, ADR-004, ADR-010) se implementa en 002; en 001 la firma de cada nivel y del acta se verifica con el endpoint de verificación (INTEGRA/ALTERADA). Es la desviación temporal **DT-01** de la constitución v1.2.0, con cierre obligatorio en 002 | La firma Ed25519 sobre la huella SHA-256 se aplica igual en cada nivel y en el acta, y EQ-02 se prueba desde 001 por el endpoint; solo falta el documento PDF | Generar los PDF con ReportLab y `AlmacenDocumentos` en 4 días pone en riesgo el flujo principal sin cambiar la lógica de firma |

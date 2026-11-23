@@ -35,13 +35,23 @@ decide algo, se elige lo más simple que una sola persona pueda construir en 4 d
 - **Rationale**: es el mecanismo de `docs/`; guardar el método permite cambiar a certificados
   acreditados (RC01) sin invalidar firmas viejas. La clave privada llega por variable de entorno
   (principio X); en local se genera con un script.
-- **Contenido firmado**: para cada nivel, el identificador y los ítems de la solicitud, el nivel,
-  la decisión, el firmante (id, rol, órgano) y la fecha y hora. Para el acta, además lo
-  despachado, lo recibido y las observaciones.
+- **Contenido firmado**: los campos son fijos por nivel, para que un cambio legítimo posterior no
+  invalide una firma anterior.
+  - **Visto bueno, conformidad y aprobación** (`VB_UNIDAD`, `CONFORMIDAD_GU`,
+    `APROBACION_ALMACEN`): `id`, `codigo`, `unidad_id` y `categoria` de la solicitud; los ítems
+    como lista de `item_id` + `cantidad_solicitada`, ordenada por `item_id`; y el nivel, la
+    decisión, el firmante (id, rol, órgano) y la fecha y hora.
+  - **Acta de recepción** (`ACTA_RECEPCION`): lo anterior y, por ítem, `cantidad_despachada`,
+    `cantidad_recibida` y `observacion`.
+  - **Nunca se firman** `estado` ni `version`, que cambian en cada transición. Tampoco las
+    cantidades despachadas o recibidas en los niveles previos al acta: así, después del despacho y
+    del acta, las firmas anteriores siguen dando INTEGRA (lo prueba T075).
 - **Verificación**: se recalcula la huella con los datos **actuales** de la base de datos y se
   comprueba la firma; si cualquiera de las dos falla, el resultado es ALTERADA (EQ-02).
-- **PDF (RF05)**: se pospone al incremento 002 (ReportLab + `AlmacenDocumentos` en disco,
-  ADR-010), como permite la constitución.
+- **PDF (RF05)**: en 001 la firma de cada nivel y del acta se verifica con el endpoint de
+  verificación (INTEGRA/ALTERADA). El PDF verificable (ReportLab + `AlmacenDocumentos` en disco,
+  ADR-010) se implementa en el incremento 002, dentro del Sprint 2. Es la desviación temporal
+  DT-01 de la constitución v1.2.0 (DV-09 del plan), con cierre obligatorio en 002.
 - **Alternatives considered**: solo SHA-256 sin firma (contradice ADR-004); HMAC (no es firma
   asimétrica y no permite verificar con clave pública).
 
@@ -91,7 +101,9 @@ decide algo, se elige lo más simple que una sola persona pueda construir en 4 d
   - **Invalidación**: por TTL, y además al reiniciar el proceso, que es lo que pasa cuando se
     recargan los seeds. Cuando llegue la gestión del catálogo (HU11, otro incremento), cada
     escritura del catálogo borrará la entrada correspondiente.
-  - **Medición**: en 002, EQ-04 se corre con y sin la caché del catálogo y se comparan los p95.
+  - **Medición**: EQ-04 se corre con y sin la caché del catálogo y se comparan los p95. La caché
+    se desactiva con la variable `CATALOGO_CACHE_ACTIVA=false`. En 001 es la corrida de
+    referencia opcional (T092); la validación formal es en 002.
 - **Rationale**: con 20–40 usuarios el cuello de botella no es el catálogo. Una caché en memoria
   de datos que casi no cambian es segura aunque haya varias instancias: como mucho, cada una
   queda desactualizada durante el TTL.

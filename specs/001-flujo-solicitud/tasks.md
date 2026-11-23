@@ -11,7 +11,7 @@ description: "Lista de tareas del incremento 001 — flujo principal de abasteci
 [data-model.md](data-model.md), [contracts/openapi.yaml](contracts/openapi.yaml),
 [quickstart.md](quickstart.md)
 
-**Tests**: obligatorias por la constitución v1.1.0 (principios VI y VII): pytest + httpx en el
+**Tests**: obligatorias por la constitución v1.2.0 (principios VI y VII): pytest + httpx en el
 backend, Jest en el frontend y k6 para la carga. Cada prueba está junto a la funcionalidad que
 valida.
 
@@ -37,9 +37,9 @@ del plan de 4 días, y al final está el [calendario por día](#calendario-por-d
 
 **Purpose**: estructura del repositorio, herramientas y entorno reproducible.
 
-- [ ] T001 Crear la estructura de `plan.md` → Project Structure: `tecnologia/backend/app/core/`, `tecnologia/backend/app/modules/{identity,catalog,requests,rules,signing,inventory,audit}/{dominio,aplicacion,infraestructura,presentacion}/` (cada una con `__init__.py`), `tecnologia/backend/tests/{unitarias,integracion}/`, `tecnologia/backend/{migrations,seeds,scripts}/`, `tecnologia/pruebas/{postman,k6}/` y `evidencias/EQ-01/` … `evidencias/EQ-09/`, cada una con `.gitkeep`
+- [ ] T001 Crear la estructura de `plan.md` → Project Structure: `tecnologia/backend/app/core/`, `tecnologia/backend/app/modules/{identity,catalog,requests,rules,signing,inventory,audit}/{dominio,aplicacion,infraestructura,presentacion}/` (cada una con `__init__.py`), `tecnologia/backend/tests/{unitarias,integracion}/`, `tecnologia/backend/{migrations,seeds,scripts}/`, `tecnologia/pruebas/{postman,k6}/` `evidencias/EQ-01/` … `evidencias/EQ-09/` y `evidencias/SC-009/`, cada una con `.gitkeep`
 - [ ] T002 Crear `tecnologia/backend/pyproject.toml` con Python 3.12; dependencias FastAPI, uvicorn, Pydantic v2, pydantic-settings, SQLAlchemy 2.0, Alembic, psycopg[binary] 3, cryptography, PyJWT y bcrypt; extras `dev` con pytest, httpx, pytest-cov y Ruff; configuración de Ruff, `[tool.pytest.ini_options]` y `[tool.coverage]` con `source` en `app/modules/{requests,rules,signing,inventory}` y `fail_under = 60`
-- [ ] T003 [P] Crear `tecnologia/.env.example` con `DATABASE_URL`, `DATABASE_URL_TEST`, `JWT_SECRETO`, `JWT_MINUTOS=60`, `FIRMA_CLAVE_PRIVADA`, `FIRMA_CLAVE_ID`, `UMBRAL_MONTO_ALTO=50000` y `CONTRASENA_DEMO`, todas sin valores secretos, y agregar `.env`, `htmlcov/`, `coverage/`, `.coverage` y `node_modules/` al `.gitignore` de la raíz
+- [ ] T003 [P] Crear `tecnologia/.env.example` con `DATABASE_URL`, `DATABASE_URL_TEST`, `JWT_SECRETO`, `JWT_MINUTOS=60`, `FIRMA_CLAVE_PRIVADA`, `FIRMA_CLAVE_ID`, `UMBRAL_MONTO_ALTO=50000`, `CATALOGO_CACHE_ACTIVA=true` y `CONTRASENA_DEMO`, todas sin valores secretos, y agregar `.env`, `htmlcov/`, `coverage/`, `.coverage` y `node_modules/` al `.gitignore` de la raíz
 - [ ] T004 [P] Crear `tecnologia/backend/Dockerfile` (python:3.12-slim, instala el paquete y arranca `uvicorn app.main:app --host 0.0.0.0 --port 8000`)
 - [ ] T005 [P] Crear el frontend React 18 + TypeScript + Vite en `tecnologia/frontend/`: `package.json` con los scripts `dev`, `build`, `lint`, `test` y `test:cov`, `tsconfig.json`, `vite.config.ts` con proxy de `/api` a `http://localhost:8000`, configuración de ESLint y dependencia de React Router
 - [ ] T006 [P] Configurar Jest en `tecnologia/frontend/jest.config.ts`: ts-jest, `testEnvironment: jsdom`, `setupFilesAfterEnv` → `tests/setup.ts` con `@testing-library/jest-dom`, `moduleNameMapper` para `src/config.ts` y para CSS con `identity-obj-proxy`, y `coverageThreshold` global de 60 % sobre `src/logica`, `src/auth` y `src/api` (research §12). Crear `tecnologia/frontend/src/config.ts`, que es la única lectura de `import.meta.env`, con su primera prueba en `tecnologia/frontend/tests/config.test.ts`
@@ -66,12 +66,12 @@ del plan de 4 días, y al final está el [calendario por día](#calendario-por-d
 - [ ] T014 Configurar Alembic en `tecnologia/backend/alembic.ini` y `tecnologia/backend/migrations/env.py`, tomando `DATABASE_URL` de la configuración y los metadatos de todos los módulos
 - [ ] T015 [P] Crear los modelos de `tecnologia/backend/app/modules/catalog/infraestructura/modelos.py` según `data-model.md organo.codigo`, `organo.tipo`, `organo.padre_id`, `almacen.organo_id`, `almacen.categoria`, `item.codigo`, `item.categoria`, `item.unidad_medida`, `item.valor_unitario` e `item.activo`
 - [ ] T016 [P] Crear el modelo de `tecnologia/backend/app/modules/identity/infraestructura/modelos.py` según `data-model.md usuario.usuario`, `usuario.hash_contrasena`, `usuario.rol`, `usuario.organo_id`, `usuario.almacen_id` y `usuario.activo`
-- [ ] T017 [P] Crear los modelos de `tecnologia/backend/app/modules/inventory/infraestructura/modelos.py` según `data-model.md stock.almacen_id`, `stock.item_id`, `stock.cantidad`, `movimiento.tipo`, `movimiento.cantidad` y `movimiento.requerimiento_id`
-- [ ] T018 [P] Crear los modelos de `tecnologia/backend/app/modules/requests/infraestructura/modelos.py` según `data-model.md requerimiento.codigo`, `requerimiento.unidad_id`, `requerimiento.gran_unidad_id`, `requerimiento.almacen_id`, `requerimiento.categoria`, `requerimiento.estado`, `requerimiento.monto_total`, `requerimiento.version`, `item_requerimiento.item_id`, `item_requerimiento.cantidad_solicitada`, `item_requerimiento.cantidad_despachada`, `item_requerimiento.cantidad_recibida`, `item_requerimiento.observacion`, `historial_requerimiento.accion`, `historial_requerimiento.estado_anterior`, `historial_requerimiento.estado_nuevo` e `historial_requerimiento.motivo`
-- [ ] T019 [P] Crear los modelos de `tecnologia/backend/app/modules/signing/infraestructura/modelos.py` según `data-model.md firma.nivel`, `firma.decision`, `firma.contenido_canonico`, `firma.huella_sha256`, `firma.firma`, `firma.metodo`, `firma.clave_id` y `acta_recepcion.requerimiento_id`, incluida la restricción única `(requerimiento_id, nivel)`
-- [ ] T020 [P] Crear el modelo de `tecnologia/backend/app/modules/audit/infraestructura/modelos.py` según `data-model.md registro_auditoria.huella_anterior` y `registro_auditoria.huella`
-- [ ] T021 Crear la migración `tecnologia/backend/migrations/versions/0001_esquema_inicial.py`: todas las tablas y enums de T015–T020, las restricciones `CHECK`, `UNIQUE` y `FK` de data-model.md, y los índices de data-model.md §8
-- [ ] T022 Crear la migración `tecnologia/backend/migrations/versions/0002_inmutabilidad.py`. Agrega disparadores que rechacen `UPDATE` y `DELETE` sobre `firma`, `acta_recepcion`, `movimiento`, `historial_requerimiento` y `registro_auditoria`, y sobre `requerimiento` e `item_requerimiento` cuando `data-model.md requerimiento.estado` es final (CONFIRMADA, RECHAZADA o ANULADA), según data-model.md §4 → *Protección del acta*
+- [ ] T017 [P] Crear los modelos de `tecnologia/backend/app/modules/inventory/infraestructura/modelos.py` según `data-model.md stock.almacen_id`, `stock.item_id`, `stock.cantidad`, `movimiento.almacen_id`, `movimiento.item_id`, `movimiento.tipo`, `movimiento.cantidad`, `movimiento.requerimiento_id` y `movimiento.usuario_id`
+- [ ] T018 [P] Crear los modelos de `tecnologia/backend/app/modules/requests/infraestructura/modelos.py` según `data-model.md requerimiento.codigo`, `requerimiento.unidad_id`, `requerimiento.gran_unidad_id`, `requerimiento.almacen_id`, `requerimiento.categoria`, `requerimiento.estado`, `requerimiento.monto_total`, `requerimiento.creado_por`, `requerimiento.version`, `item_requerimiento.item_id`, `item_requerimiento.cantidad_solicitada`, `item_requerimiento.cantidad_despachada`, `item_requerimiento.cantidad_recibida`, `item_requerimiento.observacion`, `historial_requerimiento.accion`, `historial_requerimiento.estado_anterior`, `historial_requerimiento.estado_nuevo`, `historial_requerimiento.usuario_id`, `historial_requerimiento.rol` (enum `Rol`), `historial_requerimiento.organo_id` e `historial_requerimiento.motivo`
+- [ ] T019 [P] Crear los modelos de `tecnologia/backend/app/modules/signing/infraestructura/modelos.py` según `data-model.md firma.nivel`, `firma.decision`, `firma.firmante_id`, `firma.rol` (enum `Rol`), `firma.organo_id`, `firma.contenido_canonico`, `firma.huella_sha256`, `firma.firma`, `firma.metodo`, `firma.clave_id`, `firma.firmado_en`, `acta_recepcion.requerimiento_id`, `acta_recepcion.firma_id` y `acta_recepcion.tiene_diferencias`, incluida la restricción única `(requerimiento_id, nivel)`
+- [ ] T020 [P] Crear el modelo de `tecnologia/backend/app/modules/audit/infraestructura/modelos.py` según `data-model.md registro_auditoria.tipo_evento`, `registro_auditoria.entidad`, `registro_auditoria.entidad_id`, `registro_auditoria.usuario_id`, `registro_auditoria.rol`, `registro_auditoria.organo_id`, `registro_auditoria.datos`, `registro_auditoria.huella_anterior` y `registro_auditoria.huella`
+- [ ] T021 Crear la migración `tecnologia/backend/migrations/versions/0001_esquema_inicial.py`: todas las tablas y enums de T015–T020, las restricciones `CHECK`, `UNIQUE` y `FK` de data-model.md, y los índices de data-model.md §8. Incluye las FK de `data-model.md movimiento.almacen_id`, `movimiento.item_id`, `movimiento.usuario_id`, `requerimiento.creado_por`, `historial_requerimiento.usuario_id`, `historial_requerimiento.organo_id`, `firma.firmante_id`, `firma.organo_id` y `acta_recepcion.firma_id` (apunta a una firma de nivel ACTA_RECEPCION, que también valida T076), y el enum `Rol` en `historial_requerimiento.rol`, `firma.rol` y `registro_auditoria.rol`
+- [ ] T022 Crear la migración `tecnologia/backend/migrations/versions/0002_inmutabilidad.py`. Agrega disparadores que rechacen `UPDATE` y `DELETE` sobre `firma`, `acta_recepcion`, `movimiento`, `historial_requerimiento` y `registro_auditoria`, y sobre `requerimiento` e `item_requerimiento` cuando `data-model.md requerimiento.estado` es final (CONFIRMADA, RECHAZADA o ANULADA), según data-model.md §4 → *Protección del acta*. En `requerimiento`, el disparador evalúa **`OLD.estado`**, no `NEW.estado`, para no bloquear la propia transición a un estado final. En `item_requerimiento`, consulta el estado actual del requerimiento padre; por eso T076 escribe los ítems antes de cambiar el estado
 - [ ] T023 Implementar `tecnologia/backend/seeds/cargar.py`, idempotente, según data-model.md §9: órganos, almacenes, ítems con valor unitario, stock inicial como movimientos `ENTRADA` y usuarios con los nombres de `quickstart.md` §3. La contraseña sale de `CONTRASENA_DEMO`, con hash bcrypt
 - [ ] T024 [P] Implementar `tecnologia/backend/scripts/generar_clave_firma.py`: genera un par Ed25519 e imprime `FIRMA_CLAVE_PRIVADA` (PEM en base64) y `FIRMA_CLAVE_ID`
 
@@ -79,7 +79,7 @@ del plan de 4 días, y al final está el [calendario por día](#calendario-por-d
 
 - [ ] T025 Implementar la seguridad en `tecnologia/backend/app/core/seguridad.py`: crear y decodificar el JWT con `sub`, `rol` y `organo_id` (HS256, `JWT_MINUTOS`), la dependencia `usuario_actual` (401 si falta el token o es inválido) y `requiere_rol(*roles)` (403), según research §4
 - [ ] T026 Implementar el inicio de sesión: `tecnologia/backend/app/modules/identity/dominio/rol.py` (enum según `data-model.md usuario.rol`), `.../identity/aplicacion/iniciar_sesion.py` (verifica bcrypt y rechaza a los usuarios inactivos) y `.../identity/presentacion/router.py` con `POST /api/v1/auth/login` y `GET /api/v1/auth/me`, según `contracts/openapi.yaml`
-- [ ] T027 [P] Implementar el catálogo: `tecnologia/backend/app/modules/catalog/aplicacion/consultar_catalogo.py` (ítems activos por categoría y estructura orgánica, con caché en memoria con TTL de 300 s, research §7) y `.../catalog/presentacion/router.py` con `GET /api/v1/catalogo/items` y la cabecera `Cache-Control: private, max-age=300`
+- [ ] T027 [P] Implementar el catálogo: `tecnologia/backend/app/modules/catalog/aplicacion/consultar_catalogo.py` (ítems activos por categoría y estructura orgánica, con caché en memoria con TTL de 300 s que se desactiva con `CATALOGO_CACHE_ACTIVA=false`, research §7) y `.../catalog/presentacion/router.py` con `GET /api/v1/catalogo/items` y la cabecera `Cache-Control: private, max-age=300`
 - [ ] T028 Implementar la auditoría encadenada: `tecnologia/backend/app/modules/audit/dominio/puertos.py` (`RegistroAuditoria`) y `.../audit/infraestructura/registro_encadenado.py`, que toma `pg_advisory_xact_lock`, lee la última huella y calcula `data-model.md registro_auditoria.huella` a partir de `registro_auditoria.huella_anterior` y el JSON canónico, dentro de la transacción de quien lo llama (research §6)
 - [ ] T029 Implementar `/health` en `tecnologia/backend/app/core/salud.py`, que hace `SELECT 1` y responde `base_datos` OK o ERROR, y la raíz de composición en `tecnologia/backend/app/main.py`: registra los routers, los manejadores de errores y el título y la versión de OpenAPI, para que Swagger quede disponible en `/docs`
 
@@ -100,7 +100,7 @@ del plan de 4 días, y al final está el [calendario por día](#calendario-por-d
 - [ ] T033 [P] Prueba unitaria en `tecnologia/backend/tests/unitarias/test_regla_aprobacion.py`: intendencia bajo el umbral no exige COLOGE; material de guerra sí; intendencia en el umbral exacto o por encima sí
 - [ ] T034 Crear `tecnologia/backend/tests/integracion/conftest.py` con estos fixtures:
   - Base de datos de prueba (`DATABASE_URL_TEST`) con `alembic upgrade head` y seeds.
-  - `TRUNCATE` de las tablas de negocio entre pruebas, desactivando los disparadores solo dentro del fixture.
+  - `TRUNCATE … CASCADE` de las tablas de negocio entre pruebas, por las claves foráneas. No hace falta desactivar los disparadores, porque `TRUNCATE` no activa los disparadores por fila de `UPDATE` y `DELETE`.
   - `TestClient` de httpx.
   - `login(usuario)`, que devuelve las cabeceras con el token.
   - El firmador real con una clave generada en memoria.
@@ -172,7 +172,7 @@ del plan de 4 días, y al final está el [calendario por día](#calendario-por-d
 - [ ] T050 [P] [US1] Implementar `tecnologia/frontend/src/logica/validacionSolicitud.ts`, con las reglas que prueba T043
 - [ ] T051 [US1] Implementar `tecnologia/frontend/src/paginas/InicioSesion.tsx`: usuario y contraseña, validación, estado de carga y mensaje ante un 401. Después de entrar, redirige a la bandeja
 - [ ] T052 [US1] Implementar `tecnologia/frontend/src/paginas/NuevaSolicitud.tsx`:
-  - Campos: categoría, ítem, cantidad, agregar o quitar ítem y observación opcional; 5 campos como máximo por pantalla.
+  - Campos: categoría, ítem, cantidad y agregar o quitar ítem; 5 campos como máximo por pantalla.
   - Usa la validación de T050.
   - Botones Guardar y Enviar.
   - Muestra el aviso de COLOGE ante REQUIERE_COLOGE.
@@ -209,10 +209,12 @@ del plan de 4 días, y al final está el [calendario por día](#calendario-por-d
   - Rechazo sin motivo → 422; con motivo → RECHAZADA, y después ninguna acción más.
   - Doble firma → 409 NIVEL_YA_FIRMADO.
   - Dos firmas concurrentes en dos hilos → una sola se registra y la otra recibe 409 ESTADO_CAMBIADO.
-- [ ] T057 [US2] Prueba de integración EQ-01 en `tecnologia/backend/tests/integracion/test_eq01_control_acceso.py`, organizada como una matriz parametrizada:
-  - Cada rol intenta cada acción que no le corresponde (enviar, firmar en cada nivel, despachar y firmar el acta) y espera 403 o 409.
+- [ ] T057 [US2] Prueba de integración EQ-01, parte de envío y firmas (Día 2), en `tecnologia/backend/tests/integracion/test_eq01_control_acceso.py`. Es una matriz parametrizada que T098 amplía el Día 3 con el despacho y el acta:
+  - Cada rol intenta cada acción que no le corresponde entre enviar y firmar o rechazar en cada nivel (VB_UNIDAD, CONFORMIDAD_GU y APROBACION_ALMACEN) y espera 403 o 409.
   - Sin token, espera 401.
   - Cada rol consulta una solicitud de otra unidad o jurisdicción y espera 404.
+  - Un BORRADOR solo lo ven los oficiales de logística de su unidad: el comandante, el jefe de la Gran Unidad, el almacén y el auditor reciben 404 (data-model.md §7).
+  - Un usuario sin unidad o sin jurisdicción, creado en el fixture (por ejemplo, un JEFE_ALMACEN sin `almacen_id` o un COMANDANTE_UNIDAD cuyo órgano no es una UNIDAD), recibe una bandeja vacía y 404 en cualquier solicitud (caso límite de `spec.md`).
   - Debe cumplirse en el 100 % de los casos.
   - El resumen se guarda en `evidencias/EQ-01/`.
 
@@ -220,7 +222,12 @@ del plan de 4 días, y al final está el [calendario por día](#calendario-por-d
 
 - [ ] T058 [US2] Implementar `tecnologia/backend/app/modules/signing/dominio/contenido_canonico.py` (JSON ordenado y compacto en UTF-8, y huella SHA-256 hexadecimal, research §3) y `.../signing/dominio/puertos.py` (`FirmadorDocumentos`: `firmar(bytes)` y `verificar(bytes, firma, clave_id)`)
 - [ ] T059 [P] [US2] Implementar `tecnologia/backend/app/modules/signing/infraestructura/firmador_ed25519.py` con la librería `cryptography`. La clave sale de `FIRMA_CLAVE_PRIVADA` y el `metodo` es `ed25519-sha256-v1`. Agregar `tecnologia/backend/tests/firmador_falso.py`, un doble de prueba que cumple el mismo puerto (Liskov)
-- [ ] T060 [US2] Implementar `tecnologia/backend/app/modules/signing/aplicacion/servicio_firma.py`. La operación `firmar_nivel` construye el contenido canónico (solicitud, ítems, nivel, decisión, firmante, rol, órgano y fecha y hora), firma y guarda según `data-model.md firma.nivel`, `firma.decision`, `firma.huella_sha256`, `firma.metodo` y `firma.clave_id`, dentro de la Unidad de Trabajo de quien la llama
+- [ ] T060 [US2] Implementar `tecnologia/backend/app/modules/signing/aplicacion/servicio_firma.py`. La operación `firmar_nivel` construye el contenido canónico con los campos fijos de research §3:
+  - En VB_UNIDAD, CONFORMIDAD_GU y APROBACION_ALMACEN: `id`, `codigo`, `unidad_id` y `categoria` de la solicitud; los ítems con `item_id` y `cantidad_solicitada`; y el nivel, la decisión, el firmante, su rol, su órgano y la fecha y hora.
+  - En ACTA_RECEPCION, además, por ítem: `cantidad_despachada`, `cantidad_recibida` y `observacion`.
+  - **Nunca** se firman `estado` ni `version`, para que el despacho y el acta no invaliden las firmas anteriores.
+
+  Después firma y guarda según `data-model.md firma.nivel`, `firma.decision`, `firma.huella_sha256`, `firma.metodo` y `firma.clave_id`, dentro de la Unidad de Trabajo de quien la llama
 - [ ] T061 [US2] Implementar `tecnologia/backend/app/modules/requests/aplicacion/firmar_requerimiento.py`, en una sola Unidad de Trabajo:
   - Bloquea la solicitud y comprueba la jurisdicción con la política de T045.
   - Deduce el nivel a partir del estado: PENDIENTE_VB_UNIDAD da VB_UNIDAD, PENDIENTE_CONFORMIDAD da CONFORMIDAD_GU y PENDIENTE_APROBACION da APROBACION_ALMACEN.
@@ -297,16 +304,17 @@ del plan de 4 días, y al final está el [calendario por día](#calendario-por-d
   - Hacer `UPDATE` sobre el acta o sus ítems en la base de datos es rechazado por el disparador.
   - Firmar algo que no está EN_TRANSITO → 409.
   - La verificación responde INTEGRA, con el firmante y la fecha.
-- [ ] T075 [P] [US4] Prueba de integración EQ-02 en `tecnologia/backend/tests/integracion/test_eq02_integridad.py`. Para cada campo firmado (cantidad recibida, cantidad solicitada, firmante y fecha), desactiva el disparador dentro de la prueba, altera el dato en la base de datos y comprueba que `/verificacion` responde ALTERADA en el 100 % de los casos. El resumen se guarda en `evidencias/EQ-02/`
+- [ ] T075 [P] [US4] Prueba de integración EQ-02 en `tecnologia/backend/tests/integracion/test_eq02_integridad.py`. Para cada campo firmado (cantidad recibida, cantidad solicitada, firmante y fecha), desactiva el disparador dentro de la prueba, altera el dato en la base de datos y comprueba que `/verificacion` responde ALTERADA en el 100 % de los casos. Incluye el caso contrario, para descartar falsos positivos: después del despacho (EN_TRANSITO) y otra vez después del acta (CONFIRMADA), las firmas VB_UNIDAD, CONFORMIDAD_GU y APROBACION_ALMACEN siguen dando INTEGRA. El resumen se guarda en `evidencias/EQ-02/`
+- [ ] T098 [US4] Ampliar la matriz EQ-01 de T057 en `tecnologia/backend/tests/integracion/test_eq01_control_acceso.py` con despachar y firmar el acta (Día 3, cuando ya existen T070 y T078). Cada rol al que no le corresponde la acción espera 403 o 409, y un ALMACENERO de otro almacén o un OFICIAL_LOGISTICA de otra unidad espera 404. Actualiza el resumen de `evidencias/EQ-01/`
 
 ### Implementation for User Story 4
 
-- [ ] T076 [US4] Implementar `tecnologia/backend/app/modules/requests/aplicacion/confirmar_recepcion.py`. Solo actúa el OFICIAL_LOGISTICA de `data-model.md requerimiento.unidad_id`, con la solicitud EN_TRANSITO. En una sola transacción:
-  - Registra `item_requerimiento.cantidad_recibida` e `item_requerimiento.observacion`.
-  - Firma el nivel ACTA_RECEPCION con el contenido canónico, que incluye lo despachado, lo recibido y las observaciones (T060).
-  - Crea el acta según `data-model.md acta_recepcion.requerimiento_id` y `acta_recepcion.tiene_diferencias`.
-  - Pasa a CONFIRMADA y registra el historial y la auditoría.
-- [ ] T077 [US4] Implementar `tecnologia/backend/app/modules/signing/aplicacion/verificar_requerimiento.py`. Para cada firma, reconstruye el contenido canónico con los datos **actuales** de la base de datos, recalcula la huella y verifica la firma según `metodo`. Devuelve INTEGRA o ALTERADA por firma y el resultado global (FR-024, FR-025)
+- [ ] T076 [US4] Implementar `tecnologia/backend/app/modules/requests/aplicacion/confirmar_recepcion.py`. Solo actúa el OFICIAL_LOGISTICA de `data-model.md requerimiento.unidad_id`, con la solicitud EN_TRANSITO. Todo va en una sola transacción y **en este orden**, primero los ítems y luego el estado, porque el disparador de T022 bloquea los ítems cuando el requerimiento ya está en un estado final:
+  1. Registra `item_requerimiento.cantidad_recibida` e `item_requerimiento.observacion`.
+  2. Firma el nivel ACTA_RECEPCION con el contenido canónico del acta de research §3, que agrega lo despachado, lo recibido y las observaciones (T060).
+  3. Crea el acta según `data-model.md acta_recepcion.requerimiento_id`, `acta_recepcion.firma_id` (la firma del paso 2) y `acta_recepcion.tiene_diferencias`.
+  4. Por último, pasa a CONFIRMADA y registra el historial y la auditoría.
+- [ ] T077 [US4] Implementar `tecnologia/backend/app/modules/signing/aplicacion/verificar_requerimiento.py`. Para cada firma, reconstruye el contenido canónico con los datos **actuales** de la base de datos y con los mismos campos que usa T060 para ese nivel (research §3: sin `estado` ni `version`, y con lo despachado, lo recibido y las observaciones solo en ACTA_RECEPCION). Luego recalcula la huella y verifica la firma según `metodo`. Devuelve INTEGRA o ALTERADA por firma y el resultado global (FR-024, FR-025)
 - [ ] T078 [US4] Agregar `POST` y `GET /api/v1/requerimientos/{id}/acta` y `GET /api/v1/requerimientos/{id}/verificacion` en `tecnologia/backend/app/modules/requests/presentacion/router.py`, según `contracts/openapi.yaml`. El AUDITOR puede consultar y verificar
 - [ ] T079 [US4] Agregar en `tecnologia/frontend/src/paginas/DetalleSolicitud.tsx` el formulario **Firmar acta** (cantidad recibida y observación por ítem, resaltando las diferencias) y el botón **Verificar**, que muestra Íntegra o Alterada por firma junto con el firmante y la fecha (Día 4)
 - [ ] T080 [P] [US4] Prueba Jest en `tecnologia/frontend/tests/paginas/Acta.test.tsx`: las diferencias se resaltan; el resultado ALTERADA se muestra como alerta; INTEGRA se muestra como éxito (Día 4)
@@ -376,11 +384,11 @@ del plan de 4 días, y al final está el [calendario por día](#calendario-por-d
   - 20 VU constantes durante 5 min, con la mezcla 60 % `GET /requerimientos`, 30 % `GET /requerimientos/{id}` y 10 % `POST /requerimientos`.
   - `setup()` inicia sesión.
   - Los umbrales son `http_req_duration: ['p(95)<2000']` y `http_req_failed: ['rate<0.01']` (research §11).
-- [ ] T092 Ejecutar una corrida de referencia de T091 con `k6 run --summary-export evidencias/EQ-04/k6-resumen-001.json` contra Docker Compose. Es opcional en 001: si falta tiempo, pasa a 002
-- [ ] T093 [P] Crear `tecnologia/pruebas/k6/eq09_escalabilidad.js` (40 VU, misma mezcla) y `tecnologia/pruebas/k6/estres_2000.js` (`ramping-vus` con escalones 50 → 200 → 500 → 1 000 → 2 000 VU, registrando p95, tasa de errores y punto de quiebre). Solo se escriben los scripts; se ejecutan en el incremento 002
+- [ ] T092 Ejecutar una corrida de referencia de T091 con `k6 run --summary-export evidencias/EQ-04/k6-resumen-001.json` contra Docker Compose. Repetirla con `CATALOGO_CACHE_ACTIVA=false` y guardar `evidencias/EQ-04/k6-resumen-001-sin-cache.json`, para comparar los p95 con y sin caché (principio VIII). Es opcional en 001: si falta tiempo, pasa a 002
+- [ ] T093 [P] Crear `tecnologia/pruebas/k6/eq09_escalabilidad.js` (40 VU, misma mezcla) y `tecnologia/pruebas/k6/estres_2000.js` (`ramping-vus` con escalones 50 → 200 → 500 → 1 000 → 2 000 VU, registrando p95, tasa de errores y punto de quiebre). Solo se escriben los scripts; se ejecutan en el incremento 002, que forma parte del Sprint 2 y es donde se cumple el estrés obligatorio del principio VII
 - [ ] T094 Comprobar la cobertura: pytest ≥ 60 % en `requests`, `rules`, `signing` e `inventory`, Jest ≥ 60 % en `src/logica`, `src/auth` y `src/api`, y 0 errores de Ruff y ESLint. Copiar los reportes (`htmlcov/`, `coverage/lcov-report/`) a `evidencias/EQ-07/`
 - [ ] T095 [P] Revisar el diseño responsive y la accesibilidad básica en `tecnologia/frontend/src/estilos.css` y en las páginas: etiquetas en todos los campos, foco visible, contraste y vista en un ancho de 360 px. La medición formal con Lighthouse queda para 002 (EQ-05)
-- [ ] T096 Ensayar de principio a fin la demo de `specs/001-flujo-solicitud/quickstart.md` (pasos 1 a 10), con la ruta de respaldo por Swagger (`/docs`) y Postman, y corregir lo que falle
+- [ ] T096 Ensayar de principio a fin la demo de `specs/001-flujo-solicitud/quickstart.md` (pasos 1 a 10), con la ruta de respaldo por Swagger (`/docs`) y Postman, y corregir lo que falle. Cronometrar el trabajo acumulado del flujo completo, del registro al acta firmada (SC-009: menos de 10 min), y guardar el tiempo de cada paso en `evidencias/SC-009/`
 - [ ] T097 [P] Actualizar la sección "Estado del proyecto" y agregar "Cómo ejecutar" en `README.md`, con un enlace a `quickstart.md`. `docs/` no se modifica
 
 ---
@@ -395,7 +403,7 @@ del plan de 4 días, y al final está el [calendario por día](#calendario-por-d
   - **US1** no depende de ninguna otra historia.
   - **US2** necesita solicitudes enviadas (US1, o los fixtures de la prueba).
   - **US3** necesita una solicitud en PENDIENTE_APROBACION. Usa `firmar_requerimiento` de US2 para el nivel del almacén.
-  - **US4** necesita una solicitud EN_TRANSITO (US3) y el servicio de firma de US2.
+  - **US4** necesita una solicitud EN_TRANSITO (US3) y el servicio de firma de US2. T098 amplía la matriz de T057 (US2) con los endpoints de US3 y US4.
   - **US5** solo lee el historial, que se escribe desde Foundational. Su prueba EQ-08 necesita US1 a US4.
   - **US6** solo depende de US1.
 - **Polish (Fase 9)**: depende de US1 a US4. Postman y k6 necesitan el flujo completo.
@@ -412,7 +420,7 @@ del plan de 4 días, y al final está el [calendario por día](#calendario-por-d
 - **Foundational**: los modelos T015 a T020; T024; T027; T031, T032 y T033 junto con T030; el frontend base (T036, T037, T039, T040 y T041) junto con el backend.
 - **US1**: T042 y T043 (pruebas), y T050 mientras se hacen T044 a T049.
 - **US2**: T055, T056 y T059, y T065 junto con T063 y T064.
-- **US3 y US4**: T066, T067, T074 y T075 se pueden escribir a la vez. T072 es independiente de T071.
+- **US3 y US4**: T066, T067, T074 y T075 se pueden escribir a la vez; T098 va después de T057. T072 es independiente de T071.
 - **Polish**: T089, T091, T093, T095 y T097.
 
 ---
@@ -436,10 +444,10 @@ Task: "T068 Servicio de despacho en tecnologia/backend/app/modules/inventory/apl
 
 | Día | Backend | Frontend | Pruebas | Demostrable al final del día |
 |---|---|---|---|---|
-| **1 (lunes)** | T001–T004, T008, T010–T031, T034 | T005–T007 | T009 (CI), T032, T033, T035, T006 (Jest base) | Inicio de sesión y catálogo por Swagger; CI en verde |
-| **2 (martes)** | T044–T049, T058–T062 | T036–T039, T050–T054 | T040–T043, T054, T055–T057 (EQ-01) | Registrar y enviar desde la web; firmar por Swagger |
-| **3 (miércoles)** | T066–T070, T074–T078, T083 | T063–T065, T084 | T066, T067 (EQ-03), T074, T075 (EQ-02), T081 (EQ-08), T082 | Todo el conducto regular desde la web; **flujo completo por API** |
-| **4 (jueves, demo)** | T087, correcciones | T071–T073, T079–T080, T086, T088 | T073, T080, T085, T086, T089–T094 (Postman, k6, cobertura) | **Flujo completo desde la web**; quickstart ensayado (T096); evidencias |
+| **1 (lunes)** | T001–T004, T008, T010–T031, T034 | T005–T007 (incluye la base de Jest) | T009 (CI), T032, T033, T035 | Inicio de sesión y catálogo por Swagger; CI en verde |
+| **2 (martes)** | T044–T049, T058–T062 | T036–T039, T050–T053 | T040–T043, T054, T055–T057 (EQ-01, envío y firmas) | Registrar y enviar desde la web; firmar por Swagger |
+| **3 (miércoles)** | T068–T070, T076–T078, T083 | T063, T064, T084 | T065, T066, T067 (EQ-03), T074, T075 (EQ-02), T098 (EQ-01, despacho y acta), T081 (EQ-08), T082 | Todo el conducto regular desde la web; **flujo completo por API** |
+| **4 (jueves, demo)** | T087, correcciones | T071, T072, T079, T088, T095 | T073, T080, T085, T086, T089–T094 (Postman, k6, cobertura) | **Flujo completo desde la web**; quickstart ensayado (T096); evidencias |
 
 **Ruta crítica para el jueves**: T001–T035 → T044–T049 → T058–T062 → T068–T070 → T076–T078. Con
 esto el **flujo completo es demostrable por Swagger desde el Día 3**, y el frontend del Día 4 es
@@ -471,6 +479,8 @@ mostrar al cerrar cualquier día.
 
 ### Pendiente para el incremento 002 (fuera de este tasks.md)
 
-Nivel del COLOGE y aprobación automática; PDF de las firmas; verificación de la cadena por el
-auditor; ejecución de k6 para EQ-04 (formal), EQ-09 y estrés de 2 000 VU; Lighthouse (EQ-05);
-Uptime Kuma y `docker kill` (EQ-06); prueba de cambio de regla de EQ-07; HTTPS.
+Nivel del COLOGE y aprobación automática; verificación de la cadena por el auditor; ejecución de
+k6 para EQ-04 (formal), EQ-09 y estrés de 2 000 VU; Lighthouse (EQ-05); Uptime Kuma y
+`docker kill` (EQ-06); prueba de cambio de regla de EQ-07. El incremento 002 forma parte del
+Sprint 2 y **debe cerrar** las dos desviaciones temporales de la constitución v1.2.0: el PDF
+verificable de cada firma y del acta (DT-01) y HTTPS junto con el despliegue (DT-02).
