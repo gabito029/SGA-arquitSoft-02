@@ -1,26 +1,28 @@
 <!--
 Informe de impacto de sincronización (Sync Impact Report)
-- Cambio de versión: 1.0.0 → 1.1.0 (MINOR).
-  Motivo: se amplía materialmente la guía de pruebas. Se agrega una obligación nueva (pruebas del
-  frontend con Jest y cobertura) y una herramienta nueva (Postman/Newman), y se cambia la
-  herramienta de carga (Locust → k6) sin cambiar las medidas de `docs/`. Ningún principio se
-  elimina ni se redefine de forma incompatible; por eso no es MAJOR, y por la obligación nueva no
-  es PATCH.
+- Cambio de versión: 1.1.0 → 1.2.0 (MINOR).
+  Motivo: se aprueban dos desviaciones temporales que cambian materialmente cómo se cumplen los
+  principios IX y X en el incremento 001, con una obligación nueva de cierre en el incremento 002.
+  No es MAJOR porque ningún principio se elimina ni se redefine (la meta final no cambia), ni PATCH
+  porque cambia lo que se acepta como cumplimiento en 001.
 - Enmienda por decisión de la autora (2026-11-22). `docs/` no se modifica.
 - Principios modificados:
-  I. Fidelidad a la arquitectura documentada: se agrega que las desviaciones aprobadas por la
-     autora quedan registradas en "Conflictos con docs/ y su resolución".
-  VI. Pruebas automatizadas con pytest (NO NEGOCIABLE) → VI. Pruebas automatizadas: pytest en el
-      backend y Jest en el frontend (NO NEGOCIABLE). Se agrega Jest con cobertura en CI.
-  VII. Validación de atributos de calidad: k6 en lugar de Locust (EQ-04, EQ-09), la prueba de
-       estrés de 2 000 VU pasa de PUEDE a DEBE, y se agrega Postman/Newman para la API.
-- Secciones modificadas: "Conflictos con docs/ y su resolución" (cambia la fila de carga y se
-  agregan las filas de Jest y Postman).
+  IX. Reglas de dominio: se remite a la desviación temporal DT-01 (en 001 la firma de cada nivel y
+      del acta se verifica con el endpoint de verificación, INTEGRA/ALTERADA; el PDF verificable
+      llega en 002).
+  X. Actores y seguridad: se remite a la desviación temporal DT-02 (HTTP en el entorno local de
+     001; HTTPS en 002 junto con el despliegue).
+- Secciones modificadas: "Conflictos con docs/ y su resolución" (dos filas nuevas y el apartado
+  "Desviaciones temporales del incremento 001"); "Flujo de desarrollo y puertas de calidad" (el
+  incremento 002 no termina sin cerrar DT-01 y DT-02).
 - Secciones añadidas: ninguna. Secciones eliminadas: ninguna.
 - Plantillas dependientes: no se modifican; leen la constitución en tiempo de ejecución.
-- Artefactos afectados: specs/001-flujo-solicitud/plan.md es coherente en su contenido. Conviene
-  actualizar la etiqueta del principio VI, la nota "Seguimiento de la constitución" y la redacción
-  de DV-07 y DV-08 (ver el resumen de la enmienda).
+- Artefactos afectados: specs/001-flujo-solicitud/plan.md ya declara HTTPS como DV-04 (conviene
+  enlazarla a DT-02) y lista el PDF en "Pendiente para el incremento 002", pero no lo declara como
+  desviación en Complexity Tracking: conviene agregar una fila que lo enlace a DT-01. Revisar en
+  spec.md la frase "el PDF del acta (RF05) se puede incorporar en un incremento posterior", que
+  ahora es obligatorio en 002.
+- Por revisar: EQ-02 de docs/ dice "ALTERADO"; specs/ y DT-01 usan "ALTERADA". Falta decidir el valor.
 - Pendientes: ninguno con marcador TODO.
 -->
 
@@ -180,7 +182,8 @@ diseño de los datos, no solo del código.
   **Ed25519** usando la clave del sistema, en cada nivel y en el acta, con PDF verificable. El
   acta de recepción la firma el **oficial de logística de la unidad**; una vez firmada es
   **inmutable** y la verificación DEBE responder ALTERADO ante cualquier cambio (EQ-02). La
-  criptografía se usa desde la librería `cryptography`, nunca programada a mano.
+  criptografía se usa desde la librería `cryptography`, nunca programada a mano. En el incremento
+  001 rige la desviación temporal DT-01 (sin PDF; ver "Conflictos con docs/ y su resolución").
 - **Alcance:** solo **intendencia** y **material de guerra**; fuera quedan compras, presupuesto,
   pagos y el SIGA MEF (RC12).
 
@@ -196,7 +199,9 @@ sistema.
   (ADR-006). El acceso se controla por rol y por órgano en el backend, en cada petición, con
   mínimo privilegio: sin sesión 401, sin permiso 403, recurso de otra unidad 404 (EQ-01).
 - Las contraseñas DEBEN guardarse con hash seguro y la comunicación DEBE ser por HTTPS (AC01).
-  Credenciales, claves de firma y secretos NO PUEDEN versionarse; se usan variables de entorno.
+  En el incremento 001 rige la desviación temporal DT-02 (HTTP solo en el entorno local; ver
+  "Conflictos con docs/ y su resolución"). Credenciales, claves de firma y secretos NO PUEDEN
+  versionarse; se usan variables de entorno.
 
 **Justificación:** la información logística militar es sensible y cada decisión tiene un
 responsable identificable.
@@ -224,6 +229,8 @@ indicadas, se resuelven a favor de `docs/` según el principio I (decisiones de 
 | Pruebas del frontend con Jest y cobertura (entregable del Sprint 2) | `docs/` no define pruebas del frontend; el backend usa pytest (ADR-011) | **Ampliación aprobada (v1.1.0)**: Jest solo en el frontend; el backend sigue con pytest (VI) |
 | Pruebas de la API con Postman | `docs/` usa pytest + httpx para la API (EQ-01, EQ-08) | **Ampliación aprobada (v1.1.0)**: colección Postman/Newman como complemento; pytest sigue siendo el criterio (VII) |
 | Firma del MVP como hash SHA-256 solo | SHA-256 + Ed25519 con PDF verificable (ADR-004) | Ed25519 desde el MVP (IX) |
+| Firma del incremento 001 verificada sin PDF | SHA-256 + Ed25519 con PDF verificable (ADR-004, RF05, ADR-010) | **Desviación temporal aprobada DT-01 (v1.2.0)**: en 001 la firma de cada nivel y del acta se verifica con el endpoint de verificación (INTEGRA/ALTERADA); el PDF verificable se implementa en 002 (IX) |
+| Entorno local del incremento 001 por HTTP | Comunicación por HTTPS (AC01) | **Desviación temporal aprobada DT-02 (v1.2.0)**: en 001 el entorno local usa HTTP; HTTPS se implementa en 002 junto con el despliegue (X) |
 | MVP: solicitud → División/Brigada → despacho → acta | Ningún nivel puede omitirse (RN02): incluye comandante y jefe de almacén | El MVP incluye esos niveles (ver abajo) |
 | Estrategia de caché obligatoria | Sin caché en la arquitectura | El plan la propone y reporta cualquier componente nuevo (VIII) |
 | Código en `tecnologia/` (README) | Estructura `backend/app/modules/...` (diseño interno) | Se respeta la estructura interna de `docs/`; su ubicación en el repositorio se fija en el plan |
@@ -236,6 +243,21 @@ las solicitudes que requieran autorización del COLOGE en lugar de omitir ese ni
 riesgo pasan por la aprobación manual del jefe de almacén. Ambas son desviaciones temporales que el
 plan del MVP DEBE declarar.
 
+**Desviaciones temporales del incremento 001 (DT-01 y DT-02):** son válidas solo en el incremento
+001 y su cierre es **obligatorio en el incremento 002, dentro del Sprint 2**. No PUEDEN prorrogarse
+a un incremento posterior sin una nueva enmienda. Mientras rijan:
+
+- **DT-01 (principio IX):** la firma Ed25519 sobre la huella SHA-256 se aplica igual en cada nivel
+  y en el acta; solo falta el PDF. El endpoint de verificación DEBE responder INTEGRA o ALTERADA y
+  sus pruebas (incluido el documento alterado, EQ-02) son obligatorias desde 001. En 002 se genera
+  el PDF verificable de cada firma y del acta (RF05, ADR-010).
+- **DT-02 (principio X / AC01):** HTTP se admite solo en el entorno local de desarrollo y de la
+  demo; ningún despliegue fuera de ese entorno PUEDE usar HTTP. Las demás medidas de seguridad del
+  principio X (JWT, control por rol y órgano, hash de contraseñas, secretos fuera del repositorio)
+  rigen desde 001. En 002 se configura HTTPS junto con el despliegue.
+- El plan y las tareas de 001 DEBEN declarar ambas desviaciones, y el plan de 002 DEBE incluir las
+  tareas que las cierran.
+
 ## Flujo de desarrollo y puertas de calidad
 
 - Por cada incremento: `/speckit-specify` → `/speckit-clarify` (si hay ambigüedades) →
@@ -246,6 +268,8 @@ plan del MVP DEBE declarar.
 - Un incremento está terminado cuando: cumple su especificación, el flujo principal sigue
   funcionando, el pipeline de GitHub Actions está en verde (VI), los escenarios de calidad que
   afecta tienen prueba y evidencia (VII) y los cambios están en commits convencionales (XI).
+- El incremento 002 no está terminado mientras sigan abiertas las desviaciones temporales DT-01
+  (PDF verificable) y DT-02 (HTTPS).
 
 ## Governance
 
@@ -256,7 +280,7 @@ plan del MVP DEBE declarar.
   enmendarse en consecuencia.
 - **Procedimiento de enmienda:** toda modificación se hace con `/speckit-constitution`, describe
   el cambio y su motivo, actualiza la versión y la fecha de última enmienda, y se registra en un
-  commit `docs:` propio (por ejemplo, `docs: enmendar constitución a v1.1.0 (...)`). Las
+  commit `docs:` propio (por ejemplo, `docs: enmendar constitución a v1.2.0 (...)`). Las
   especificaciones y planes afectados DEBEN revisarse.
 - **Versionado semántico:**
   - **MAJOR**: se elimina o redefine un principio de forma incompatible con el trabajo previo.
@@ -265,4 +289,4 @@ plan del MVP DEBE declarar.
 - **Revisión de cumplimiento:** cada plan y cada cierre de incremento verifican el cumplimiento de
   los principios; los incumplimientos se corrigen o se justifican explícitamente.
 
-**Version**: 1.1.0 | **Ratified**: 2026-11-22 | **Last Amended**: 2026-11-22
+**Version**: 1.2.0 | **Ratified**: 2026-11-22 | **Last Amended**: 2026-11-22
