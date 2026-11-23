@@ -10,8 +10,9 @@ const config: Config = {
   },
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   moduleNameMapper: {
-    // src/config.ts usa import.meta.env, que Jest (CommonJS) no entiende.
-    '^(\\.{1,2}/)+(src/)?config$': '<rootDir>/tests/mocks/config.ts',
+    // src/config.ts usa import.meta.env, que Jest (CommonJS) no entiende. Se importa siempre
+    // con el alias exclusivo "@/config" para no chocar con el "../config" interno de librerías.
+    '^@/config$': '<rootDir>/tests/mocks/config.ts',
     '\\.(css)$': 'identity-obj-proxy',
   },
   collectCoverageFrom: [

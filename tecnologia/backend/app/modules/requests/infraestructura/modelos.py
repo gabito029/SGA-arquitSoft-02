@@ -58,9 +58,7 @@ class RequerimientoModelo(Base):
     )
     monto_total: Mapped[Decimal | None] = mapped_column(Numeric(14, 2))
     creado_por: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("usuario.id"))
-    creado_en: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    creado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     actualizado_en: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -101,9 +99,7 @@ class HistorialRequerimientoModelo(Base):
             name="motivo_obligatorio",
         ),
         # data-model.md §8: línea de tiempo.
-        Index(
-            "ix_historial_requerimiento_linea_tiempo", "requerimiento_id", "ocurrido_en"
-        ),
+        Index("ix_historial_requerimiento_linea_tiempo", "requerimiento_id", "ocurrido_en"),
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)

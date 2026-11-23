@@ -15,6 +15,7 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,
+    "paths": { "@/config": ["./src/config.ts"] },
     "types": ["vite/client", "jest", "@testing-library/jest-dom", "node"]
   },
   "include": ["src", "tests", "vite.config.ts", "jest.config.ts"]

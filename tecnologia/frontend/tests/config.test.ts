@@ -1,5 +1,5 @@
 import { leerConfig } from '../src/leerConfig';
-import { config } from '../src/config';
+import { config } from '@/config';
 
 describe('leerConfig', () => {
   it('usa /api/v1 cuando no hay VITE_API_URL', () => {

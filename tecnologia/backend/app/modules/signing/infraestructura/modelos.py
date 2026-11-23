@@ -47,9 +47,7 @@ class FirmaModelo(Base):
     firma: Mapped[str] = mapped_column(Text)
     metodo: Mapped[str] = mapped_column(Text)
     clave_id: Mapped[str] = mapped_column(Text)
-    firmado_en: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    firmado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class ActaRecepcionModelo(Base):
@@ -65,6 +63,4 @@ class ActaRecepcionModelo(Base):
     # Apunta a la firma de nivel ACTA_RECEPCION; el caso de uso del acta (T076) lo valida.
     firma_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("firma.id"), unique=True)
     tiene_diferencias: Mapped[bool] = mapped_column(Boolean)
-    creado_en: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    creado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

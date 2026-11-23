@@ -16,10 +16,14 @@ RUN mkdir -p app seeds && touch app/__init__.py seeds/__init__.py \
 
 # Código, migraciones y seeds (alembic y "python -m seeds.cargar" se ejecutan desde /app).
 COPY . .
-RUN pip install --no-deps .
+RUN pip install --no-deps . \
+    && sed -i 's/\r$//' docker-entrypoint.sh \
+    && chmod +x docker-entrypoint.sh
 
 RUN useradd --create-home --uid 1000 sga
 USER sga
 
 EXPOSE 8000
+# Aplica las migraciones y los seeds antes de arrancar la API.
+ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

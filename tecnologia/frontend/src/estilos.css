@@ -1,9 +1,226 @@
-/* Estilos base del SGA. Se completan en T039. */
+/* Estilos del SGA: primero para celular, con un solo punto de corte (768 px). */
+
+:root {
+  --color-fondo: #f5f6f4;
+  --color-superficie: #ffffff;
+  --color-texto: #1d2420;
+  --color-texto-suave: #4a554e;
+  --color-borde: #c6ccc7;
+  --color-primario: #2f5d3a;
+  --color-primario-oscuro: #224529;
+  --color-foco: #1a5fb4;
+  --color-error: #a4161a;
+  --color-error-fondo: #fdecec;
+  --color-exito: #1e6b34;
+  --color-exito-fondo: #e7f5ea;
+  --color-aviso: #7a4b00;
+  --color-aviso-fondo: #fff4dc;
+  --color-en-curso: #1f4e79;
+  --color-en-curso-fondo: #e6eef7;
+  --radio: 6px;
+  --espacio: 16px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
-  font-family: system-ui, sans-serif;
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
 }
 
 .contenedor {
-  padding: 16px;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--espacio);
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+}
+
+/* Foco siempre visible para navegar con teclado. */
+:focus-visible {
+  outline: 3px solid var(--color-foco);
+  outline-offset: 2px;
+}
+
+/* --- Botones --- */
+button,
+.boton {
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1px solid var(--color-primario);
+  border-radius: var(--radio);
+  background: var(--color-primario);
+  color: #ffffff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: var(--color-primario-oscuro);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.boton--secundario {
+  background: var(--color-superficie);
+  color: var(--color-primario);
+}
+
+/* --- Formularios --- */
+.formulario {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  padding: var(--espacio);
+}
+
+.formulario__titulo {
+  margin-top: 0;
+}
+
+.formulario__campos {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.campo {
+  display: grid;
+  gap: 4px;
+}
+
+.campo__etiqueta {
+  font-weight: 600;
+}
+
+.campo input,
+.campo select,
+.campo textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  font: inherit;
+  color: inherit;
+  background: var(--color-superficie);
+}
+
+.campo__error {
+  margin: 0;
+  color: var(--color-error);
+  font-size: 0.9rem;
+}
+
+/* --- Mensajes --- */
+.mensaje {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border-radius: var(--radio);
+  border-left: 4px solid;
+}
+
+.mensaje--error {
+  background: var(--color-error-fondo);
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.mensaje--exito {
+  background: var(--color-exito-fondo);
+  border-color: var(--color-exito);
+  color: var(--color-exito);
+}
+
+.mensaje--aviso {
+  background: var(--color-aviso-fondo);
+  border-color: var(--color-aviso);
+  color: var(--color-aviso);
+}
+
+/* --- Carga --- */
+.cargando {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-texto-suave);
+}
+
+.cargando__indicador {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-borde);
+  border-top-color: var(--color-primario);
+  border-radius: 50%;
+  animation: girar 0.8s linear infinite;
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cargando__indicador {
+    animation: none;
+  }
+}
+
+/* --- Etiquetas de estado --- */
+.estado {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.estado--neutral {
+  background: #eceeec;
+  color: var(--color-texto-suave);
+}
+
+.estado--en-curso {
+  background: var(--color-en-curso-fondo);
+  color: var(--color-en-curso);
+}
+
+.estado--exito {
+  background: var(--color-exito-fondo);
+  color: var(--color-exito);
+}
+
+.estado--alerta {
+  background: var(--color-error-fondo);
+  color: var(--color-error);
+}
+
+/* --- Escritorio --- */
+@media (min-width: 768px) {
+  .contenedor {
+    padding: calc(var(--espacio) * 2);
+  }
+
+  .formulario__campos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
