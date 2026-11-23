@@ -1,0 +1,87 @@
+# Integración continua del SGA (constitución, principio VI; research §10).
+# Un pipeline en rojo bloquea la integración. Los reportes de cobertura se publican como artefactos.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend (Ruff + pytest con cobertura)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tecnologia/backend
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: sga
+          POSTGRES_PASSWORD: sga-ci
+          POSTGRES_DB: sga_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sga -d sga_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # Valores solo para CI; no son secretos reales.
+      DATABASE_URL: postgresql+psycopg://sga:sga-ci@localhost:5432/sga_test
+      DATABASE_URL_TEST: postgresql+psycopg://sga:sga-ci@localhost:5432/sga_test
+      JWT_SECRETO: secreto-solo-para-ci-no-usar-en-produccion
+      JWT_MINUTOS: "60"
+      UMBRAL_MONTO_ALTO: "50000"
+      CONTRASENA_DEMO: demo-ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tecnologia/backend/pyproject.toml
+      - name: Instalar dependencias
+        run: pip install -e ".[dev]"
+      - name: Ruff (lint)
+        run: ruff check .
+      - name: Ruff (formato)
+        run: ruff format --check .
+      - name: Migraciones
+        run: alembic upgrade head
+      - name: pytest con cobertura
+        run: pytest --cov --cov-report=term-missing --cov-report=xml --cov-report=html
+      - name: Publicar cobertura del backend
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura-backend
+          path: |
+            tecnologia/backend/coverage.xml
+            tecnologia/backend/htmlcov/
+
+  frontend:
+    name: Frontend (ESLint + tsc + Jest con cobertura + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tecnologia/frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: tecnologia/frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - run: npm run test:cov
+      - run: npm run build
+      - name: Publicar cobertura del frontend
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura-frontend
+          path: tecnologia/frontend/coverage/

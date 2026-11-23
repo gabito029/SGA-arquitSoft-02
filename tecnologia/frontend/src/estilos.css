@@ -1,0 +1,9 @@
+/* Estilos base del SGA. Se completan en T039. */
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+}
+
+.contenedor {
+  padding: 16px;
+}

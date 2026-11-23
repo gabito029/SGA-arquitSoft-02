@@ -1,0 +1,8 @@
+# Se aplica al build de frontend/Dockerfile (contexto: tecnologia/).
+backend/
+pruebas/
+.env
+.env.*
+**/node_modules/
+frontend/dist/
+frontend/coverage/
