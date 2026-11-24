@@ -1,0 +1,169 @@
+openapi: 3.1.0
+info:
+  title: SGA - incremento 002 (documento firmado y PDF verificable)
+  version: 0.2.0
+  description: >
+    Solo lo nuevo y lo que cambia respecto de specs/001-flujo-solicitud/contracts/openapi.yaml.
+    Todo exige JWT (401 sin sesión); un requerimiento que el usuario no ve responde 404 (EQ-01).
+servers:
+  - url: /api/v1
+security:
+  - bearerAuth: []
+paths:
+  /requerimientos/{id}/firmas:
+    post:
+      summary: Firmar o rechazar el nivel actual (cambia: exige documento_revisado)
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DecisionFirmaEntrada' }
+      responses:
+        '201': { description: Firma registrada (igual que en 001) }
+        '401': { $ref: '#/components/responses/E401' }
+        '403': { $ref: '#/components/responses/E403' }
+        '404': { $ref: '#/components/responses/E404' }
+        '409': { $ref: '#/components/responses/E409' }
+        '422': { description: Falta documento_revisado=true, o falta el motivo de un rechazo }
+  /requerimientos/{id}/documento:
+    get:
+      summary: Documento oficial del requerimiento (FR-001 a FR-004)
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '200':
+          description: Datos del documento, los mismos que imprime el PDF
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Documento' }
+        '401': { $ref: '#/components/responses/E401' }
+        '404': { $ref: '#/components/responses/E404' }
+  /requerimientos/{id}/documento.pdf:
+    get:
+      summary: Descargar el PDF del requerimiento; se emite en la primera descarga tras una firma nueva (FR-008 a FR-013)
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '200':
+          description: El PDF emitido
+          headers:
+            X-Codigo-Verificacion: { schema: { type: string } }
+            Content-Disposition: { schema: { type: string, example: 'attachment; filename="REQ-2026-000001.pdf"' } }
+          content:
+            application/pdf: { schema: { type: string, format: binary } }
+        '401': { $ref: '#/components/responses/E401' }
+        '404': { $ref: '#/components/responses/E404' }
+        '409': { description: Sin firmas todavía, o el archivo guardado no coincide con su huella }
+  /requerimientos/{id}/acta/documento.pdf:
+    get:
+      summary: Descargar el PDF del acta de recepción (FR-014)
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '200':
+          description: El PDF del acta
+          content:
+            application/pdf: { schema: { type: string, format: binary } }
+        '401': { $ref: '#/components/responses/E401' }
+        '404': { description: El requerimiento no existe, no es visible o no tiene acta }
+        '409': { description: El archivo guardado no coincide con su huella }
+  /requerimientos/{id}/acta/documento:
+    get:
+      summary: Documento del acta de recepción (FR-014, US4)
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '200':
+          description: Datos del acta (tipo ACTA), los mismos que imprime su PDF
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Documento' }
+        '401': { $ref: '#/components/responses/E401' }
+        '404': { description: El requerimiento no existe, no es visible o no tiene acta }
+  /documentos/verificacion:
+    post:
+      summary: Verificar un PDF subido (FR-016 a FR-019, EQ-02)
+      requestBody:
+        required: true
+        content:
+          application/pdf: { schema: { type: string, format: binary, maxLength: 5242880 } }
+      responses:
+        '200':
+          description: Resultado de la verificación
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VerificacionPdf' }
+        '401': { $ref: '#/components/responses/E401' }
+        '404': { description: El documento pertenece a un requerimiento que el usuario no ve }
+        '422': { description: Vacío, no es un PDF o supera 5 MB }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+  responses:
+    E401: { description: Sin sesión o token inválido }
+    E403: { description: El rol no puede hacer esta acción }
+    E404: { description: No existe o no pertenece a su jurisdicción }
+    E409: { description: Conflicto de estado }
+  schemas:
+    DecisionFirmaEntrada:
+      type: object
+      required: [decision, documento_revisado]
+      properties:
+        decision: { type: string, enum: [APROBAR, RECHAZAR] }
+        motivo: { type: [string, 'null'], minLength: 5, maxLength: 500 }
+        documento_revisado: { type: boolean, const: true, description: 'He revisado el documento' }
+    Resumen:
+      type: object
+      properties: { id: { type: string, format: uuid }, codigo: { type: string }, nombre: { type: string } }
+    Sello:
+      type: object
+      properties:
+        nivel: { type: string, enum: [VB_UNIDAD, CONFORMIDAD_GU, APROBACION_ALMACEN, ACTA_RECEPCION] }
+        decision: { type: string, enum: [APROBAR, RECHAZAR] }
+        firmante: { type: string }
+        rol: { type: string }
+        organo: { $ref: '#/components/schemas/Resumen' }
+        firmado_en: { type: string, format: date-time }
+        metodo: { type: string }
+        huella_sha256: { type: string }
+        motivo: { type: [string, 'null'] }
+    Documento:
+      type: object
+      properties:
+        tipo: { type: string, enum: [REQUERIMIENTO, ACTA] }
+        codigo: { type: string, example: REQ-2026-000001 }
+        unidad: { $ref: '#/components/schemas/Resumen' }
+        gran_unidad: { $ref: '#/components/schemas/Resumen' }
+        almacen: { $ref: '#/components/schemas/Resumen' }
+        fecha: { type: string, format: date-time }
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              codigo: { type: string }
+              descripcion: { type: string }
+              unidad_medida: { type: string }
+              categoria: { type: string }
+              cantidad_solicitada: { type: integer }
+              cantidad_despachada: { type: [integer, 'null'], description: Solo en ACTA }
+              cantidad_recibida: { type: [integer, 'null'], description: Solo en ACTA }
+              observacion: { type: [string, 'null'], description: Solo en ACTA }
+        tiene_diferencias: { type: [boolean, 'null'], description: Solo en ACTA }
+        sellos: { type: array, items: { $ref: '#/components/schemas/Sello' } }
+        huella_contenido: { type: string }
+        pdf_disponible: { type: boolean }
+    VerificacionPdf:
+      type: object
+      required: [resultado, motivo]
+      properties:
+        resultado: { type: string, enum: [AUTENTICO, ALTERADO] }
+        motivo: { type: string }
+        documento:
+          type: [object, 'null']
+          properties:
+            codigo_verificacion: { type: string }
+            tipo: { type: string, enum: [REQUERIMIENTO, ACTA] }
+            requerimiento_id: { type: string, format: uuid }
+            requerimiento_codigo: { type: string }
+            emitido_en: { type: string, format: date-time }
+            sellos: { type: array, items: { $ref: '#/components/schemas/Sello' } }
