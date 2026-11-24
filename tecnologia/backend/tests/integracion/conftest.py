@@ -35,10 +35,29 @@ def _url_de_pruebas() -> str:
     return url
 
 
+def _clave_en_memoria():
+    """Par Ed25519 generado para esta corrida: las pruebas no dependen de la clave del .env."""
+    import base64
+
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
+    clave = Ed25519PrivateKey.generate()
+    pem = clave.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+    return clave, base64.b64encode(pem).decode("ascii")
+
+
 # La API y Alembic deben usar la base de datos de prueba: se fija antes de importar la app.
 URL_PRUEBAS = _url_de_pruebas()
 os.environ["DATABASE_URL"] = URL_PRUEBAS
 os.environ["CONTRASENA_DEMO"] = CONTRASENA_PRUEBAS
+CLAVE_FIRMA, _PEM_FIRMA = _clave_en_memoria()
+os.environ["FIRMA_CLAVE_PRIVADA"] = _PEM_FIRMA
+os.environ["FIRMA_CLAVE_ID"] = ""  # se deriva de la clave pública
 
 from app.core import base_datos, config  # noqa: E402
 
@@ -144,7 +163,12 @@ def login(cliente) -> Callable[[str], dict[str, str]]:
 
 @pytest.fixture(scope="session")
 def clave_firma():
-    """Par Ed25519 en memoria; el firmador real (T059) lo usará en las pruebas de firma."""
-    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+    """Par Ed25519 en memoria con el que firma la API durante las pruebas (firmador real)."""
+    return CLAVE_FIRMA
 
-    return Ed25519PrivateKey.generate()
+
+@pytest.fixture(scope="session")
+def firmador(clave_firma):
+    from app.modules.signing.infraestructura.firmador_ed25519 import FirmadorEd25519
+
+    return FirmadorEd25519(clave_firma)

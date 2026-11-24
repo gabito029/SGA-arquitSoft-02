@@ -16,6 +16,7 @@ from app.modules.identity.dominio.rol import ROLES_DE_ALMACEN, Rol
 from app.modules.requests.dominio.estado import EstadoRequerimiento
 from app.modules.requests.dominio.puertos import FiltroVisibilidad
 from app.modules.requests.dominio.requerimiento import Requerimiento
+from app.modules.signing.dominio.tipos import NivelFirma
 
 E = EstadoRequerimiento
 
@@ -44,6 +45,13 @@ class Accion(StrEnum):
 ESTADOS_VISIBLES_ALMACEN = frozenset(
     {E.PENDIENTE_APROBACION, E.APROBADA, E.EN_TRANSITO, E.CONFIRMADA}
 )
+
+# Nivel del conducto regular que firma cada rol (data-model.md §6).
+NIVEL_POR_ROL: dict[Rol, NivelFirma] = {
+    Rol.COMANDANTE_UNIDAD: NivelFirma.VB_UNIDAD,
+    Rol.JEFE_LOGISTICA_GU: NivelFirma.CONFORMIDAD_GU,
+    Rol.JEFE_ALMACEN: NivelFirma.APROBACION_ALMACEN,
+}
 
 MENSAJE_NO_ENCONTRADO = "La solicitud no existe o no pertenece a su jurisdicción."
 

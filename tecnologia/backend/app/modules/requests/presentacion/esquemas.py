@@ -7,6 +7,8 @@ from datetime import datetime
 from pydantic import BaseModel, Field, field_validator
 
 from app.modules.catalog.dominio.tipos import Categoria
+from app.modules.identity.dominio.rol import Rol
+from app.modules.requests.aplicacion.consultar_firmas import VistaFirma
 from app.modules.requests.aplicacion.consultar_requerimientos import (
     PaginaVistas,
     Resumen,
@@ -15,6 +17,7 @@ from app.modules.requests.aplicacion.consultar_requerimientos import (
 from app.modules.requests.aplicacion.politica_acceso import Accion
 from app.modules.requests.aplicacion.registrar_requerimiento import LineaEntrada
 from app.modules.requests.dominio.estado import EstadoRequerimiento
+from app.modules.signing.dominio.tipos import DecisionFirma, NivelFirma
 
 # --- Entrada ---
 
@@ -118,6 +121,44 @@ class RequerimientoSalida(BaseModel):
             creado_en=v.creado_en,
             actualizado_en=v.actualizado_en,
             acciones_disponibles=v.acciones_disponibles,
+        )
+
+
+class DecisionFirmaEntrada(BaseModel):
+    decision: DecisionFirma
+    motivo: str | None = Field(
+        default=None,
+        min_length=5,
+        max_length=500,
+        description="Obligatorio cuando decision = RECHAZAR",
+    )
+
+
+class FirmaSalida(BaseModel):
+    id: uuid.UUID
+    nivel: NivelFirma
+    decision: DecisionFirma
+    firmante: str = Field(description="Nombre completo")
+    rol: Rol
+    organo: OrganoResumenSalida
+    huella_sha256: str
+    metodo: str
+    firmado_en: datetime
+
+    @classmethod
+    def desde_vista(cls, v: VistaFirma) -> "FirmaSalida":
+        return cls(
+            id=v.id,
+            nivel=v.nivel,
+            decision=v.decision,
+            firmante=v.firmante,
+            rol=Rol(v.rol),
+            organo=OrganoResumenSalida(
+                id=v.organo.id, codigo=v.organo.codigo, nombre=v.organo.nombre
+            ),
+            huella_sha256=v.huella_sha256,
+            metodo=v.metodo,
+            firmado_en=v.firmado_en,
         )
 
 

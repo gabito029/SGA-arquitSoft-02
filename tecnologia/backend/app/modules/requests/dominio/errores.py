@@ -13,6 +13,14 @@ class NivelYaFirmado(Conflicto):
     mensaje_por_defecto = "Este nivel del conducto regular ya firmó el requerimiento."
 
 
+class EstadoCambiado(Conflicto):
+    codigo_por_defecto = "ESTADO_CAMBIADO"
+    mensaje_por_defecto = (
+        "Otro usuario cambió el requerimiento mientras se procesaba su acción. "
+        "Actualice la página e intente de nuevo."
+    )
+
+
 class RequiereCologe(Conflicto):
     codigo_por_defecto = "REQUIERE_COLOGE"
     mensaje_por_defecto = "Requiere autorización del COLOGE (disponible en un próximo incremento)."

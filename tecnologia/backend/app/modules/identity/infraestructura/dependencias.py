@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.core.seguridad import crear_token
 from app.modules.catalog.aplicacion.consultar_catalogo import ConsultarCatalogo
 from app.modules.catalog.infraestructura.dependencias import construir_consulta_catalogo
+from app.modules.identity.aplicacion.consultar_usuarios import ConsultarUsuarios
 from app.modules.identity.aplicacion.iniciar_sesion import ConsultarPerfil, IniciarSesion
 from app.modules.identity.dominio.usuario import OrganoResumen, Usuario
 from app.modules.identity.infraestructura.hash_bcrypt import HasherBcrypt
@@ -44,6 +45,10 @@ def construir_iniciar_sesion(sesion: Session) -> IniciarSesion:
         organos=ConsultaOrganosCatalogo(construir_consulta_catalogo(sesion)),
         emisor=EmisorTokensJwt(),
     )
+
+
+def construir_consulta_usuarios(sesion: Session) -> ConsultarUsuarios:
+    return ConsultarUsuarios(RepositorioUsuariosPostgres(sesion))
 
 
 def construir_consultar_perfil(sesion: Session) -> ConsultarPerfil:

@@ -15,14 +15,18 @@ from app.modules.audit.infraestructura.dependencias import construir_registro_au
 from app.modules.catalog.aplicacion.consultar_catalogo import ConsultarCatalogo
 from app.modules.catalog.dominio.tipos import Categoria
 from app.modules.catalog.infraestructura.dependencias import construir_consulta_catalogo
+from app.modules.identity.infraestructura.dependencias import construir_consulta_usuarios
+from app.modules.requests.aplicacion.consultar_firmas import ConsultarFirmas
 from app.modules.requests.aplicacion.consultar_requerimientos import ConsultarRequerimientos
 from app.modules.requests.aplicacion.enviar_requerimiento import EnviarRequerimiento
+from app.modules.requests.aplicacion.firmar_requerimiento import FirmarRequerimiento
 from app.modules.requests.aplicacion.registrar_requerimiento import RegistrarRequerimiento
 from app.modules.requests.dominio.puertos import AlmacenResumen, ItemCatalogo, OrganoCatalogo
 from app.modules.requests.infraestructura.repositorio_postgres import (
     RepositorioRequerimientosPostgres,
 )
 from app.modules.rules.dominio.regla_aprobacion import ReglaCologePorCategoriaOMonto
+from app.modules.signing.infraestructura.dependencias import construir_servicio_firma
 
 
 class ConsultaCatalogoServicio:
@@ -86,6 +90,23 @@ def construir_enviar(uow: UnidadTrabajo) -> EnviarRequerimiento:
         regla=ReglaCologePorCategoriaOMonto(obtener_configuracion().umbral_monto_alto),
         auditoria=construir_registro_auditoria(sesion),
         transaccion=uow,
+    )
+
+
+def construir_firmar(sesion: Session) -> FirmarRequerimiento:
+    return FirmarRequerimiento(
+        repositorio=RepositorioRequerimientosPostgres(sesion),
+        firmas=construir_servicio_firma(sesion),
+        auditoria=construir_registro_auditoria(sesion),
+    )
+
+
+def construir_consultar_firmas(sesion: Session) -> ConsultarFirmas:
+    return ConsultarFirmas(
+        repositorio=RepositorioRequerimientosPostgres(sesion),
+        firmas=construir_servicio_firma(sesion),
+        usuarios=construir_consulta_usuarios(sesion),
+        catalogo=_catalogo(sesion),
     )
 
 

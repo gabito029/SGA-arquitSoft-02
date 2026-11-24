@@ -16,10 +16,14 @@ from app.modules.requests.aplicacion.politica_acceso import Actor
 from app.modules.requests.dominio.estado import EstadoRequerimiento
 from app.modules.requests.infraestructura.dependencias import (
     construir_consultar,
+    construir_consultar_firmas,
     construir_enviar,
+    construir_firmar,
     construir_registrar,
 )
 from app.modules.requests.presentacion.esquemas import (
+    DecisionFirmaEntrada,
+    FirmaSalida,
     PaginaRequerimientosSalida,
     RequerimientoEntrada,
     RequerimientoSalida,
@@ -28,14 +32,16 @@ from app.modules.requests.presentacion.esquemas import (
 router = APIRouter(prefix="/api/v1/requerimientos", tags=["Requerimientos"])
 
 solo_oficial = requiere_rol(Rol.OFICIAL_LOGISTICA)
+solo_firmantes = requiere_rol(Rol.COMANDANTE_UNIDAD, Rol.JEFE_LOGISTICA_GU, Rol.JEFE_ALMACEN)
 
 _R401 = {401: {"description": "Sin sesión o token inválido/expirado"}}
 _R403 = {403: {"description": "El rol del usuario no puede realizar esta acción"}}
 _R404 = {404: {"description": "No existe o no pertenece a la jurisdicción del usuario"}}
 _R409 = {
     409: {
-        "description": "Regla de negocio: TRANSICION_NO_PERMITIDA o REQUIERE_COLOGE (envío "
-        "bloqueado; queda ENVIO_BLOQUEADO en el historial)"
+        "description": "Regla de negocio: TRANSICION_NO_PERMITIDA, NIVEL_YA_FIRMADO, "
+        "REQUIERE_COLOGE (envío bloqueado; queda ENVIO_BLOQUEADO en el historial) o "
+        "ESTADO_CAMBIADO (acción concurrente)"
     }
 }
 _R422 = {422: {"description": "Datos de entrada inválidos (indica el campo y el motivo)"}}
@@ -146,5 +152,51 @@ def enviar(
     actor = _actor(usuario)
     with fabrica_uow() as uow:
         construir_enviar(uow).ejecutar(actor, id)
+        vista = construir_consultar(uow.sesion).detalle(actor, id)
+    return RequerimientoSalida.desde_vista(vista)
+
+
+# --- Firmas del conducto regular (US2) ---
+
+
+@router.get(
+    "/{id}/firmas",
+    response_model=list[FirmaSalida],
+    tags=["Firmas"],
+    summary="Firmas registradas del requerimiento",
+    responses={**_R401, **_R404},
+)
+def listar_firmas(
+    id: uuid.UUID,
+    usuario: UsuarioActual = Depends(usuario_actual),
+    fabrica_uow: FabricaUnidadTrabajo = Depends(obtener_fabrica_uow),
+) -> list[FirmaSalida]:
+    with fabrica_uow() as uow:
+        vistas = construir_consultar_firmas(uow.sesion).ejecutar(_actor(usuario), id)
+    return [FirmaSalida.desde_vista(v) for v in vistas]
+
+
+@router.post(
+    "/{id}/firmas",
+    response_model=RequerimientoSalida,
+    status_code=status.HTTP_201_CREATED,
+    tags=["Firmas"],
+    summary="Firmar (aprobar) o rechazar en el nivel actual del conducto regular "
+    "(HU03, HU05, RF03, RF05)",
+    description="El nivel se deduce del estado actual; el rol y el órgano del usuario deben "
+    "corresponder a ese nivel. Rechazar exige motivo. Un nivel que ya firmó responde 409 "
+    "NIVEL_YA_FIRMADO; un estado que no corresponde, 409 TRANSICION_NO_PERMITIDA; y una acción "
+    "concurrente que llegó tarde, 409 ESTADO_CAMBIADO.",
+    responses={**_R401, **_R403, **_R404, **_R409, **_R422},
+)
+def firmar(
+    id: uuid.UUID,
+    entrada: DecisionFirmaEntrada,
+    usuario: UsuarioActual = Depends(solo_firmantes),
+    fabrica_uow: FabricaUnidadTrabajo = Depends(obtener_fabrica_uow),
+) -> RequerimientoSalida:
+    actor = _actor(usuario)
+    with fabrica_uow() as uow:
+        construir_firmar(uow.sesion).ejecutar(actor, id, entrada.decision, entrada.motivo)
         vista = construir_consultar(uow.sesion).detalle(actor, id)
     return RequerimientoSalida.desde_vista(vista)

@@ -286,6 +286,23 @@ button:disabled {
 }
 
 /* --- Escritorio --- */
+/* Diálogo de motivo (rechazar, anular) y resumen de pendientes en la bandeja. */
+.dialogo {
+  margin: var(--espacio) 0;
+  padding: var(--espacio);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  background: var(--color-superficie);
+}
+
+.dialogo h3 {
+  margin-top: 0;
+}
+
+.pendiente {
+  font-size: 0.875rem;
+  color: var(--color-en-curso);
+}
 @media (min-width: 768px) {
   .contenedor {
     padding: calc(var(--espacio) * 2);

@@ -1,5 +1,5 @@
 // Etiquetas de los estados en la interfaz (tabla "Estados de la solicitud" de spec.md).
-import type { EstadoRequerimiento } from '../api/tipos';
+import type { EstadoRequerimiento, NivelFirma, Rol } from '../api/tipos';
 
 export const ETIQUETAS_ESTADO: Record<EstadoRequerimiento, string> = {
   BORRADOR: 'Registrada',
@@ -45,4 +45,32 @@ export function tonoEstado(estado: EstadoRequerimiento): TonoEstado {
 
 export function esEstadoFinal(estado: EstadoRequerimiento): boolean {
   return ESTADOS_FINALES.has(estado);
+}
+
+export const ETIQUETAS_NIVEL: Record<NivelFirma, string> = {
+  VB_UNIDAD: 'Visto bueno de la unidad',
+  CONFORMIDAD_GU: 'Conformidad de la División/Brigada',
+  APROBACION_ALMACEN: 'Aprobación del almacén',
+  ACTA_RECEPCION: 'Acta de recepción',
+};
+
+const ESTADOS_DE_ALMACEN: EstadoRequerimiento[] = [
+  'PENDIENTE_APROBACION',
+  'APROBADA',
+  'EN_TRANSITO',
+  'CONFIRMADA',
+  'RECHAZADA',
+];
+
+/**
+ * Estados por los que cada rol puede filtrar su bandeja (data-model.md §7): solo los oficiales
+ * ven los borradores y el almacén ve lo que llega a su nivel. No se ofrece el estado del COLOGE,
+ * que no se alcanza en este incremento.
+ */
+export function estadosFiltrables(rol: Rol | undefined): EstadoRequerimiento[] {
+  if (rol === 'JEFE_ALMACEN' || rol === 'ALMACENERO') return ESTADOS_DE_ALMACEN;
+  const todos = (Object.keys(ETIQUETAS_ESTADO) as EstadoRequerimiento[]).filter(
+    (e) => e !== 'PENDIENTE_AUTORIZACION_COLOGE',
+  );
+  return rol === 'OFICIAL_LOGISTICA' ? todos : todos.filter((e) => e !== 'BORRADOR');
 }

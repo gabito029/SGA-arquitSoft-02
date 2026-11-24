@@ -14,3 +14,8 @@ class NivelFirma(StrEnum):
 class DecisionFirma(StrEnum):
     APROBAR = "APROBAR"
     RECHAZAR = "RECHAZAR"
+
+
+class ResultadoVerificacion(StrEnum):
+    INTEGRA = "INTEGRA"
+    ALTERADA = "ALTERADA"

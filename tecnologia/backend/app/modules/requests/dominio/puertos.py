@@ -13,12 +13,17 @@ from app.modules.audit.dominio.puertos import RegistroAuditoria
 from app.modules.catalog.dominio.tipos import Categoria
 from app.modules.requests.dominio.estado import AccionHistorial, EstadoRequerimiento
 from app.modules.requests.dominio.requerimiento import Requerimiento
+from app.modules.signing.dominio.contenido_canonico import DocumentoFirmable, Firmante
+from app.modules.signing.dominio.puertos import FirmaRegistrada
+from app.modules.signing.dominio.tipos import DecisionFirma, NivelFirma
 
 __all__ = [
     "AlmacenResumen",
     "ConsultaCatalogo",
+    "ConsultaUsuarios",
     "EntradaHistorial",
     "FiltroVisibilidad",
+    "FirmasRequerimiento",
     "ItemCatalogo",
     "OrganoCatalogo",
     "Pagina",
@@ -141,6 +146,28 @@ class ConsultaCatalogo(Protocol):
     def almacen_por_categoria(self, categoria: Categoria) -> uuid.UUID | None: ...
 
     def almacen(self, almacen_id: uuid.UUID) -> AlmacenResumen | None: ...
+
+
+class FirmasRequerimiento(Protocol):
+    """Lo que ``requests`` necesita del servicio público de ``signing``."""
+
+    def firmar_nivel(
+        self,
+        documento: DocumentoFirmable,
+        nivel: NivelFirma,
+        decision: DecisionFirma,
+        firmante: Firmante,
+    ) -> FirmaRegistrada: ...
+
+    def firmas(self, requerimiento_id: uuid.UUID) -> list[FirmaRegistrada]: ...
+
+    def niveles_firmados(self, requerimiento_id: uuid.UUID) -> set[NivelFirma]: ...
+
+
+class ConsultaUsuarios(Protocol):
+    """Nombres completos de los usuarios; los provee el servicio público de ``identity``."""
+
+    def nombres(self, ids: list[uuid.UUID]) -> dict[uuid.UUID, str]: ...
 
 
 class Transaccion(Protocol):

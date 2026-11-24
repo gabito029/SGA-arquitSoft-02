@@ -196,12 +196,12 @@ del plan de 4 días, y al final está el [calendario por día](#calendario-por-d
 
 ### Tests for User Story 2
 
-- [ ] T055 [P] [US2] Prueba unitaria en `tecnologia/backend/tests/unitarias/test_firma.py` (EQ-02, parte unitaria):
+- [X] T055 [P] [US2] Prueba unitaria en `tecnologia/backend/tests/unitarias/test_firma.py` (EQ-02, parte unitaria):
   - El contenido canónico es estable aunque cambie el orden de las claves.
   - Firmar y verificar con Ed25519 da INTEGRA.
   - Cambiar un byte del contenido o de la firma da ALTERADA.
   - Se guardan `metodo` y `clave_id`.
-- [ ] T056 [P] [US2] Prueba de integración en `tecnologia/backend/tests/integracion/test_conducto_regular.py` con los escenarios 1 a 6 de la US2:
+- [X] T056 [P] [US2] Prueba de integración en `tecnologia/backend/tests/integracion/test_conducto_regular.py` con los escenarios 1 a 6 de la US2:
   - Visto bueno.
   - Conformidad.
   - Conformidad antes del visto bueno → 409.
@@ -209,7 +209,7 @@ del plan de 4 días, y al final está el [calendario por día](#calendario-por-d
   - Rechazo sin motivo → 422; con motivo → RECHAZADA, y después ninguna acción más.
   - Doble firma → 409 NIVEL_YA_FIRMADO.
   - Dos firmas concurrentes en dos hilos → una sola se registra y la otra recibe 409 ESTADO_CAMBIADO.
-- [ ] T057 [US2] Prueba de integración EQ-01, parte de envío y firmas (Día 2), en `tecnologia/backend/tests/integracion/test_eq01_control_acceso.py`. Es una matriz parametrizada que T098 amplía el Día 3 con el despacho y el acta:
+- [X] T057 [US2] Prueba de integración EQ-01, parte de envío y firmas (Día 2), en `tecnologia/backend/tests/integracion/test_eq01_control_acceso.py`. Es una matriz parametrizada que T098 amplía el Día 3 con el despacho y el acta:
   - Cada rol intenta cada acción que no le corresponde entre enviar y firmar o rechazar en cada nivel (VB_UNIDAD, CONFORMIDAD_GU y APROBACION_ALMACEN) y espera 403 o 409.
   - Sin token, espera 401.
   - Cada rol consulta una solicitud de otra unidad o jurisdicción y espera 404.
@@ -220,25 +220,25 @@ del plan de 4 días, y al final está el [calendario por día](#calendario-por-d
 
 ### Implementation for User Story 2
 
-- [ ] T058 [US2] Implementar `tecnologia/backend/app/modules/signing/dominio/contenido_canonico.py` (JSON ordenado y compacto en UTF-8, y huella SHA-256 hexadecimal, research §3) y `.../signing/dominio/puertos.py` (`FirmadorDocumentos`: `firmar(bytes)` y `verificar(bytes, firma, clave_id)`)
-- [ ] T059 [P] [US2] Implementar `tecnologia/backend/app/modules/signing/infraestructura/firmador_ed25519.py` con la librería `cryptography`. La clave sale de `FIRMA_CLAVE_PRIVADA` y el `metodo` es `ed25519-sha256-v1`. Agregar `tecnologia/backend/tests/firmador_falso.py`, un doble de prueba que cumple el mismo puerto (Liskov)
-- [ ] T060 [US2] Implementar `tecnologia/backend/app/modules/signing/aplicacion/servicio_firma.py`. La operación `firmar_nivel` construye el contenido canónico con los campos fijos de research §3:
+- [X] T058 [US2] Implementar `tecnologia/backend/app/modules/signing/dominio/contenido_canonico.py` (JSON ordenado y compacto en UTF-8, y huella SHA-256 hexadecimal, research §3) y `.../signing/dominio/puertos.py` (`FirmadorDocumentos`: `firmar(bytes)` y `verificar(bytes, firma, clave_id)`)
+- [X] T059 [P] [US2] Implementar `tecnologia/backend/app/modules/signing/infraestructura/firmador_ed25519.py` con la librería `cryptography`. La clave sale de `FIRMA_CLAVE_PRIVADA` y el `metodo` es `ed25519-sha256-v1`. Agregar `tecnologia/backend/tests/firmador_falso.py`, un doble de prueba que cumple el mismo puerto (Liskov)
+- [X] T060 [US2] Implementar `tecnologia/backend/app/modules/signing/aplicacion/servicio_firma.py`. La operación `firmar_nivel` construye el contenido canónico con los campos fijos de research §3:
   - En VB_UNIDAD, CONFORMIDAD_GU y APROBACION_ALMACEN: `id`, `codigo`, `unidad_id` y `categoria` de la solicitud; los ítems con `item_id` y `cantidad_solicitada`; y el nivel, la decisión, el firmante, su rol, su órgano y la fecha y hora.
   - En ACTA_RECEPCION, además, por ítem: `cantidad_despachada`, `cantidad_recibida` y `observacion`.
   - **Nunca** se firman `estado` ni `version`, para que el despacho y el acta no invaliden las firmas anteriores.
 
   Después firma y guarda según `data-model.md firma.nivel`, `firma.decision`, `firma.huella_sha256`, `firma.metodo` y `firma.clave_id`, dentro de la Unidad de Trabajo de quien la llama
-- [ ] T061 [US2] Implementar `tecnologia/backend/app/modules/requests/aplicacion/firmar_requerimiento.py`, en una sola Unidad de Trabajo:
+- [X] T061 [US2] Implementar `tecnologia/backend/app/modules/requests/aplicacion/firmar_requerimiento.py`, en una sola Unidad de Trabajo:
   - Bloquea la solicitud y comprueba la jurisdicción con la política de T045.
   - Deduce el nivel a partir del estado: PENDIENTE_VB_UNIDAD da VB_UNIDAD, PENDIENTE_CONFORMIDAD da CONFORMIDAD_GU y PENDIENTE_APROBACION da APROBACION_ALMACEN.
   - Valida el rol y el órgano del firmante.
   - Aplica la transición del dominio, con motivo obligatorio para rechazar.
   - Firma (T060) y registra el historial y la auditoría.
   - Convierte la violación de la restricción única en NIVEL_YA_FIRMADO y la carrera de estados en ESTADO_CAMBIADO.
-- [ ] T062 [US2] Agregar `GET` y `POST /api/v1/requerimientos/{id}/firmas` en `tecnologia/backend/app/modules/requests/presentacion/router.py`, con los esquemas `DecisionFirma` y `Firma` de `contracts/openapi.yaml`
-- [ ] T063 [US2] Completar `tecnologia/frontend/src/paginas/Bandeja.tsx`: lista paginada según el rol, filtro por estado, etiquetas de estado y estados de carga y de lista vacía
-- [ ] T064 [US2] Implementar `tecnologia/frontend/src/paginas/DetalleSolicitud.tsx`: datos e ítems, y los botones **Firmar** y **Rechazar**, que solo aparecen si `acciones_disponibles` los incluye. Rechazar abre un diálogo con el motivo obligatorio. Lo apoya `tecnologia/frontend/src/logica/acciones.ts`
-- [ ] T065 [P] [US2] Pruebas Jest en `tecnologia/frontend/tests/logica/acciones.test.ts` y `tecnologia/frontend/tests/paginas/DetalleSolicitud.test.tsx`:
+- [X] T062 [US2] Agregar `GET` y `POST /api/v1/requerimientos/{id}/firmas` en `tecnologia/backend/app/modules/requests/presentacion/router.py`, con los esquemas `DecisionFirma` y `Firma` de `contracts/openapi.yaml`
+- [X] T063 [US2] Completar `tecnologia/frontend/src/paginas/Bandeja.tsx`: lista paginada según el rol, filtro por estado, etiquetas de estado y estados de carga y de lista vacía
+- [X] T064 [US2] Implementar `tecnologia/frontend/src/paginas/DetalleSolicitud.tsx`: datos e ítems, y los botones **Firmar** y **Rechazar**, que solo aparecen si `acciones_disponibles` los incluye. Rechazar abre un diálogo con el motivo obligatorio. Lo apoya `tecnologia/frontend/src/logica/acciones.ts`
+- [X] T065 [P] [US2] Pruebas Jest en `tecnologia/frontend/tests/logica/acciones.test.ts` y `tecnologia/frontend/tests/paginas/DetalleSolicitud.test.tsx`:
   - Solo aparecen las acciones permitidas.
   - Rechazar sin motivo no envía.
   - Un 409 muestra un mensaje comprensible.
