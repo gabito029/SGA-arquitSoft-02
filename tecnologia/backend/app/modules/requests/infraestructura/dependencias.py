@@ -16,8 +16,10 @@ from app.modules.catalog.aplicacion.consultar_catalogo import ConsultarCatalogo
 from app.modules.catalog.dominio.tipos import Categoria
 from app.modules.catalog.infraestructura.dependencias import construir_consulta_catalogo
 from app.modules.identity.infraestructura.dependencias import construir_consulta_usuarios
+from app.modules.inventory.infraestructura.dependencias import construir_servicio_despacho
 from app.modules.requests.aplicacion.consultar_firmas import ConsultarFirmas
 from app.modules.requests.aplicacion.consultar_requerimientos import ConsultarRequerimientos
+from app.modules.requests.aplicacion.despachar_requerimiento import DespacharRequerimiento
 from app.modules.requests.aplicacion.enviar_requerimiento import EnviarRequerimiento
 from app.modules.requests.aplicacion.firmar_requerimiento import FirmarRequerimiento
 from app.modules.requests.aplicacion.registrar_requerimiento import RegistrarRequerimiento
@@ -97,6 +99,14 @@ def construir_firmar(sesion: Session) -> FirmarRequerimiento:
     return FirmarRequerimiento(
         repositorio=RepositorioRequerimientosPostgres(sesion),
         firmas=construir_servicio_firma(sesion),
+        auditoria=construir_registro_auditoria(sesion),
+    )
+
+
+def construir_despachar(sesion: Session) -> DespacharRequerimiento:
+    return DespacharRequerimiento(
+        repositorio=RepositorioRequerimientosPostgres(sesion),
+        inventario=construir_servicio_despacho(sesion),
         auditoria=construir_registro_auditoria(sesion),
     )
 

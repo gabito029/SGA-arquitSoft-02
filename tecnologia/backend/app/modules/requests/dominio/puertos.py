@@ -11,6 +11,7 @@ from typing import Protocol
 
 from app.modules.audit.dominio.puertos import RegistroAuditoria
 from app.modules.catalog.dominio.tipos import Categoria
+from app.modules.inventory.dominio.puertos import LineaDespacho
 from app.modules.requests.dominio.estado import AccionHistorial, EstadoRequerimiento
 from app.modules.requests.dominio.requerimiento import Requerimiento
 from app.modules.signing.dominio.contenido_canonico import DocumentoFirmable, Firmante
@@ -21,6 +22,7 @@ __all__ = [
     "AlmacenResumen",
     "ConsultaCatalogo",
     "ConsultaUsuarios",
+    "DespachoInventario",
     "EntradaHistorial",
     "FiltroVisibilidad",
     "FirmasRequerimiento",
@@ -162,6 +164,21 @@ class FirmasRequerimiento(Protocol):
     def firmas(self, requerimiento_id: uuid.UUID) -> list[FirmaRegistrada]: ...
 
     def niveles_firmados(self, requerimiento_id: uuid.UUID) -> set[NivelFirma]: ...
+
+
+class DespachoInventario(Protocol):
+    """Lo que ``requests`` necesita del servicio público de ``inventory``."""
+
+    def despachar(
+        self,
+        *,
+        almacen_id: uuid.UUID,
+        requerimiento_id: uuid.UUID,
+        usuario_id: uuid.UUID,
+        lineas: list[LineaDespacho],
+    ) -> None:
+        """Descuenta el stock y registra los movimientos, o lanza ``StockInsuficiente``."""
+        ...
 
 
 class ConsultaUsuarios(Protocol):

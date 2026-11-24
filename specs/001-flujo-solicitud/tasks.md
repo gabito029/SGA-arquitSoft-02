@@ -256,7 +256,7 @@ del plan de 4 días, y al final está el [calendario por día](#calendario-por-d
 
 ### Tests for User Story 3
 
-- [ ] T066 [P] [US3] Prueba de integración en `tecnologia/backend/tests/integracion/test_despacho.py` con los escenarios 1 a 4 y 6 de la US3:
+- [X] T066 [P] [US3] Prueba de integración en `tecnologia/backend/tests/integracion/test_despacho.py` con los escenarios 1 a 4 y 6 de la US3:
   - El jefe de almacén aprueba y la solicitud queda APROBADA.
   - Si rechaza, queda RECHAZADA.
   - Un despacho de 7 con stock 10 deja el stock en 3 y crea un movimiento.
@@ -264,7 +264,7 @@ del plan de 4 días, y al final está el [calendario por día](#calendario-por-d
   - Despachar algo que no está APROBADA → 409.
   - Despachar más de lo solicitado → 422.
   - El despacho parcial se registra con lo despachado.
-- [ ] T067 [P] [US3] Prueba de integración EQ-03 en `tecnologia/backend/tests/integracion/test_eq03_concurrencia.py`:
+- [X] T067 [P] [US3] Prueba de integración EQ-03 en `tecnologia/backend/tests/integracion/test_eq03_concurrencia.py`:
   - Dos hilos, cada uno con su propia conexión, despachan 7 y 7 de un ítem con stock 10.
   - Exactamente uno da 201 y el otro 409.
   - El stock final es 3.
@@ -273,17 +273,17 @@ del plan de 4 días, y al final está el [calendario por día](#calendario-por-d
 
 ### Implementation for User Story 3
 
-- [ ] T068 [US3] Implementar `tecnologia/backend/app/modules/inventory/aplicacion/servicio_despacho.py`, con su puerto en `.../inventory/dominio/puertos.py`:
+- [X] T068 [US3] Implementar `tecnologia/backend/app/modules/inventory/aplicacion/servicio_despacho.py`, con su puerto en `.../inventory/dominio/puertos.py`:
   - Bloquea las filas de `stock` con `FOR UPDATE`, ordenadas por `item_id`.
   - Valida que haya stock suficiente según `data-model.md stock.cantidad`.
   - Inserta los movimientos según `data-model.md movimiento.tipo` (SALIDA_DESPACHO), `movimiento.cantidad` y `movimiento.requerimiento_id`.
   - Descuenta el stock.
   - Todo dentro de la Unidad de Trabajo de quien lo llama (ADR-003).
-- [ ] T069 [US3] Implementar `tecnologia/backend/app/modules/requests/aplicacion/despachar_requerimiento.py`. Solo actúa el ALMACENERO del `data-model.md requerimiento.almacen_id`. Valida que `item_requerimiento.cantidad_despachada` no supere lo solicitado y que al menos un ítem tenga una cantidad mayor que 0, llama a T068, pasa a EN_TRANSITO y registra el historial y la auditoría en una sola transacción
-- [ ] T070 [US3] Agregar `POST /api/v1/requerimientos/{id}/despacho` en `tecnologia/backend/app/modules/requests/presentacion/router.py`, y `GET /api/v1/inventario/stock`, paginado y solo para el almacén del usuario, en `tecnologia/backend/app/modules/inventory/presentacion/router.py`; registrarlos en `main.py`
-- [ ] T071 [US3] Agregar en `tecnologia/frontend/src/paginas/DetalleSolicitud.tsx` el formulario **Despachar**: una cantidad por ítem, con lo solicitado como valor inicial y un máximo igual a lo solicitado, y un mensaje claro ante STOCK_INSUFICIENTE (Día 4)
-- [ ] T072 [P] [US3] Implementar `tecnologia/frontend/src/paginas/Stock.tsx`, una tabla paginada del stock del almacén para JEFE_ALMACEN y ALMACENERO (Día 4; es lo primero que se recorta si falta tiempo)
-- [ ] T073 [P] [US3] Prueba Jest en `tecnologia/frontend/tests/paginas/Despacho.test.tsx`: no deja enviar una cantidad mayor que la solicitada, y STOCK_INSUFICIENTE muestra su mensaje (Día 4)
+- [X] T069 [US3] Implementar `tecnologia/backend/app/modules/requests/aplicacion/despachar_requerimiento.py`. Solo actúa el ALMACENERO del `data-model.md requerimiento.almacen_id`. Valida que `item_requerimiento.cantidad_despachada` no supere lo solicitado y que al menos un ítem tenga una cantidad mayor que 0, llama a T068, pasa a EN_TRANSITO y registra el historial y la auditoría en una sola transacción
+- [X] T070 [US3] Agregar `POST /api/v1/requerimientos/{id}/despacho` en `tecnologia/backend/app/modules/requests/presentacion/router.py`, y `GET /api/v1/inventario/stock`, paginado y solo para el almacén del usuario, en `tecnologia/backend/app/modules/inventory/presentacion/router.py`; registrarlos en `main.py`
+- [X] T071 [US3] Agregar en `tecnologia/frontend/src/paginas/DetalleSolicitud.tsx` el formulario **Despachar**: una cantidad por ítem, con lo solicitado como valor inicial y un máximo igual a lo solicitado, y un mensaje claro ante STOCK_INSUFICIENTE (Día 4)
+- [X] T072 [P] [US3] Implementar `tecnologia/frontend/src/paginas/Stock.tsx`, una tabla paginada del stock del almacén para JEFE_ALMACEN y ALMACENERO (Día 4; es lo primero que se recorta si falta tiempo)
+- [X] T073 [P] [US3] Prueba Jest en `tecnologia/frontend/tests/paginas/Despacho.test.tsx`: no deja enviar una cantidad mayor que la solicitada, y STOCK_INSUFICIENTE muestra su mensaje (Día 4)
 
 **Checkpoint**: aprobación del almacén y despacho con un stock consistente.
 

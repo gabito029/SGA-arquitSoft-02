@@ -14,6 +14,7 @@ from app.modules.requests.aplicacion.consultar_requerimientos import (
     Resumen,
     VistaRequerimiento,
 )
+from app.modules.requests.aplicacion.despachar_requerimiento import CantidadDespacho
 from app.modules.requests.aplicacion.politica_acceso import Accion
 from app.modules.requests.aplicacion.registrar_requerimiento import LineaEntrada
 from app.modules.requests.dominio.estado import EstadoRequerimiento
@@ -132,6 +133,26 @@ class DecisionFirmaEntrada(BaseModel):
         max_length=500,
         description="Obligatorio cuando decision = RECHAZAR",
     )
+
+
+class LineaDespachoEntrada(BaseModel):
+    item_id: uuid.UUID
+    cantidad: int = Field(ge=0, description="Cantidad entera ≥ 0, sin superar lo solicitado")
+
+
+class DespachoEntrada(BaseModel):
+    items: list[LineaDespachoEntrada] = Field(min_length=1)
+
+    @field_validator("items")
+    @classmethod
+    def _sin_repetidos(cls, items: list[LineaDespachoEntrada]) -> list[LineaDespachoEntrada]:
+        ids = [i.item_id for i in items]
+        if len(set(ids)) != len(ids):
+            raise ValueError("El despacho no puede repetir un ítem.")
+        return items
+
+    def a_cantidades(self) -> list[CantidadDespacho]:
+        return [CantidadDespacho(item_id=i.item_id, cantidad=i.cantidad) for i in self.items]
 
 
 class FirmaSalida(BaseModel):

@@ -1,4 +1,4 @@
-"""Endpoints de requerimientos de la US1 (contracts/openapi.yaml → /api/v1/requerimientos).
+"""Endpoints de requerimientos (contracts/openapi.yaml → /api/v1/requerimientos).
 
 Cada petición abre una Unidad de Trabajo: o se guarda todo (estado, ítems, historial, auditoría)
 o no se guarda nada (ADR-003).
@@ -17,12 +17,14 @@ from app.modules.requests.dominio.estado import EstadoRequerimiento
 from app.modules.requests.infraestructura.dependencias import (
     construir_consultar,
     construir_consultar_firmas,
+    construir_despachar,
     construir_enviar,
     construir_firmar,
     construir_registrar,
 )
 from app.modules.requests.presentacion.esquemas import (
     DecisionFirmaEntrada,
+    DespachoEntrada,
     FirmaSalida,
     PaginaRequerimientosSalida,
     RequerimientoEntrada,
@@ -33,6 +35,7 @@ router = APIRouter(prefix="/api/v1/requerimientos", tags=["Requerimientos"])
 
 solo_oficial = requiere_rol(Rol.OFICIAL_LOGISTICA)
 solo_firmantes = requiere_rol(Rol.COMANDANTE_UNIDAD, Rol.JEFE_LOGISTICA_GU, Rol.JEFE_ALMACEN)
+solo_almacenero = requiere_rol(Rol.ALMACENERO)
 
 _R401 = {401: {"description": "Sin sesión o token inválido/expirado"}}
 _R403 = {403: {"description": "El rol del usuario no puede realizar esta acción"}}
@@ -198,5 +201,31 @@ def firmar(
     actor = _actor(usuario)
     with fabrica_uow() as uow:
         construir_firmar(uow.sesion).ejecutar(actor, id, entrada.decision, entrada.motivo)
+        vista = construir_consultar(uow.sesion).detalle(actor, id)
+    return RequerimientoSalida.desde_vista(vista)
+
+
+# --- Despacho (US3) ---
+
+
+@router.post(
+    "/{id}/despacho",
+    response_model=RequerimientoSalida,
+    status_code=status.HTTP_201_CREATED,
+    tags=["Inventario"],
+    summary="Despachar un requerimiento APROBADO y descontar el stock (HU07, RF06)",
+    description="Solo ALMACENERO del almacén destino. Cantidad ≤ solicitada y ≤ stock. Una sola "
+    "transacción con bloqueo del stock (ADR-003). Stock insuficiente → 409 STOCK_INSUFICIENTE.",
+    responses={**_R401, **_R403, **_R404, **_R409, **_R422},
+)
+def despachar(
+    id: uuid.UUID,
+    entrada: DespachoEntrada,
+    usuario: UsuarioActual = Depends(solo_almacenero),
+    fabrica_uow: FabricaUnidadTrabajo = Depends(obtener_fabrica_uow),
+) -> RequerimientoSalida:
+    actor = _actor(usuario)
+    with fabrica_uow() as uow:
+        construir_despachar(uow.sesion).ejecutar(actor, id, entrada.a_cantidades())
         vista = construir_consultar(uow.sesion).detalle(actor, id)
     return RequerimientoSalida.desde_vista(vista)

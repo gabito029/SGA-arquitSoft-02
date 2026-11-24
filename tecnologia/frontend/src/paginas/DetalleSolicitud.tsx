@@ -1,12 +1,13 @@
 // Detalle de la solicitud: datos, ítems, firmas registradas y las acciones que la API permite al
-// usuario (FR-029). Firmar y Rechazar llegan con la US2; despacho, acta, verificación, línea de
-// tiempo y anulación se agregan en las historias siguientes.
+// usuario (FR-029): Firmar y Rechazar (US2) y Despachar (US3). El acta, la verificación, la línea
+// de tiempo y la anulación se agregan en las historias siguientes.
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api, ErrorApi } from '../api/cliente';
 import type { Firma, Requerimiento } from '../api/tipos';
 import { Cargando } from '../componentes/Cargando';
 import { DialogoMotivo } from '../componentes/DialogoMotivo';
+import { FormularioDespacho } from '../componentes/FormularioDespacho';
 import { EstadoEtiqueta } from '../componentes/EstadoEtiqueta';
 import { Mensaje } from '../componentes/Mensaje';
 import { decisionAprobar, decisionRechazar, puede } from '../logica/acciones';
@@ -96,6 +97,13 @@ export function DetalleSolicitud() {
     );
   }
 
+  function despachar(cuerpo: { items: { item_id: string; cantidad: number }[] }) {
+    void ejecutar(
+      () => api.post<Requerimiento>(`/requerimientos/${id}/despacho`, cuerpo),
+      () => 'Despacho registrado. La solicitud está en tránsito.',
+    );
+  }
+
   function rechazar(motivo: string) {
     void ejecutar(
       () => api.post<Requerimiento>(`/requerimientos/${id}/firmas`, decisionRechazar(motivo)),
@@ -129,6 +137,7 @@ export function DetalleSolicitud() {
                 <strong>
                   {i.cantidad_solicitada} {i.item.unidad_medida}
                 </strong>
+                {i.cantidad_despachada != null ? <span>Despachado: {i.cantidad_despachada}</span> : null}
               </li>
             ))}
           </ul>
@@ -164,6 +173,10 @@ export function DetalleSolicitud() {
               onConfirmar={rechazar}
               onCancelar={() => setRechazando(false)}
             />
+          ) : null}
+
+          {puede(req, 'DESPACHAR') ? (
+            <FormularioDespacho items={req.items} enviando={enviando} onDespachar={despachar} />
           ) : null}
 
           <ListaFirmas firmas={firmas} />

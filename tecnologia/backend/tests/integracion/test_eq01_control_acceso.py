@@ -272,7 +272,11 @@ def usuarios_sin_jurisdiccion(motor):
                     "o": id_fijo("organo", organo),
                 },
             )
-    return [u for u, _, _ in SIN_JURISDICCION]
+    nombres = [u for u, _, _ in SIN_JURISDICCION]
+    yield nombres
+    # No deben quedar en la base de pruebas: otras pruebas cuentan los usuarios de los seeds.
+    with motor.begin() as conexion:
+        conexion.execute(text("DELETE FROM usuario WHERE usuario = ANY(:u)"), {"u": nombres})
 
 
 @pytest.mark.parametrize("estado", ["PENDIENTE_VB_UNIDAD", "PENDIENTE_CONFORMIDAD"])

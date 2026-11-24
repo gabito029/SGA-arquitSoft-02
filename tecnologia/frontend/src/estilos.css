@@ -303,6 +303,19 @@ button:disabled {
   font-size: 0.875rem;
   color: var(--color-en-curso);
 }
+/* Tabla de stock: ocupa el ancho y se desplaza en celulares angostos. */
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-superficie);
+}
+
+.tabla th,
+.tabla td {
+  padding: 8px;
+  border-bottom: 1px solid var(--color-borde);
+  text-align: left;
+}
 @media (min-width: 768px) {
   .contenedor {
     padding: calc(var(--espacio) * 2);
