@@ -1,14 +1,16 @@
 // Detalle de la solicitud: datos, ítems, firmas registradas y las acciones que la API permite al
-// usuario (FR-029): Firmar y Rechazar (US2), Despachar (US3), Firmar acta y Verificar (US4).
+// usuario (FR-029): Firmar y Rechazar (US2), Despachar (US3), Firmar acta y Verificar (US4) y la
+// línea de tiempo (US5).
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api, ErrorApi } from '../api/cliente';
-import type { Firma, Requerimiento, Verificacion } from '../api/tipos';
+import type { EntradaHistorial, Firma, Requerimiento, Verificacion } from '../api/tipos';
 import { Cargando } from '../componentes/Cargando';
 import { DialogoMotivo } from '../componentes/DialogoMotivo';
 import { EstadoEtiqueta } from '../componentes/EstadoEtiqueta';
 import { FormularioActa } from '../componentes/FormularioActa';
 import { FormularioDespacho } from '../componentes/FormularioDespacho';
+import { LineaTiempo } from '../componentes/LineaTiempo';
 import { Mensaje } from '../componentes/Mensaje';
 import { ResultadoVerificacion } from '../componentes/ResultadoVerificacion';
 import { decisionAprobar, decisionRechazar, puede } from '../logica/acciones';
@@ -51,6 +53,7 @@ export function DetalleSolicitud() {
   const [req, setReq] = useState<Requerimiento | null>(null);
   const [firmas, setFirmas] = useState<Firma[]>([]);
   const [verificacion, setVerificacion] = useState<Verificacion | null>(null);
+  const [historial, setHistorial] = useState<EntradaHistorial[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [errorAccion, setErrorAccion] = useState<string | null>(null);
   const [exito, setExito] = useState<string | null>(null);
@@ -82,6 +85,7 @@ export function DetalleSolicitud() {
     setErrorAccion(null);
     setExito(null);
     setVerificacion(null);
+    setHistorial(null);
     try {
       const resultado = await accion();
       setRechazando(false);
@@ -137,6 +141,19 @@ export function DetalleSolicitud() {
       setErrorAccion(textoError(e));
     } finally {
       setEnviando(false);
+    }
+  }
+
+  async function verHistorial() {
+    if (historial) {
+      setHistorial(null);
+      return;
+    }
+    setErrorAccion(null);
+    try {
+      setHistorial(await api.get<EntradaHistorial[]>(`/requerimientos/${id}/historial`));
+    } catch (e: unknown) {
+      setErrorAccion(textoError(e));
     }
   }
 
@@ -223,6 +240,19 @@ export function DetalleSolicitud() {
 
           {verificacion ? <ResultadoVerificacion verificacion={verificacion} /> : null}
           <ListaFirmas firmas={firmas} />
+
+          <section aria-labelledby="titulo-historial">
+            <h3 id="titulo-historial">Línea de tiempo</h3>
+            <button
+              type="button"
+              className="boton--secundario"
+              aria-expanded={historial !== null}
+              onClick={() => void verHistorial()}
+            >
+              {historial ? 'Ocultar línea de tiempo' : 'Ver línea de tiempo'}
+            </button>
+            {historial ? <LineaTiempo entradas={historial} /> : null}
+          </section>
         </article>
       ) : null}
     </main>

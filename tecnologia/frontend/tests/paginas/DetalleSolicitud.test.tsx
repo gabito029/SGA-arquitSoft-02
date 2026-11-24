@@ -150,6 +150,38 @@ describe('DetalleSolicitud', () => {
     expect(await screen.findByText('Este nivel ya firmó la solicitud.')).toBeInTheDocument();
   });
 
+  it('muestra y oculta la línea de tiempo bajo demanda', async () => {
+    const fetchSimulado = simularFetch(
+      respuesta(200, PENDIENTE),
+      respuesta(200, []),
+      respuesta(200, [
+        {
+          accion: 'ENVIAR',
+          estado_anterior: 'BORRADOR',
+          estado_nuevo: 'PENDIENTE_VB_UNIDAD',
+          usuario: 'Oficial de logística BIM-11',
+          rol: 'OFICIAL_LOGISTICA',
+          organo: { id: 'u1', codigo: 'BIM-11', nombre: 'BIM N.° 11' },
+          ocurrido_en: '2026-11-24T10:00:00Z',
+        },
+      ]),
+    );
+    renderizar();
+    const usuario = userEvent.setup();
+    await usuario.click(await screen.findByRole('button', { name: 'Ver línea de tiempo' }));
+    expect(await screen.findByText('Envió la solicitud')).toBeInTheDocument();
+    expect(fetchSimulado.mock.calls[2][0]).toBe(`/api/v1/requerimientos/${ID}/historial`);
+    await usuario.click(screen.getByRole('button', { name: 'Ocultar línea de tiempo' }));
+    expect(screen.queryByText('Envió la solicitud')).not.toBeInTheDocument();
+  });
+
+  it('muestra el error si la línea de tiempo no carga', async () => {
+    simularFetch(respuesta(200, PENDIENTE), respuesta(200, []), new TypeError('sin red'));
+    renderizar();
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'Ver línea de tiempo' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo conectar');
+  });
+
   it('una solicitud ajena muestra el 404 en español', async () => {
     simularFetch(
       respuesta(404, {

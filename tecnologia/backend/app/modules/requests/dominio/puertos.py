@@ -6,6 +6,7 @@ Python puro: no importa FastAPI ni SQLAlchemy.
 
 import uuid
 from dataclasses import dataclass
+from datetime import datetime
 from decimal import Decimal
 from typing import Protocol
 
@@ -34,6 +35,7 @@ __all__ = [
     "OrganoCatalogo",
     "Pagina",
     "RegistroAuditoria",
+    "RegistroHistorial",
     "RepositorioRequerimientos",
     "Transaccion",
     "VerificadorFirmas",
@@ -55,6 +57,20 @@ class EntradaHistorial:
     rol: str
     organo_id: uuid.UUID
     motivo: str | None = None
+
+
+@dataclass(frozen=True)
+class RegistroHistorial:
+    """Una entrada ya guardada de la línea de tiempo, con su fecha y hora."""
+
+    accion: AccionHistorial
+    estado_anterior: EstadoRequerimiento | None
+    estado_nuevo: EstadoRequerimiento
+    usuario_id: uuid.UUID
+    rol: str
+    organo_id: uuid.UUID
+    motivo: str | None
+    ocurrido_en: datetime
 
 
 @dataclass(frozen=True)
@@ -129,6 +145,10 @@ class RepositorioRequerimientos(Protocol):
     def guardar(self, requerimiento: Requerimiento) -> None: ...
 
     def agregar_historial(self, entrada: EntradaHistorial) -> None: ...
+
+    def historial(self, requerimiento_id: uuid.UUID) -> list[RegistroHistorial]:
+        """La línea de tiempo en orden cronológico (solo lectura: no hay editar ni borrar)."""
+        ...
 
     def estado_previo_al_rechazo(self, requerimiento_id: uuid.UUID) -> EstadoRequerimiento | None:
         """Estado en el que se rechazó el requerimiento, o None si no fue rechazado."""

@@ -10,7 +10,12 @@ from sqlalchemy import Select, and_, exists, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.modules.requests.dominio.estado import AccionHistorial, EstadoRequerimiento
-from app.modules.requests.dominio.puertos import EntradaHistorial, FiltroVisibilidad, Pagina
+from app.modules.requests.dominio.puertos import (
+    EntradaHistorial,
+    FiltroVisibilidad,
+    Pagina,
+    RegistroHistorial,
+)
 from app.modules.requests.dominio.requerimiento import ItemRequerimiento, Requerimiento
 from app.modules.requests.infraestructura.modelos import (
     HistorialRequerimientoModelo,
@@ -248,3 +253,23 @@ class RepositorioRequerimientosPostgres:
             )
         )
         self._sesion.flush()
+
+    def historial(self, requerimiento_id: uuid.UUID) -> list[RegistroHistorial]:
+        return [
+            RegistroHistorial(
+                accion=m.accion,
+                estado_anterior=m.estado_anterior,
+                estado_nuevo=m.estado_nuevo,
+                usuario_id=m.usuario_id,
+                rol=m.rol.value,
+                organo_id=m.organo_id,
+                motivo=m.motivo,
+                ocurrido_en=m.ocurrido_en,
+            )
+            for m in self._sesion.scalars(
+                select(HistorialRequerimientoModelo)
+                .where(HistorialRequerimientoModelo.requerimiento_id == requerimiento_id)
+                # Varias entradas de una misma transacción comparten la hora: decide el id.
+                .order_by(HistorialRequerimientoModelo.ocurrido_en, HistorialRequerimientoModelo.id)
+            )
+        ]

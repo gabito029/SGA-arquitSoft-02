@@ -331,18 +331,18 @@ del plan de 4 días, y al final está el [calendario por día](#calendario-por-d
 
 ### Tests for User Story 5
 
-- [ ] T081 [P] [US5] Prueba EQ-08 (adaptada a 001) en `tecnologia/backend/tests/integracion/test_eq08_trazabilidad.py`:
+- [X] T081 [P] [US5] Prueba EQ-08 (adaptada a 001) en `tecnologia/backend/tests/integracion/test_eq08_trazabilidad.py`:
   - Recorre el flujo: envío, visto bueno, conformidad, aprobación, despacho y acta.
   - Comprueba que `/historial` muestra los 6 pasos en orden y que la consulta SQL confirma usuario, rol, órgano y fecha en el 100 % de ellos.
   - Comprueba que la cadena de `registro_auditoria` está íntegra, recalculando `data-model.md registro_auditoria.huella`.
   - Comprueba que no hay ningún endpoint para borrar o editar el historial.
   - El resultado se guarda en `evidencias/EQ-08/`.
-- [ ] T082 [P] [US5] Prueba Jest en `tecnologia/frontend/tests/componentes/LineaTiempo.test.tsx`: muestra las entradas en orden con sus etiquetas, y el motivo cuando existe
+- [X] T082 [P] [US5] Prueba Jest en `tecnologia/frontend/tests/componentes/LineaTiempo.test.tsx`: muestra las entradas en orden con sus etiquetas, y el motivo cuando existe
 
 ### Implementation for User Story 5
 
-- [ ] T083 [US5] Implementar `tecnologia/backend/app/modules/requests/aplicacion/consultar_historial.py` y `GET /api/v1/requerimientos/{id}/historial` en `.../requests/presentacion/router.py`, con la misma política de acceso de T045
-- [ ] T084 [US5] Implementar `tecnologia/frontend/src/componentes/LineaTiempo.tsx` e integrarlo en `tecnologia/frontend/src/paginas/DetalleSolicitud.tsx`
+- [X] T083 [US5] Implementar `tecnologia/backend/app/modules/requests/aplicacion/consultar_historial.py` y `GET /api/v1/requerimientos/{id}/historial` en `.../requests/presentacion/router.py`, con la misma política de acceso de T045
+- [X] T084 [US5] Implementar `tecnologia/frontend/src/componentes/LineaTiempo.tsx` e integrarlo en `tecnologia/frontend/src/paginas/DetalleSolicitud.tsx`
 
 **Checkpoint**: trazabilidad completa visible y comprobada.
 

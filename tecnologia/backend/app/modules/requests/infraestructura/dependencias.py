@@ -20,6 +20,7 @@ from app.modules.inventory.infraestructura.dependencias import construir_servici
 from app.modules.requests.aplicacion.confirmar_recepcion import ConfirmarRecepcion
 from app.modules.requests.aplicacion.consultar_acta import ConsultarActa, VerificarIntegridad
 from app.modules.requests.aplicacion.consultar_firmas import ConsultarFirmas
+from app.modules.requests.aplicacion.consultar_historial import ConsultarHistorial
 from app.modules.requests.aplicacion.consultar_requerimientos import ConsultarRequerimientos
 from app.modules.requests.aplicacion.despachar_requerimiento import DespacharRequerimiento
 from app.modules.requests.aplicacion.enviar_requerimiento import EnviarRequerimiento
@@ -145,6 +146,14 @@ def construir_consultar_firmas(sesion: Session) -> ConsultarFirmas:
     return ConsultarFirmas(
         repositorio=RepositorioRequerimientosPostgres(sesion),
         firmas=construir_servicio_firma(sesion),
+        usuarios=construir_consulta_usuarios(sesion),
+        catalogo=_catalogo(sesion),
+    )
+
+
+def construir_consultar_historial(sesion: Session) -> ConsultarHistorial:
+    return ConsultarHistorial(
+        repositorio=RepositorioRequerimientosPostgres(sesion),
         usuarios=construir_consulta_usuarios(sesion),
         catalogo=_catalogo(sesion),
     )

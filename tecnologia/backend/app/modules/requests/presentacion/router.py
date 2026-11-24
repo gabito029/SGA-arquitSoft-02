@@ -19,6 +19,7 @@ from app.modules.requests.infraestructura.dependencias import (
     construir_consultar,
     construir_consultar_acta,
     construir_consultar_firmas,
+    construir_consultar_historial,
     construir_despachar,
     construir_enviar,
     construir_firmar,
@@ -30,6 +31,7 @@ from app.modules.requests.presentacion.esquemas import (
     ActaSalida,
     DecisionFirmaEntrada,
     DespachoEntrada,
+    EntradaHistorialSalida,
     FirmaSalida,
     PaginaRequerimientosSalida,
     RequerimientoEntrada,
@@ -300,3 +302,25 @@ def verificar(
     with fabrica_uow() as uow:
         vista = construir_verificar(uow.sesion).ejecutar(_actor(usuario), id)
     return VerificacionSalida.desde_vista(vista)
+
+
+# --- Línea de tiempo (US5) ---
+
+
+@router.get(
+    "/{id}/historial",
+    response_model=list[EntradaHistorialSalida],
+    summary="Línea de tiempo del requerimiento (RF08, FR-028)",
+    description="Entradas en orden cronológico con acción, usuario, rol, órgano, fecha y hora, "
+    "estado anterior y motivo. El historial es de solo lectura: no hay endpoints para editarlo "
+    "o borrarlo, y la base de datos rechaza UPDATE y DELETE (EQ-08).",
+    responses={**_R401, **_R404},
+)
+def historial(
+    id: uuid.UUID,
+    usuario: UsuarioActual = Depends(usuario_actual),
+    fabrica_uow: FabricaUnidadTrabajo = Depends(obtener_fabrica_uow),
+) -> list[EntradaHistorialSalida]:
+    with fabrica_uow() as uow:
+        vistas = construir_consultar_historial(uow.sesion).ejecutar(_actor(usuario), id)
+    return [EntradaHistorialSalida.desde_vista(v) for v in vistas]

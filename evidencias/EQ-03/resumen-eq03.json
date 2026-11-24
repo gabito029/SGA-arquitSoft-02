@@ -1,6 +1,6 @@
 {
   "escenario": "EQ-03 despachos concurrentes (incremento 001)",
-  "generado_en": "2026-11-24T12:52:25+00:00",
+  "generado_en": "2026-11-24T13:03:32+00:00",
   "estimulo": "2 despachos simultáneos de 7 unidades de INT-010 con stock 10",
   "esperado": "un 201, un 409 STOCK_INSUFICIENTE, stock final 3, 0 diferencias",
   "corridas": [
@@ -17,7 +17,7 @@
         "EN_TRANSITO"
       ],
       "diferencias_invariante": 0,
-      "duracion_s": 0.141
+      "duracion_s": 0.137
     },
     {
       "codigos": [
@@ -32,7 +32,7 @@
         "EN_TRANSITO"
       ],
       "diferencias_invariante": 0,
-      "duracion_s": 0.139
+      "duracion_s": 0.134
     },
     {
       "codigos": [
@@ -47,7 +47,7 @@
         "EN_TRANSITO"
       ],
       "diferencias_invariante": 0,
-      "duracion_s": 0.135
+      "duracion_s": 0.134
     }
   ],
   "cumple": true

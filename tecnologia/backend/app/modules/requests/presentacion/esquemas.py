@@ -11,6 +11,7 @@ from app.modules.identity.dominio.rol import Rol
 from app.modules.requests.aplicacion.confirmar_recepcion import LineaRecepcion
 from app.modules.requests.aplicacion.consultar_acta import VistaActa, VistaVerificacion
 from app.modules.requests.aplicacion.consultar_firmas import VistaFirma
+from app.modules.requests.aplicacion.consultar_historial import VistaHistorial
 from app.modules.requests.aplicacion.consultar_requerimientos import (
     PaginaVistas,
     Resumen,
@@ -20,7 +21,7 @@ from app.modules.requests.aplicacion.consultar_requerimientos import (
 from app.modules.requests.aplicacion.despachar_requerimiento import CantidadDespacho
 from app.modules.requests.aplicacion.politica_acceso import Accion
 from app.modules.requests.aplicacion.registrar_requerimiento import LineaEntrada
-from app.modules.requests.dominio.estado import EstadoRequerimiento
+from app.modules.requests.dominio.estado import AccionHistorial, EstadoRequerimiento
 from app.modules.signing.dominio.tipos import DecisionFirma, NivelFirma, ResultadoVerificacion
 
 # --- Entrada ---
@@ -261,6 +262,32 @@ class VerificacionSalida(BaseModel):
                 )
                 for f in v.firmas
             ],
+        )
+
+
+class EntradaHistorialSalida(BaseModel):
+    accion: AccionHistorial
+    estado_anterior: EstadoRequerimiento | None = None
+    estado_nuevo: EstadoRequerimiento
+    usuario: str = Field(description="Nombre completo")
+    rol: Rol
+    organo: OrganoResumenSalida
+    motivo: str | None = None
+    ocurrido_en: datetime
+
+    @classmethod
+    def desde_vista(cls, v: VistaHistorial) -> "EntradaHistorialSalida":
+        return cls(
+            accion=v.accion,
+            estado_anterior=v.estado_anterior,
+            estado_nuevo=v.estado_nuevo,
+            usuario=v.usuario,
+            rol=Rol(v.rol),
+            organo=OrganoResumenSalida(
+                id=v.organo.id, codigo=v.organo.codigo, nombre=v.organo.nombre
+            ),
+            motivo=v.motivo,
+            ocurrido_en=v.ocurrido_en,
         )
 
 
