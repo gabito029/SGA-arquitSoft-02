@@ -65,10 +65,35 @@ describe('Bandeja', () => {
     expect(within(primera).getAllByRole('cell')[3]).toHaveAttribute('data-etiqueta', 'Fecha');
   });
 
+  it('muestra arriba un resumen de la cantidad de solicitudes por estado (T110)', async () => {
+    const fetchSimulado = simularFetch(
+      respuesta(200, {
+        items: [
+          requerimiento({ id: 'a', estado: 'PENDIENTE_VB_UNIDAD' }),
+          requerimiento({ id: 'b', estado: 'PENDIENTE_APROBACION' }),
+          requerimiento({ id: 'c', estado: 'CONFIRMADA' }),
+          requerimiento({ id: 'd', estado: 'ANULADA' }),
+        ],
+        total: 4,
+        page: 1,
+        size: 20,
+      }),
+    );
+    renderizar();
+    const resumen = await screen.findByRole('region', { name: 'Resumen por estado' });
+    const tarjetas = within(resumen)
+      .getAllByRole('listitem')
+      .map((t) => t.textContent);
+    expect(tarjetas).toEqual(['2En trámite', '1Recibidas', '1Rechazadas o anuladas']);
+    // El resumen sale de la página ya cargada: no hay llamadas nuevas a la API.
+    expect(fetchSimulado).toHaveBeenCalledTimes(1);
+  });
+
   it('muestra el estado de lista vacía', async () => {
     simularFetch(respuesta(200, { items: [], total: 0, page: 1, size: 20 }));
     renderizar();
     expect(await screen.findByText('No hay solicitudes para mostrar.')).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Resumen por estado' })).not.toBeInTheDocument();
   });
 
   it('filtra por estado y vuelve a la primera página', async () => {

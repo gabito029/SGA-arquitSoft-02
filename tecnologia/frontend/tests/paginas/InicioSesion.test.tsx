@@ -31,6 +31,15 @@ async function ingresar(usuario: string, contrasena: string) {
 afterEach(() => sessionStorage.clear());
 
 describe('InicioSesion', () => {
+  it('muestra la identidad del sistema y el pie académico (T109)', () => {
+    renderizar();
+    expect(screen.getByRole('heading', { level: 1, name: 'SGA' })).toBeInTheDocument();
+    expect(screen.getByText('Sistema de Gestión de Almacén con Firma Digital')).toBeInTheDocument();
+    expect(screen.getByText('Proyecto académico - IS488 UNSCH')).toBeInTheDocument();
+    // Sin imágenes: el escudo es un ícono genérico, no un logo oficial.
+    expect(document.querySelector('img')).toBeNull();
+  });
+
   it('retoma la página si la sesión venció en esta pestaña para el mismo usuario (T099)', async () => {
     sessionStorage.setItem(
       CLAVE_RETORNO,

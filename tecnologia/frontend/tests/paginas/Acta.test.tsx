@@ -164,7 +164,7 @@ describe('Acta de recepción', () => {
     const alerta = await screen.findByRole('alert');
     expect(alerta).toHaveTextContent('Se detectó una alteración');
     expect(alerta).toHaveClass('mensaje--error');
-    expect(screen.getByText('Alterada')).toHaveClass('estado--alerta');
+    expect(screen.getByText('Alterada')).toHaveClass('estado--rechazada');
   });
 
   it('muestra el error si la verificación falla', async () => {

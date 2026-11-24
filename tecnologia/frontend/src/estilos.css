@@ -1,30 +1,65 @@
-/* Estilos del SGA: primero para celular, con un solo punto de corte (768 px). */
+/*
+ * Estilos del SGA (T107): minimalista y sobrio, con identidad militar. Primero para celular, con un
+ * solo punto de corte (768 px). Verde oliva oscuro como color principal, arena para los fondos
+ * suaves, gris carbón para el texto y un dorado discreto para lo destacado. Todos los pares de
+ * texto y fondo cumplen WCAG AA (lo comprueba tests/logica/contraste.test.ts).
+ */
 
 :root {
-  --color-fondo: #f5f6f4;
+  /* Base */
+  --color-fondo: #f3f0e6;
   --color-superficie: #ffffff;
-  --color-texto: #1d2420;
-  --color-texto-suave: #4a554e;
-  --color-borde: #c6ccc7;
+  --color-arena: #e8e2cf;
+  --color-arena-suave: #f8f6ef;
+  --color-texto: #24272a;
+  --color-texto-suave: #555a5d;
+  --color-borde: #d6d0bd;
   /* Borde de los campos: contraste ≥ 3:1 con el fondo (WCAG 1.4.11, EQ-05). */
-  --color-borde-campo: #6b746d;
-  /* Botón deshabilitado (T106): texto 7,0:1 sobre su fondo (WCAG AA ≥ 4,5:1), sin opacidad. */
-  --color-deshabilitado-fondo: #e4e7e4;
-  --color-deshabilitado-texto: #454d48;
-  --color-deshabilitado-borde: #6b746d;
-  --color-primario: #2f5d3a;
-  --color-primario-oscuro: #224529;
+  --color-borde-campo: #74776b;
+  /* Botón deshabilitado (T106): texto legible (WCAG AA ≥ 4,5:1), sin opacidad. */
+  --color-deshabilitado-fondo: #e6e3d9;
+  --color-deshabilitado-texto: #474a44;
+  --color-deshabilitado-borde: #74776b;
+
+  /* Identidad: oliva, dorado y carbón */
+  --color-primario: #3d4a2a;
+  --color-primario-oscuro: #2b351d;
+  --color-primario-suave: #e9ecdc;
+  --color-sobre-primario: #ffffff;
+  --color-sobre-primario-suave: #e6dcbc;
+  --color-acento: #b8933f;
+  --color-acento-texto: #6f5520;
   --color-foco: #1a5fb4;
-  --color-error: #a4161a;
-  --color-error-fondo: #fdecec;
-  --color-exito: #1e6b34;
-  --color-exito-fondo: #e7f5ea;
-  --color-aviso: #7a4b00;
-  --color-aviso-fondo: #fff4dc;
-  --color-en-curso: #1f4e79;
-  --color-en-curso-fondo: #e6eef7;
-  --radio: 6px;
+  --color-foco-sobre-oscuro: #e3c46e;
+
+  /* Mensajes */
+  --color-error: #8b2f28;
+  --color-error-fondo: #f6e4e1;
+  --color-exito: #2e6430;
+  --color-exito-fondo: #e4efdb;
+  --color-aviso: #774b00;
+  --color-aviso-fondo: #fbefd3;
+
+  /* Estados (T108): mismo color en insignias, resumen, línea de tiempo y sellos */
+  --estado-neutral-texto: #4c5052;
+  --estado-neutral-fondo: #ebe8de;
+  --estado-pendiente-texto: #774b00;
+  --estado-pendiente-fondo: #fbefd3;
+  --estado-aprobada-texto: #2e6430;
+  --estado-aprobada-fondo: #e4efdb;
+  --estado-transito-texto: #48572a;
+  --estado-transito-fondo: #eceedf;
+  --estado-recibida-texto: #2d4e6c;
+  --estado-recibida-fondo: #e2eaf1;
+  --estado-rechazada-texto: #8b2f28;
+  --estado-rechazada-fondo: #f6e4e1;
+
+  --fuente: 'Inter', 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  --fuente-mono: ui-monospace, 'Cascadia Mono', 'Consolas', 'Liberation Mono', monospace;
+  --radio: 4px;
   --espacio: 16px;
+  --sombra: 0 1px 2px rgb(36 39 42 / 8%);
 }
 
 *,
@@ -37,21 +72,52 @@ body {
   margin: 0;
   background: var(--color-fondo);
   color: var(--color-texto);
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--fuente);
   font-size: 16px;
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--color-primario);
+  text-underline-offset: 3px;
+}
+
+/* Encabezados en mayúsculas con espaciado amplio, al estilo de los documentos militares. */
+h1,
+h2,
+h3 {
+  margin: 0 0 12px;
+  line-height: 1.25;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-texto);
+}
+
+h1 {
+  font-size: 1.35rem;
+}
+
+h2 {
+  font-size: 1.15rem;
+}
+
+h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
 }
 
 .contenedor {
-  max-width: 960px;
+  max-width: 1040px;
   margin: 0 auto;
   padding: var(--espacio);
 }
 
-h1,
-h2,
-h3 {
-  line-height: 1.25;
+.contenedor--angosto {
+  max-width: 420px;
 }
 
 /* Foco siempre visible para navegar con teclado. */
@@ -60,21 +126,53 @@ h3 {
   outline-offset: 2px;
 }
 
+/* Íconos (lucide-react): heredan el color y se alinean con el texto. */
+.icono {
+  flex-shrink: 0;
+  vertical-align: -0.2em;
+}
+
+/* Antetítulo pequeño en mayúsculas ("Requerimiento", "Conducto regular"). */
+.antetitulo {
+  margin: 0 0 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-acento-texto);
+}
+
+.volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 var(--espacio);
+  font-weight: 600;
+}
+
 /* --- Botones --- */
 button,
 .boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   min-height: 44px;
   padding: 10px 18px;
   border: 1px solid var(--color-primario);
   border-radius: var(--radio);
   background: var(--color-primario);
-  color: #ffffff;
+  color: var(--color-sobre-primario);
   font: inherit;
   font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
   cursor: pointer;
+  transition: background-color 0.15s ease;
 }
 
-button:hover:not(:disabled) {
+button:hover:not(:disabled),
+.boton:hover {
   background: var(--color-primario-oscuro);
 }
 
@@ -93,12 +191,26 @@ button:disabled,
   color: var(--color-primario);
 }
 
+.boton--secundario:hover:not(:disabled) {
+  background: var(--color-primario-suave);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button,
+  .boton {
+    transition: none;
+  }
+}
+
 /* --- Formularios --- */
-.formulario {
+.formulario,
+.panel {
   background: var(--color-superficie);
   border: 1px solid var(--color-borde);
+  border-top: 3px solid var(--color-primario);
   border-radius: var(--radio);
   padding: var(--espacio);
+  box-shadow: var(--sombra);
 }
 
 .formulario__titulo {
@@ -110,7 +222,8 @@ button:disabled,
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 12px;
+  gap: 14px;
+  min-width: 0;
 }
 
 .campo {
@@ -119,7 +232,14 @@ button:disabled,
 }
 
 .campo__etiqueta {
-  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-texto-suave);
 }
 
 .campo input,
@@ -135,18 +255,53 @@ button:disabled,
   background: var(--color-superficie);
 }
 
+.campo select:disabled,
+.campo input:disabled,
+.campo textarea:disabled {
+  background: var(--color-deshabilitado-fondo);
+  color: var(--color-deshabilitado-texto);
+}
+
 .campo__error {
   margin: 0;
   color: var(--color-error);
   font-size: 0.9rem;
 }
 
+.formulario__acciones,
+.lineas {
+  grid-column: 1 / -1;
+}
+
+.formulario__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.formulario__ayuda {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 3px solid var(--color-acento);
+  background: var(--color-arena-suave);
+  color: var(--color-texto-suave);
+  font-size: 0.9rem;
+}
+
 /* --- Mensajes --- */
 .mensaje {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
   margin: 12px 0;
   padding: 10px 12px;
   border-radius: var(--radio);
   border-left: 4px solid;
+}
+
+.mensaje .icono {
+  margin-top: 2px;
 }
 
 .mensaje--error {
@@ -196,74 +351,241 @@ button:disabled,
   }
 }
 
-/* --- Etiquetas de estado --- */
+/* --- Insignias de estado (T108) --- */
 .estado {
-  display: inline-block;
-  padding: 2px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 10px 2px 8px;
+  border: 1px solid currentColor;
   border-radius: 999px;
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  white-space: nowrap;
+  vertical-align: middle;
 }
 
 .estado--neutral {
-  background: #eceeec;
-  color: var(--color-texto-suave);
+  background: var(--estado-neutral-fondo);
+  color: var(--estado-neutral-texto);
 }
 
-.estado--en-curso {
-  background: var(--color-en-curso-fondo);
-  color: var(--color-en-curso);
+.estado--pendiente {
+  background: var(--estado-pendiente-fondo);
+  color: var(--estado-pendiente-texto);
 }
 
-.estado--exito {
-  background: var(--color-exito-fondo);
-  color: var(--color-exito);
+.estado--aprobada {
+  background: var(--estado-aprobada-fondo);
+  color: var(--estado-aprobada-texto);
 }
 
-.estado--alerta {
-  background: var(--color-error-fondo);
-  color: var(--color-error);
+.estado--transito {
+  background: var(--estado-transito-fondo);
+  color: var(--estado-transito-texto);
 }
 
-/* --- Encabezado, barras y listas --- */
+.estado--recibida {
+  background: var(--estado-recibida-fondo);
+  color: var(--estado-recibida-texto);
+}
+
+.estado--rechazada {
+  background: var(--estado-rechazada-fondo);
+  color: var(--estado-rechazada-texto);
+}
+
+/* --- Cabecera con menú por rol (T102, T109) --- */
 .encabezado {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  gap: 8px 16px;
   padding: 8px var(--espacio);
-  background: var(--color-superficie);
-  border-bottom: 1px solid var(--color-borde);
+  background: var(--color-primario);
+  border-bottom: 3px solid var(--color-acento);
+  color: var(--color-sobre-primario);
 }
 
-.contenedor--angosto {
+.encabezado :focus-visible {
+  outline-color: var(--color-foco-sobre-oscuro);
+}
+
+.encabezado__marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: auto;
+  color: var(--color-sobre-primario);
+  text-decoration: none;
+}
+
+.encabezado__marca strong {
+  font-size: 1.1rem;
+  letter-spacing: 0.2em;
+}
+
+.encabezado__marca small {
+  display: none;
+  color: var(--color-sobre-primario-suave);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.encabezado__menu {
+  order: 3;
+  flex-basis: 100%;
+  overflow-x: auto;
+}
+
+.encabezado__menu ul {
+  display: flex;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.encabezado__menu a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border-bottom: 3px solid transparent;
+  color: var(--color-sobre-primario);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.encabezado__menu a:hover {
+  background: var(--color-primario-oscuro);
+}
+
+.encabezado__menu a[aria-current='page'] {
+  border-bottom-color: var(--color-acento);
+  background: var(--color-primario-oscuro);
+}
+
+.encabezado__usuario {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+
+.encabezado__usuario small {
+  color: var(--color-sobre-primario-suave);
+}
+
+.encabezado .boton--salir {
+  min-height: 40px;
+  padding: 6px 12px;
+  border-color: var(--color-sobre-primario-suave);
+  background: transparent;
+  color: var(--color-sobre-primario);
+}
+
+.encabezado .boton--salir:hover:not(:disabled) {
+  background: var(--color-primario-oscuro);
+}
+
+/* --- Inicio de sesión (T109) --- */
+.ingreso {
+  min-height: 100vh;
+  padding: 32px var(--espacio);
+  /* Franja oliva arriba: la identidad queda sobre ella y el formulario la monta a la mitad. */
+  background:
+    linear-gradient(180deg, var(--color-primario) 0, var(--color-primario) 240px, transparent 240px),
+    var(--color-fondo);
+}
+
+.ingreso__panel {
+  width: 100%;
   max-width: 420px;
+  margin: 0 auto;
 }
 
+.ingreso__identidad {
+  margin-bottom: var(--espacio);
+  text-align: center;
+  color: var(--color-sobre-primario);
+}
+
+.ingreso__emblema {
+  display: inline-grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 8px;
+  border: 2px solid var(--color-acento);
+  border-radius: 50%;
+  background: var(--color-primario-oscuro);
+  color: var(--color-acento);
+}
+
+.ingreso__identidad h1 {
+  margin: 0;
+  color: var(--color-sobre-primario);
+  font-size: 1.6rem;
+  letter-spacing: 0.3em;
+}
+
+.ingreso__identidad p {
+  margin: 2px 0 0;
+  color: var(--color-sobre-primario-suave);
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* El panel de ingreso es angosto: una sola columna también en escritorio. */
+.ingreso .formulario__campos {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.ingreso .formulario button[type='submit'] {
+  width: 100%;
+}
+
+.ingreso__pie {
+  margin: var(--espacio) 0 0;
+  text-align: center;
+  color: var(--color-texto-suave);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+}
+
+/* --- Barras, listas y paginación --- */
 .barra {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 8px 16px;
+  margin-bottom: var(--espacio);
 }
 
-.boton {
-  display: inline-flex;
-  align-items: center;
-  text-decoration: none;
+.barra h2 {
+  margin: 0;
 }
 
-.formulario__acciones,
-.lineas {
-  grid-column: 1 / -1;
-}
-
-.formulario__acciones {
+.barra__titulo {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
+  gap: 10px;
+}
+
+.barra__titulo .icono {
+  color: var(--color-primario);
 }
 
 .lineas ul,
@@ -279,13 +601,38 @@ button:disabled,
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 8px 0;
+  gap: 4px 12px;
+  padding: 10px 0;
   border-bottom: 1px solid var(--color-borde);
+}
+
+.lista__fila:last-child,
+.lineas__fila:last-child {
+  border-bottom: 0;
 }
 
 .lineas__fila .campo__error {
   flex-basis: 100%;
+}
+
+.item__nombre {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.item__nombre .icono {
+  color: var(--color-primario);
+}
+
+.item__detalle {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  padding-left: 26px;
+  color: var(--color-texto-suave);
+  font-size: 0.9rem;
 }
 
 .paginacion {
@@ -296,25 +643,82 @@ button:disabled,
   margin-top: var(--espacio);
 }
 
-/* --- Escritorio --- */
-/* Diálogo de motivo (rechazar, anular) y resumen de pendientes en la bandeja. */
-.dialogo {
-  margin: var(--espacio) 0;
-  padding: var(--espacio);
+/* --- Bandeja: resumen por estado (T110) --- */
+.resumen {
+  margin-bottom: var(--espacio);
+}
+
+.resumen__lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.resumen__tarjeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
   border: 1px solid var(--color-borde);
+  border-left: 4px solid currentColor;
   border-radius: var(--radio);
   background: var(--color-superficie);
 }
 
-.dialogo h3 {
-  margin-top: 0;
+.resumen__cantidad {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
-.pendiente {
-  font-size: 0.875rem;
-  color: var(--color-en-curso);
+.resumen__etiqueta {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-texto-suave);
 }
-/* Tabla de stock: ocupa el ancho y se desplaza en celulares angostos. */
+
+.resumen__tarjeta--neutral {
+  color: var(--estado-neutral-texto);
+}
+
+.resumen__tarjeta--pendiente {
+  color: var(--estado-pendiente-texto);
+}
+
+.resumen__tarjeta--aprobada {
+  color: var(--estado-aprobada-texto);
+}
+
+.resumen__tarjeta--transito {
+  color: var(--estado-transito-texto);
+}
+
+.resumen__tarjeta--recibida {
+  color: var(--estado-recibida-texto);
+}
+
+.resumen__tarjeta--rechazada {
+  color: var(--estado-rechazada-texto);
+}
+
+.resumen__nota {
+  margin: 6px 0 0;
+  color: var(--color-texto-suave);
+  font-size: 0.85rem;
+}
+
+.filtros {
+  max-width: 320px;
+  margin-bottom: var(--espacio);
+}
+
+/* --- Tablas --- */
 .tabla {
   width: 100%;
   border-collapse: collapse;
@@ -323,14 +727,346 @@ button:disabled,
 
 .tabla th,
 .tabla td {
-  padding: 8px;
+  padding: 10px 12px;
   border-bottom: 1px solid var(--color-borde);
   text-align: left;
 }
+
+.tabla th {
+  background: var(--color-arena);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-texto);
+}
+
+.tabla a {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* En celulares angostos (360 px) la tabla se desplaza en horizontal sin romper la página. */
+.tabla-contenedor {
+  overflow-x: auto;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+}
+
+.pendiente {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-acento-texto);
+}
+
+/* Bandeja (T101): en celular cada fila es una tarjeta con la etiqueta de cada dato. */
+.tabla--bandeja {
+  background: transparent;
+}
+
+.tabla--bandeja thead {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.tabla--bandeja tr {
+  display: block;
+  margin-bottom: 10px;
+  padding: 4px 0;
+  border: 1px solid var(--color-borde);
+  border-left: 4px solid var(--color-primario);
+  border-radius: var(--radio);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra);
+}
+
+.tabla--bandeja td {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  border-bottom: 0;
+  text-align: right;
+}
+
+.tabla--bandeja td::before {
+  content: attr(data-etiqueta);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-texto-suave);
+  text-align: left;
+}
+
+/* --- Detalle de la solicitud (T111) --- */
+.ficha {
+  margin-bottom: var(--espacio);
+}
+
+.ficha__titulo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.ficha__datos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--color-texto-suave);
+}
+
+.ficha__datos li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.seccion {
+  margin-top: calc(var(--espacio) * 1.5);
+}
+
+.seccion > h3 {
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-borde);
+}
+
+.acciones {
+  margin-top: var(--espacio);
+  padding: 12px;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  background: var(--color-arena-suave);
+}
+
+/* Firmas como sellos: nivel, cargo, fecha, hora y huella abreviada. */
+.sellos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sello {
+  position: relative;
+  padding: 12px 14px;
+  border: 2px solid var(--estado-aprobada-texto);
+  border-radius: var(--radio);
+  background: var(--color-superficie);
+  outline: 1px solid var(--estado-aprobada-texto);
+  outline-offset: -6px;
+}
+
+.sello--rechazado {
+  border-color: var(--estado-rechazada-texto);
+  outline-color: var(--estado-rechazada-texto);
+}
+
+.sello__cabecera {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  color: var(--estado-aprobada-texto);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.sello--rechazado .sello__cabecera {
+  color: var(--estado-rechazada-texto);
+}
+
+.sello__firmante {
+  margin: 0;
+  font-weight: 700;
+}
+
+.sello__cargo {
+  margin: 0 0 8px;
+  color: var(--color-texto-suave);
+  font-size: 0.9rem;
+}
+
+.sello__datos {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  margin: 0;
+  padding-top: 8px;
+  border-top: 1px dashed var(--color-borde);
+  font-size: 0.85rem;
+}
+
+.sello__datos dt {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-texto-suave);
+  align-self: center;
+}
+
+.sello__datos dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.huella {
+  font-family: var(--fuente-mono);
+  font-size: 0.8rem;
+  word-break: break-all;
+}
+
+/* Línea de tiempo: secuencia vertical con un ícono por paso. */
+.linea-tiempo {
+  position: relative;
+  margin: var(--espacio) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.linea-tiempo__paso {
+  position: relative;
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 12px;
+  padding-bottom: 18px;
+}
+
+/* Guía vertical entre pasos. */
+.linea-tiempo__paso:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  top: 36px;
+  bottom: 0;
+  left: 17px;
+  width: 2px;
+  background: var(--color-borde);
+}
+
+.linea-tiempo__icono {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  background: var(--color-superficie);
+}
+
+.linea-tiempo__icono--neutral {
+  color: var(--estado-neutral-texto);
+}
+
+.linea-tiempo__icono--pendiente {
+  color: var(--estado-pendiente-texto);
+}
+
+.linea-tiempo__icono--aprobada {
+  color: var(--estado-aprobada-texto);
+}
+
+.linea-tiempo__icono--transito {
+  color: var(--estado-transito-texto);
+}
+
+.linea-tiempo__icono--recibida {
+  color: var(--estado-recibida-texto);
+}
+
+.linea-tiempo__icono--rechazada {
+  color: var(--estado-rechazada-texto);
+}
+
+.linea-tiempo__cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding-top: 6px;
+}
+
+.linea-tiempo__accion {
+  font-weight: 700;
+}
+
+.linea-tiempo__meta {
+  color: var(--color-texto-suave);
+  font-size: 0.9rem;
+}
+
+.linea-tiempo__motivo {
+  margin-top: 4px;
+  padding: 6px 10px;
+  border-left: 3px solid var(--color-aviso);
+  background: var(--color-aviso-fondo);
+  color: var(--color-aviso);
+}
+
+/* --- Diálogos y formularios de despacho y acta --- */
+.dialogo {
+  margin: var(--espacio) 0;
+  padding: var(--espacio);
+  border: 1px solid var(--color-borde);
+  border-top: 3px solid var(--color-primario);
+  border-radius: var(--radio);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra);
+}
+
+.dialogo h3 {
+  margin-top: 0;
+}
+
+.dialogo h3 .icono {
+  color: var(--color-primario);
+}
+
+/* Paso de confirmación (T100). */
+.dialogo--confirmacion {
+  border: 2px solid var(--color-aviso);
+}
+
+.dialogo--confirmacion h3 .icono {
+  color: var(--color-aviso);
+}
+
+.dialogo__advertencia {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radio);
+  background: var(--color-aviso-fondo);
+  color: var(--color-aviso);
+  font-weight: 600;
+}
+
 /* Acta: las líneas con diferencias entre lo despachado y lo recibido se resaltan. */
-.acta__linea {
-  padding: 8px;
-  border-left: 4px solid transparent;
+.acta__linea,
+.despacho__linea {
+  padding: 10px;
+  border: 1px solid var(--color-borde);
+  border-left: 4px solid var(--color-borde);
+  border-radius: var(--radio);
 }
 
 .acta__linea--diferencia {
@@ -339,33 +1075,28 @@ button:disabled,
 }
 
 .acta__aviso {
-  margin: 0 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 8px;
   font-weight: 600;
   color: var(--color-aviso);
 }
 
-/* Línea de tiempo: un paso por fila, con una guía vertical. */
-.linea-tiempo {
-  margin: var(--espacio) 0;
-  padding-left: 20px;
-  border-left: 2px solid var(--color-borde);
-  list-style: none;
-}
-
-.linea-tiempo__paso {
+/* Despacho con el stock disponible de cada ítem (T105). */
+.despacho__stock {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-bottom: 12px;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 0;
+  color: var(--color-texto-suave);
+  font-size: 0.9rem;
 }
 
-.linea-tiempo__motivo {
-  color: var(--color-aviso);
-}
-
-/* En celulares angostos (360 px) la tabla se desplaza en horizontal sin romper la página. */
-.tabla-contenedor {
-  overflow-x: auto;
+.despacho__aviso {
+  margin: 6px 0 0;
+  font-weight: 600;
+  color: var(--color-error);
 }
 
 /* Solo para lectores de pantalla (p. ej., el título de la tabla de la bandeja). */
@@ -378,97 +1109,13 @@ button:disabled,
   white-space: nowrap;
 }
 
-/* Cabecera con menú por rol (T102). */
-.encabezado__menu ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 16px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.encabezado__menu a {
-  display: inline-block;
-  padding: 10px 4px;
-  color: var(--color-primario);
-  font-weight: 600;
-}
-
-.encabezado__menu a[aria-current='page'] {
-  text-decoration: underline;
-  text-decoration-thickness: 3px;
-  text-underline-offset: 6px;
-}
-
-.encabezado__usuario {
-  display: flex;
-  flex-direction: column;
-}
-
-.encabezado__usuario small {
-  color: var(--color-texto-suave);
-}
-
-/* Paso de confirmación (T100). */
-.dialogo--confirmacion {
-  border: 2px solid var(--color-aviso);
-}
-
-.dialogo__advertencia {
-  padding: 8px 12px;
-  border-radius: var(--radio);
-  background: var(--color-aviso-fondo);
-  color: var(--color-aviso);
-  font-weight: 600;
-}
-
-/* Despacho con el stock disponible de cada ítem (T105). */
-.despacho__stock {
-  margin: -4px 0 8px;
-  color: var(--color-texto-suave);
-}
-
-.despacho__aviso {
-  margin: 0 0 8px;
-  font-weight: 600;
-  color: var(--color-error);
-}
-
-/* Bandeja (T101): en celular cada fila es una tarjeta con la etiqueta de cada dato. */
-.tabla--bandeja thead {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-}
-
-.tabla--bandeja tr {
-  display: block;
-  margin-bottom: 12px;
-  border: 1px solid var(--color-borde);
-  border-radius: var(--radio);
-  background: var(--color-superficie);
-}
-
-.tabla--bandeja td {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 6px 12px;
-  border-bottom: 0;
-  text-align: right;
-}
-
-.tabla--bandeja td::before {
-  content: attr(data-etiqueta);
-  font-weight: 600;
-  color: var(--color-texto-suave);
-  text-align: left;
-}
-
+/* --- Escritorio --- */
 @media (min-width: 768px) {
+  .tabla--bandeja {
+    border: 1px solid var(--color-borde);
+    background: var(--color-superficie);
+  }
+
   .tabla--bandeja thead {
     position: static;
     width: auto;
@@ -480,7 +1127,13 @@ button:disabled,
   .tabla--bandeja tr {
     display: table-row;
     margin: 0;
+    padding: 0;
     border: 0;
+    box-shadow: none;
+  }
+
+  .tabla--bandeja tbody tr:hover {
+    background: var(--color-arena-suave);
   }
 
   .tabla--bandeja td {
@@ -499,5 +1152,27 @@ button:disabled,
 
   .formulario__campos {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .encabezado {
+    flex-wrap: nowrap;
+    padding: 0 calc(var(--espacio) * 2);
+  }
+
+  .encabezado__marca small {
+    display: inline;
+  }
+
+  .encabezado__menu {
+    order: 0;
+    flex-basis: auto;
+  }
+
+  .encabezado__menu a {
+    min-height: 56px;
+  }
+
+  .encabezado__usuario {
+    text-align: right;
   }
 }

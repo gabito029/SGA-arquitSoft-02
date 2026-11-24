@@ -23,9 +23,23 @@ describe('componentes base', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Enviando solicitud…');
   });
 
-  it('EstadoEtiqueta muestra la etiqueta de la interfaz', () => {
+  it('EstadoEtiqueta muestra la etiqueta de la interfaz con su tono e ícono (T108)', () => {
     render(<EstadoEtiqueta estado="EN_TRANSITO" />);
-    expect(screen.getByText('Despachada')).toHaveClass('estado--en-curso');
+    const insignia = screen.getByText('Despachada');
+    expect(insignia).toHaveClass('estado--transito');
+    // El ícono es decorativo: no se anuncia a los lectores de pantalla.
+    expect(insignia.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it.each([
+    ['PENDIENTE_VB_UNIDAD', 'estado--pendiente'],
+    ['APROBADA', 'estado--aprobada'],
+    ['CONFIRMADA', 'estado--recibida'],
+    ['RECHAZADA', 'estado--rechazada'],
+    ['ANULADA', 'estado--rechazada'],
+  ] as const)('EstadoEtiqueta de %s usa %s', (estado, clase) => {
+    const { container } = render(<EstadoEtiqueta estado={estado} />);
+    expect(container.firstChild).toHaveClass(clase);
   });
 
   it('Formulario evita el envío nativo, muestra el error y se desactiva mientras envía', async () => {

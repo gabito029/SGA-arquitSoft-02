@@ -1,3 +1,4 @@
+import { FileText } from 'lucide-react';
 import { useState } from 'react';
 import { MOTIVO_MAXIMO, validarMotivo } from '../logica/acciones';
 import { Campo } from './Formulario';
@@ -36,7 +37,10 @@ export function DialogoMotivo({
 
   return (
     <div className="dialogo" role="dialog" aria-modal="true" aria-labelledby="dialogo-titulo">
-      <h3 id="dialogo-titulo">{titulo}</h3>
+      <h3 id="dialogo-titulo">
+        <FileText />
+        {titulo}
+      </h3>
       {advertencia ? <p className="dialogo__advertencia">{advertencia}</p> : null}
       <fieldset className="formulario__campos" disabled={enviando}>
         <Campo id="motivo" etiqueta="Motivo" error={error}>

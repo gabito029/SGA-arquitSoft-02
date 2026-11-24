@@ -1,3 +1,4 @@
+import { ClipboardCheck, Feather, TriangleExclamationPoint } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { ItemRequerimiento } from '../api/tipos';
 import {
@@ -50,7 +51,10 @@ export function FormularioActa({ items, enviando = false, onFirmar }: Props) {
 
   return (
     <section className="dialogo" aria-labelledby="titulo-acta">
-      <h3 id="titulo-acta">Firmar acta de recepción</h3>
+      <h3 id="titulo-acta">
+        <ClipboardCheck />
+        Firmar acta de recepción
+      </h3>
       <fieldset className="formulario__campos" disabled={enviando || confirmando}>
         {items.map((i) => {
           const id = `recibido-${i.item.id}`;
@@ -81,7 +85,12 @@ export function FormularioActa({ items, enviando = false, onFirmar }: Props) {
                   onChange={(e) => cambiar(i.item.id, 'cantidad', e.target.value)}
                 />
               </Campo>
-              {diferencia ? <p className="acta__aviso">Diferencia con lo despachado</p> : null}
+              {diferencia ? (
+                <p className="acta__aviso">
+                  <TriangleExclamationPoint size={16} />
+                  Diferencia con lo despachado
+                </p>
+              ) : null}
               <Campo id={`observacion-${i.item.id}`} etiqueta={`${i.item.codigo} — observación`}>
                 <input
                   id={`observacion-${i.item.id}`}
@@ -101,6 +110,7 @@ export function FormularioActa({ items, enviando = false, onFirmar }: Props) {
         </p>
         <div className="formulario__acciones">
           <button type="button" className="boton" onClick={firmar}>
+            <Feather size={18} />
             {enviando ? 'Firmando…' : 'Firmar acta'}
           </button>
         </div>

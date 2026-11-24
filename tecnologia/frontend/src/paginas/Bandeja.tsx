@@ -1,7 +1,16 @@
 // Bandeja de solicitudes (T063): lista paginada de lo que el usuario ve según su rol y órgano
 // (la API aplica data-model.md §7), con filtro por estado, etiquetas de estado y los estados de
 // carga y de lista vacía. Es una tabla con encabezados (T101) que en celular se muestra como
-// tarjetas, con la etiqueta de cada dato.
+// tarjetas, con la etiqueta de cada dato. Arriba, un resumen de cuántas solicitudes hay por estado
+// en la página cargada (T110); no hace llamadas nuevas a la API.
+import {
+  ChevronLeft,
+  ChevronRight,
+  CircleArrowRight,
+  FilePlus,
+  Inbox,
+  ListFilter,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, ErrorApi } from '../api/cliente';
@@ -11,7 +20,7 @@ import { Cargando } from '../componentes/Cargando';
 import { EstadoEtiqueta } from '../componentes/EstadoEtiqueta';
 import { Mensaje } from '../componentes/Mensaje';
 import { accionPendiente } from '../logica/acciones';
-import { estadosFiltrables, etiquetaEstado } from '../logica/estados';
+import { estadosFiltrables, etiquetaEstado, resumenPorTono } from '../logica/estados';
 import { fechaCorta } from '../logica/formato';
 import { MENSAJE_GENERICO } from '../logica/mensajes';
 
@@ -50,19 +59,48 @@ export function Bandeja() {
   }, [pagina, estado]);
 
   const totalPaginas = datos ? Math.max(1, Math.ceil(datos.total / datos.size)) : 1;
+  const resumen = datos ? resumenPorTono(datos.items) : [];
 
   return (
     <main className="contenedor">
       <div className="barra">
-        <h2>Bandeja de solicitudes</h2>
+        <div>
+          <p className="antetitulo">Requerimientos</p>
+          <div className="barra__titulo">
+            <Inbox size={24} />
+            <h2>Bandeja de solicitudes</h2>
+          </div>
+        </div>
         {usuario?.rol === 'OFICIAL_LOGISTICA' ? (
           <Link className="boton" to="/solicitudes/nueva">
+            <FilePlus size={18} />
             Nueva solicitud
           </Link>
         ) : null}
       </div>
-      <div className="campo">
+      {resumen.length > 0 ? (
+        <section className="resumen" aria-labelledby="titulo-resumen">
+          <h3 id="titulo-resumen" className="solo-lectores">
+            Resumen por estado
+          </h3>
+          <ul className="resumen__lista">
+            {resumen.map((g) => (
+              <li key={g.tono} className={`resumen__tarjeta resumen__tarjeta--${g.tono}`}>
+                <span className="resumen__cantidad">{g.cantidad}</span>
+                <span className="resumen__etiqueta">{g.etiqueta}</span>
+              </li>
+            ))}
+          </ul>
+          {datos && totalPaginas > 1 ? (
+            <p className="resumen__nota">
+              Resumen de esta página · {datos.total} solicitudes en total
+            </p>
+          ) : null}
+        </section>
+      ) : null}
+      <div className="campo filtros">
         <label className="campo__etiqueta" htmlFor="filtro-estado">
+          <ListFilter size={16} />
           Estado
         </label>
         <select
@@ -120,7 +158,14 @@ export function Bandeja() {
                     <EstadoEtiqueta estado={r.estado} />
                   </td>
                   <td data-etiqueta="Acción pendiente">
-                    {pendiente ? <span className="pendiente">{pendiente}</span> : '—'}
+                    {pendiente ? (
+                      <span className="pendiente">
+                        <CircleArrowRight size={16} />
+                        {pendiente}
+                      </span>
+                    ) : (
+                      '—'
+                    )}
                   </td>
                 </tr>
               );
@@ -130,7 +175,13 @@ export function Bandeja() {
       ) : null}
       {datos && totalPaginas > 1 ? (
         <nav className="paginacion" aria-label="Paginación">
-          <button type="button" disabled={pagina <= 1} onClick={() => setPagina(pagina - 1)}>
+          <button
+            type="button"
+            className="boton--secundario"
+            disabled={pagina <= 1}
+            onClick={() => setPagina(pagina - 1)}
+          >
+            <ChevronLeft size={18} />
             Anterior
           </button>
           <span>
@@ -138,10 +189,12 @@ export function Bandeja() {
           </span>
           <button
             type="button"
+            className="boton--secundario"
             disabled={pagina >= totalPaginas}
             onClick={() => setPagina(pagina + 1)}
           >
             Siguiente
+            <ChevronRight size={18} />
           </button>
         </nav>
       ) : null}

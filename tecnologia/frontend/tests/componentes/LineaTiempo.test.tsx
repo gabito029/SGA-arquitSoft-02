@@ -54,6 +54,18 @@ describe('LineaTiempo', () => {
     expect(pasos[2]).toHaveTextContent('1DE');
   });
 
+  it('cada paso lleva un ícono con el tono del estado al que llegó (T111)', () => {
+    render(<LineaTiempo entradas={ENTRADAS} />);
+    const pasos = within(screen.getByRole('list', { name: 'Línea de tiempo' })).getAllByRole(
+      'listitem',
+    );
+    const iconos = pasos.map((p) => p.querySelector('.linea-tiempo__icono'));
+    iconos.forEach((i) => expect(i?.querySelector('svg')).toHaveAttribute('aria-hidden', 'true'));
+    expect(iconos[0]).toHaveClass('linea-tiempo__icono--neutral');
+    expect(iconos[1]).toHaveClass('linea-tiempo__icono--pendiente');
+    expect(iconos[2]).toHaveClass('linea-tiempo__icono--rechazada');
+  });
+
   it('muestra el motivo solo cuando existe', () => {
     render(<LineaTiempo entradas={ENTRADAS} />);
     expect(screen.getAllByText(/^Motivo:/)).toHaveLength(1);

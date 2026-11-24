@@ -2,6 +2,7 @@
 // permite 5 como máximo) y la lista de ítems agregados. "Guardar" la deja en Registrada; "Enviar"
 // la guarda y la envía por el conducto regular. Si requiere al COLOGE, se muestra el aviso y la
 // solicitud queda Registrada (FR-012).
+import { ArrowLeft, Package, Plus, Save, Send, Trash } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api, ErrorApi } from '../api/cliente';
@@ -136,9 +137,10 @@ export function NuevaSolicitud() {
 
   return (
     <main className="contenedor">
-      <p>
-        <Link to="/bandeja">← Volver a la bandeja</Link>
-      </p>
+      <Link className="volver" to="/bandeja">
+        <ArrowLeft size={16} />
+        Volver a la bandeja
+      </Link>
       <Formulario
         titulo="Nueva solicitud"
         enviando={enviando || !editable}
@@ -188,17 +190,22 @@ export function NuevaSolicitud() {
         </Campo>
         <div className="formulario__acciones">
           <button type="button" className="boton--secundario" onClick={agregar}>
+            <Plus size={18} />
             Agregar ítem
           </button>
         </div>
 
         <section className="lineas" aria-label="Ítems de la solicitud">
-          <h3>Ítems ({lineas.length})</h3>
+          <h3>
+            <Package />
+            Ítems ({lineas.length})
+          </h3>
           {lineas.length === 0 ? <p>Todavía no agregó ítems.</p> : null}
           <ul>
             {lineas.map((l, indice) => (
               <li key={l.item.id} className="lineas__fila">
-                <span>
+                <span className="item__nombre">
+                  <Package size={16} />
                   {l.item.codigo} — {l.item.nombre}:{' '}
                   <strong>{cantidadConUnidad(l.cantidad, l.item.unidad_medida)}</strong>
                 </span>
@@ -208,6 +215,7 @@ export function NuevaSolicitud() {
                   onClick={() => quitar(l.item.id)}
                   aria-label={`Quitar ${l.item.nombre}`}
                 >
+                  <Trash size={16} />
                   Quitar
                 </button>
                 {errorDeLinea(indice) ? (
@@ -225,9 +233,17 @@ export function NuevaSolicitud() {
           ) : null}
         </section>
 
+        <p className="formulario__ayuda">
+          Al enviarla, la solicitud sigue el conducto regular: visto bueno de la unidad,
+          conformidad de la División/Brigada y aprobación del almacén.
+        </p>
         <div className="formulario__acciones">
-          <button type="submit">{enviando ? 'Guardando…' : 'Guardar'}</button>
+          <button type="submit" className="boton--secundario">
+            <Save size={18} />
+            {enviando ? 'Guardando…' : 'Guardar'}
+          </button>
           <button type="button" onClick={enviar}>
+            <Send size={18} />
             {enviando ? 'Enviando…' : 'Enviar'}
           </button>
         </div>

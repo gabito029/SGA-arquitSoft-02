@@ -49,9 +49,47 @@ describe('contraste (WCAG AA)', () => {
       ['color-aviso', 'color-aviso-fondo'],
       ['color-error', 'color-error-fondo'],
       ['color-exito', 'color-exito-fondo'],
+      ['color-texto', 'color-superficie'],
+      ['color-texto', 'color-arena'],
+      ['color-texto-suave', 'color-superficie'],
+      ['color-texto-suave', 'color-arena-suave'],
+      ['color-primario', 'color-superficie'],
+      ['color-primario', 'color-fondo'],
+      ['color-primario', 'color-primario-suave'],
+      ['color-acento-texto', 'color-superficie'],
+      ['color-acento-texto', 'color-fondo'],
+      ['color-sobre-primario', 'color-primario'],
+      ['color-sobre-primario', 'color-primario-oscuro'],
+      ['color-sobre-primario-suave', 'color-primario'],
+      ['color-sobre-primario-suave', 'color-primario-oscuro'],
+      ['color-error', 'color-superficie'],
+      ['color-aviso', 'color-fondo'],
     ];
     for (const [texto, fondo] of pares) {
       expect(contraste(variable(texto), variable(fondo))).toBeGreaterThanOrEqual(4.5);
     }
+  });
+});
+
+describe('colores de estado (T107, T108)', () => {
+  const TONOS = ['neutral', 'pendiente', 'aprobada', 'transito', 'recibida', 'rechazada'];
+
+  it.each(TONOS)('la insignia %s tiene texto legible sobre su fondo (≥ 4,5:1)', (tono) => {
+    expect(
+      contraste(variable(`estado-${tono}-texto`), variable(`estado-${tono}-fondo`)),
+    ).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it.each(TONOS)('el color %s se lee sobre la superficie blanca (resumen y sellos)', (tono) => {
+    expect(contraste(variable(`estado-${tono}-texto`), variable('color-superficie'))).toBeGreaterThanOrEqual(
+      4.5,
+    );
+  });
+
+  it('el foco se distingue sobre el fondo claro y sobre la cabecera oliva (≥ 3:1)', () => {
+    expect(contraste(variable('color-foco'), variable('color-fondo'))).toBeGreaterThanOrEqual(3);
+    expect(
+      contraste(variable('color-foco-sobre-oscuro'), variable('color-primario')),
+    ).toBeGreaterThanOrEqual(3);
   });
 });

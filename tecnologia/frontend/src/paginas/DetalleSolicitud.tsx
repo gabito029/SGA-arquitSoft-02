@@ -1,7 +1,22 @@
 // Detalle de la solicitud: datos, ítems, firmas registradas y las acciones que la API permite al
 // usuario (FR-029): Firmar y Rechazar (US2), Despachar (US3), Firmar acta y Verificar (US4), la
 // línea de tiempo (US5) y Anular (US6). Firmar, Rechazar, Despachar y Firmar acta piden una
-// confirmación dentro de la página, porque no se pueden deshacer (T100).
+// confirmación dentro de la página, porque no se pueden deshacer (T100). Presentación (T111): las
+// firmas se muestran como sellos (nivel, cargo, fecha, hora y huella abreviada) y la línea de
+// tiempo como la secuencia del conducto regular.
+import {
+  ArrowLeft,
+  Ban,
+  Building2,
+  CircleX,
+  Clock,
+  Coins,
+  Feather,
+  Package,
+  ShieldCheck,
+  Stamp,
+  Warehouse,
+} from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { api, ErrorApi } from '../api/cliente';
@@ -24,32 +39,57 @@ import {
   puede,
 } from '../logica/acciones';
 import { ETIQUETAS_NIVEL, etiquetaEstado } from '../logica/estados';
-import { cantidadConUnidad, formatoSoles } from '../logica/formato';
+import { cantidadConUnidad, fechaHora, formatoSoles, huellaAbreviada } from '../logica/formato';
+import { ETIQUETAS_ROL } from '../logica/historial';
 import { MENSAJE_GENERICO } from '../logica/mensajes';
 
 function textoError(e: unknown): string {
   return e instanceof ErrorApi ? e.message : MENSAJE_GENERICO;
 }
 
-function fecha(iso: string): string {
-  return new Date(iso).toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' });
-}
-
+/** Firmas registradas como sellos: nivel, decisión, firmante, cargo, fecha, hora y huella. */
 function ListaFirmas({ firmas }: { firmas: Firma[] }) {
   if (firmas.length === 0) return null;
   return (
-    <section aria-labelledby="titulo-firmas">
-      <h3 id="titulo-firmas">Firmas</h3>
-      <ul className="lista">
-        {firmas.map((f) => (
-          <li key={f.id} className="lista__fila">
-            <span>{ETIQUETAS_NIVEL[f.nivel]}</span>
-            <span>
-              {f.decision === 'APROBAR' ? 'Aprobó' : 'Rechazó'}: {f.firmante} ({f.organo.codigo})
-            </span>
-            <time dateTime={f.firmado_en}>{fecha(f.firmado_en)}</time>
-          </li>
-        ))}
+    <section className="seccion" aria-labelledby="titulo-firmas">
+      <p className="antetitulo">Sellos de firma digital</p>
+      <h3 id="titulo-firmas">
+        <Stamp />
+        Firmas
+      </h3>
+      <ul className="sellos">
+        {firmas.map((f) => {
+          const aprobo = f.decision === 'APROBAR';
+          const { fecha, hora } = fechaHora(f.firmado_en);
+          return (
+            <li key={f.id} className={`sello sello--${aprobo ? 'aprobado' : 'rechazado'}`}>
+              <p className="sello__cabecera">
+                <Stamp size={16} />
+                <span>{ETIQUETAS_NIVEL[f.nivel]}</span>
+              </p>
+              <p className="sello__firmante">
+                {aprobo ? 'Aprobó' : 'Rechazó'}: {f.firmante}
+              </p>
+              <p className="sello__cargo">
+                {ETIQUETAS_ROL[f.rol]} · {f.organo.codigo}
+              </p>
+              <dl className="sello__datos">
+                <dt>Fecha</dt>
+                <dd>
+                  <time dateTime={f.firmado_en}>{fecha}</time>
+                </dd>
+                <dt>Hora</dt>
+                <dd>{hora}</dd>
+                <dt>Huella</dt>
+                <dd>
+                  <code className="huella" title={`SHA-256: ${f.huella_sha256}`}>
+                    {huellaAbreviada(f.huella_sha256)}
+                  </code>
+                </dd>
+              </dl>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );
@@ -200,48 +240,79 @@ export function DetalleSolicitud() {
 
   return (
     <main className="contenedor">
-      <p>
-        <Link to="/bandeja">← Volver a la bandeja</Link>
-      </p>
+      <Link className="volver" to="/bandeja">
+        <ArrowLeft size={16} />
+        Volver a la bandeja
+      </Link>
       {error ? <Mensaje tipo="error">{error}</Mensaje> : null}
       {!req && !error ? <Cargando /> : null}
       {req ? (
         <article>
-          <h2>
-            {req.codigo} <EstadoEtiqueta estado={req.estado} />
-          </h2>
-          <p>
-            Unidad: {req.unidad.nombre} ({req.unidad.codigo})
-            {req.almacen ? ` · Almacén: ${req.almacen.nombre}` : ''}
-            {req.monto_total ? ` · Monto: ${formatoSoles(req.monto_total)}` : ''}
-          </p>
-          <ul className="lista">
-            {req.items.map((i) => (
-              <li key={i.item.id} className="lista__fila">
-                <span>
-                  {i.item.codigo} — {i.item.nombre}
-                </span>
-                <strong>{cantidadConUnidad(i.cantidad_solicitada, i.item.unidad_medida)}</strong>
-                {i.cantidad_despachada != null ? (
-                  <span>
-                    Despachado: {cantidadConUnidad(i.cantidad_despachada, i.item.unidad_medida)}
-                  </span>
-                ) : null}
-                {i.cantidad_recibida != null ? (
-                  <span>
-                    Recibido: {cantidadConUnidad(i.cantidad_recibida, i.item.unidad_medida)}
-                  </span>
-                ) : null}
-                {i.observacion ? <span>Observación: {i.observacion}</span> : null}
+          <header className="panel ficha">
+            <p className="antetitulo">
+              Requerimiento · {req.categoria === 'INTENDENCIA' ? 'Intendencia' : 'Material de guerra'}
+            </p>
+            <h2 className="ficha__titulo">
+              {req.codigo} <EstadoEtiqueta estado={req.estado} />
+            </h2>
+            <ul className="ficha__datos">
+              <li>
+                <Building2 size={16} />
+                Unidad: {req.unidad.nombre} ({req.unidad.codigo})
               </li>
-            ))}
-          </ul>
+              {req.almacen ? (
+                <li>
+                  <Warehouse size={16} />
+                  Almacén: {req.almacen.nombre}
+                </li>
+              ) : null}
+              {req.monto_total ? (
+                <li>
+                  <Coins size={16} />
+                  Monto: {formatoSoles(req.monto_total)}
+                </li>
+              ) : null}
+            </ul>
+          </header>
+
+          <section className="seccion" aria-labelledby="titulo-items">
+            <h3 id="titulo-items">
+              <Package />
+              Ítems ({req.items.length})
+            </h3>
+            <ul className="lista">
+              {req.items.map((i) => (
+                <li key={i.item.id} className="lista__fila">
+                  <span className="item__nombre">
+                    <Package size={16} />
+                    {i.item.codigo} — {i.item.nombre}
+                  </span>
+                  <strong>{cantidadConUnidad(i.cantidad_solicitada, i.item.unidad_medida)}</strong>
+                  {i.cantidad_despachada != null || i.cantidad_recibida != null || i.observacion ? (
+                    <span className="item__detalle">
+                      {i.cantidad_despachada != null ? (
+                        <span>
+                          Despachado: {cantidadConUnidad(i.cantidad_despachada, i.item.unidad_medida)}
+                        </span>
+                      ) : null}
+                      {i.cantidad_recibida != null ? (
+                        <span>
+                          Recibido: {cantidadConUnidad(i.cantidad_recibida, i.item.unidad_medida)}
+                        </span>
+                      ) : null}
+                      {i.observacion ? <span>Observación: {i.observacion}</span> : null}
+                    </span>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          </section>
 
           {exito ? <Mensaje tipo="exito">{exito}</Mensaje> : null}
           {errorAccion ? <Mensaje tipo="error">{errorAccion}</Mensaje> : null}
           {enviando ? <Cargando /> : null}
 
-          <div className="formulario__acciones">
+          <div className="formulario__acciones acciones">
             {puede(req, 'FIRMAR') ? (
               <button
                 type="button"
@@ -249,6 +320,7 @@ export function DetalleSolicitud() {
                 disabled={enviando}
                 onClick={() => setConfirmandoFirma(true)}
               >
+                <Feather size={18} />
                 Firmar
               </button>
             ) : null}
@@ -259,6 +331,7 @@ export function DetalleSolicitud() {
                 disabled={enviando}
                 onClick={() => setRechazando(true)}
               >
+                <CircleX size={18} />
                 Rechazar
               </button>
             ) : null}
@@ -269,6 +342,7 @@ export function DetalleSolicitud() {
                 disabled={enviando}
                 onClick={() => setAnulando(true)}
               >
+                <Ban size={18} />
                 Anular
               </button>
             ) : null}
@@ -279,6 +353,7 @@ export function DetalleSolicitud() {
                 disabled={enviando}
                 onClick={() => void verificar()}
               >
+                <ShieldCheck size={18} />
                 Verificar
               </button>
             ) : null}
@@ -334,14 +409,19 @@ export function DetalleSolicitud() {
           {verificacion ? <ResultadoVerificacion verificacion={verificacion} /> : null}
           <ListaFirmas firmas={firmas} />
 
-          <section aria-labelledby="titulo-historial">
-            <h3 id="titulo-historial">Línea de tiempo</h3>
+          <section className="seccion" aria-labelledby="titulo-historial">
+            <p className="antetitulo">Conducto regular</p>
+            <h3 id="titulo-historial">
+              <Clock />
+              Línea de tiempo
+            </h3>
             <button
               type="button"
               className="boton--secundario"
               aria-expanded={historial !== null}
               onClick={() => void verHistorial()}
             >
+              <Clock size={18} />
               {historial ? 'Ocultar línea de tiempo' : 'Ver línea de tiempo'}
             </button>
             {historial ? <LineaTiempo entradas={historial} /> : null}

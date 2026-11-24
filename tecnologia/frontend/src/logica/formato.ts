@@ -47,3 +47,17 @@ export function fechaCorta(iso: string): string {
   const mm = String(fecha.getMonth() + 1).padStart(2, '0');
   return `${dd}/${mm}/${fecha.getFullYear()}`;
 }
+
+/** Fecha y hora es-PE por separado, para los sellos de firma: { fecha: "24/11/2026", hora: "10:05" }. */
+export function fechaHora(iso: string): { fecha: string; hora: string } {
+  const momento = new Date(iso);
+  if (Number.isNaN(momento.getTime())) return { fecha: '', hora: '' };
+  const hh = String(momento.getHours()).padStart(2, '0');
+  const mi = String(momento.getMinutes()).padStart(2, '0');
+  return { fecha: fechaCorta(iso), hora: `${hh}:${mi}` };
+}
+
+/** Huella SHA-256 abreviada para mostrar: los 8 primeros y los 8 últimos caracteres. */
+export function huellaAbreviada(huella: string): string {
+  return huella.length <= 20 ? huella : `${huella.slice(0, 8)}…${huella.slice(-8)}`;
+}

@@ -14,20 +14,50 @@ export const ETIQUETAS_ESTADO: Record<EstadoRequerimiento, string> = {
   ANULADA: 'Anulada',
 };
 
-export type TonoEstado = 'neutral' | 'en-curso' | 'exito' | 'alerta';
+/**
+ * Tono visual de cada estado (T108): pendiente en ámbar, aprobada en verde, despachada en oliva,
+ * recibida en azul acero y rechazada o anulada en rojo apagado. Solo cambia el color; los nombres
+ * de los estados son los que envía el backend.
+ */
+export type TonoEstado = 'neutral' | 'pendiente' | 'aprobada' | 'transito' | 'recibida' | 'rechazada';
 
 const TONOS: Record<EstadoRequerimiento, TonoEstado> = {
   BORRADOR: 'neutral',
-  PENDIENTE_VB_UNIDAD: 'en-curso',
-  PENDIENTE_CONFORMIDAD: 'en-curso',
-  PENDIENTE_AUTORIZACION_COLOGE: 'en-curso',
-  PENDIENTE_APROBACION: 'en-curso',
-  APROBADA: 'en-curso',
-  EN_TRANSITO: 'en-curso',
-  CONFIRMADA: 'exito',
-  RECHAZADA: 'alerta',
-  ANULADA: 'neutral',
+  PENDIENTE_VB_UNIDAD: 'pendiente',
+  PENDIENTE_CONFORMIDAD: 'pendiente',
+  PENDIENTE_AUTORIZACION_COLOGE: 'pendiente',
+  PENDIENTE_APROBACION: 'pendiente',
+  APROBADA: 'aprobada',
+  EN_TRANSITO: 'transito',
+  CONFIRMADA: 'recibida',
+  RECHAZADA: 'rechazada',
+  ANULADA: 'rechazada',
 };
+
+/** Orden y nombre de cada grupo del resumen de la bandeja (T110). */
+export const GRUPOS_RESUMEN: { tono: TonoEstado; etiqueta: string }[] = [
+  { tono: 'neutral', etiqueta: 'Registradas' },
+  { tono: 'pendiente', etiqueta: 'En trámite' },
+  { tono: 'aprobada', etiqueta: 'Aprobadas' },
+  { tono: 'transito', etiqueta: 'Despachadas' },
+  { tono: 'recibida', etiqueta: 'Recibidas' },
+  { tono: 'rechazada', etiqueta: 'Rechazadas o anuladas' },
+];
+
+/** Cuántas solicitudes hay de cada tono; solo devuelve los grupos con al menos una. */
+export function resumenPorTono(
+  solicitudes: { estado: EstadoRequerimiento }[],
+): { tono: TonoEstado; etiqueta: string; cantidad: number }[] {
+  const conteo = new Map<TonoEstado, number>();
+  for (const s of solicitudes) {
+    const tono = tonoEstado(s.estado);
+    conteo.set(tono, (conteo.get(tono) ?? 0) + 1);
+  }
+  return GRUPOS_RESUMEN.filter((g) => conteo.has(g.tono)).map((g) => ({
+    ...g,
+    cantidad: conteo.get(g.tono) as number,
+  }));
+}
 
 export const ESTADOS_FINALES: ReadonlySet<EstadoRequerimiento> = new Set([
   'CONFIRMADA',

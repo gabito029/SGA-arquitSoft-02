@@ -1,3 +1,4 @@
+import { TriangleExclamationPoint } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 
@@ -46,7 +47,10 @@ export function DialogoConfirmacion({
         if (e.key === 'Escape' && !enviando) onCancelar();
       }}
     >
-      <h3 id="confirmacion-titulo">{titulo}</h3>
+      <h3 id="confirmacion-titulo">
+        <TriangleExclamationPoint />
+        {titulo}
+      </h3>
       <div>{children}</div>
       <p id="confirmacion-advertencia" className="dialogo__advertencia">
         {advertencia}

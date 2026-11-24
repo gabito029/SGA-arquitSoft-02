@@ -1,5 +1,7 @@
 // Pantalla de inicio de sesión (HU01, RF01). Tras entrar va a la bandeja, salvo que la sesión del
-// mismo usuario haya vencido en esta pestaña: entonces retoma donde estaba (T099).
+// mismo usuario haya vencido en esta pestaña: entonces retoma donde estaba (T099). Pantalla
+// institucional y limpia (T109), con un escudo genérico: no usa logos ni escudos oficiales.
+import { LogIn, Shield } from 'lucide-react';
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { api, ErrorApi } from '../api/cliente';
@@ -54,32 +56,44 @@ export function InicioSesion() {
   }
 
   return (
-    <main className="contenedor contenedor--angosto">
-      <h1>SGA — Gestión de Almacén</h1>
-      <Formulario titulo="Iniciar sesión" enviando={enviando} error={error} onEnviar={ingresar}>
-        <Campo id="usuario" etiqueta="Usuario" error={errores.usuario}>
-          <input
-            id="usuario"
-            name="usuario"
-            autoComplete="username"
-            value={usuario}
-            onChange={(e) => setUsuario(e.target.value)}
-            aria-invalid={Boolean(errores.usuario)}
-          />
-        </Campo>
-        <Campo id="contrasena" etiqueta="Contraseña" error={errores.contrasena}>
-          <input
-            id="contrasena"
-            name="contrasena"
-            type="password"
-            autoComplete="current-password"
-            value={contrasena}
-            onChange={(e) => setContrasena(e.target.value)}
-            aria-invalid={Boolean(errores.contrasena)}
-          />
-        </Campo>
-        <button type="submit">{enviando ? 'Ingresando…' : 'Ingresar'}</button>
-      </Formulario>
+    <main className="ingreso">
+      <div className="ingreso__panel">
+        <div className="ingreso__identidad">
+          <span className="ingreso__emblema">
+            <Shield size={34} strokeWidth={1.5} />
+          </span>
+          <h1>SGA</h1>
+          <p>Sistema de Gestión de Almacén con Firma Digital</p>
+        </div>
+        <Formulario titulo="Iniciar sesión" enviando={enviando} error={error} onEnviar={ingresar}>
+          <Campo id="usuario" etiqueta="Usuario" error={errores.usuario}>
+            <input
+              id="usuario"
+              name="usuario"
+              autoComplete="username"
+              value={usuario}
+              onChange={(e) => setUsuario(e.target.value)}
+              aria-invalid={Boolean(errores.usuario)}
+            />
+          </Campo>
+          <Campo id="contrasena" etiqueta="Contraseña" error={errores.contrasena}>
+            <input
+              id="contrasena"
+              name="contrasena"
+              type="password"
+              autoComplete="current-password"
+              value={contrasena}
+              onChange={(e) => setContrasena(e.target.value)}
+              aria-invalid={Boolean(errores.contrasena)}
+            />
+          </Campo>
+          <button type="submit">
+            <LogIn size={18} />
+            {enviando ? 'Ingresando…' : 'Ingresar'}
+          </button>
+        </Formulario>
+        <p className="ingreso__pie">Proyecto académico - IS488 UNSCH</p>
+      </div>
     </main>
   );
 }

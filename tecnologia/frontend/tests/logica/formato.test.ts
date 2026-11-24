@@ -1,5 +1,12 @@
 // T104: montos en soles (es-PE) y unidades en plural.
-import { cantidadConUnidad, fechaCorta, formatoSoles, unidadMedida } from '../../src/logica/formato';
+import {
+  cantidadConUnidad,
+  fechaCorta,
+  fechaHora,
+  formatoSoles,
+  huellaAbreviada,
+  unidadMedida,
+} from '../../src/logica/formato';
 
 const normal = (texto: string) => texto.replace(/\u00a0/g, ' ');
 
@@ -47,5 +54,19 @@ describe('fechaCorta', () => {
   it('formatea día/mes/año y tolera fechas inválidas', () => {
     expect(fechaCorta('2026-03-05T10:00:00')).toBe('05/03/2026');
     expect(fechaCorta('no-es-fecha')).toBe('');
+  });
+});
+
+describe('fechaHora (T111)', () => {
+  it('separa la fecha y la hora local, y tolera fechas inválidas', () => {
+    expect(fechaHora('2026-03-05T08:07:00')).toEqual({ fecha: '05/03/2026', hora: '08:07' });
+    expect(fechaHora('no-es-fecha')).toEqual({ fecha: '', hora: '' });
+  });
+});
+
+describe('huellaAbreviada (T111)', () => {
+  it('muestra el inicio y el final de la huella', () => {
+    expect(huellaAbreviada(`abcdef12${'0'.repeat(48)}9876fedc`)).toBe('abcdef12…9876fedc');
+    expect(huellaAbreviada('corta')).toBe('corta');
   });
 });

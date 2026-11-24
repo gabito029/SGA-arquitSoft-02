@@ -66,6 +66,21 @@ describe('DetalleSolicitud', () => {
     expect(screen.getByText(/Aprobó: Comandante BIM-11/)).toBeInTheDocument();
   });
 
+  it('muestra cada firma como un sello con cargo, fecha, hora y huella abreviada (T111)', async () => {
+    simularFetch(
+      respuesta(200, requerimiento({ estado: 'PENDIENTE_CONFORMIDAD', acciones_disponibles: [] })),
+      respuesta(200, [{ ...FIRMA_VB, huella_sha256: `12345678${'0'.repeat(48)}abcdef90` }]),
+    );
+    renderizar();
+    const sello = (await screen.findByText(/Aprobó: Comandante BIM-11/)).closest('li');
+    expect(sello).toHaveClass('sello');
+    expect(sello).toHaveTextContent('Comandante de la unidad · BIM-11');
+    const momento = new Date(FIRMA_VB.firmado_en);
+    const hora = `${String(momento.getHours()).padStart(2, '0')}:${String(momento.getMinutes()).padStart(2, '0')}`;
+    expect(sello).toHaveTextContent(`Hora${hora}`);
+    expect(sello).toHaveTextContent('12345678…abcdef90');
+  });
+
   it('firma y después recarga el detalle', async () => {
     const siguiente = requerimiento({ estado: 'PENDIENTE_CONFORMIDAD', acciones_disponibles: [] });
     const fetchSimulado = simularFetch(

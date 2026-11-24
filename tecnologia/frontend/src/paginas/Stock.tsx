@@ -1,4 +1,5 @@
 // Stock del almacén del usuario (T072): tabla paginada para JEFE_ALMACEN y ALMACENERO.
+import { ArrowLeft, ChevronLeft, ChevronRight, Warehouse } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, ErrorApi } from '../api/cliente';
@@ -42,10 +43,19 @@ export function Stock() {
 
   return (
     <main className="contenedor">
-      <p>
-        <Link to="/bandeja">← Volver a la bandeja</Link>
-      </p>
-      <h2>Stock del almacén</h2>
+      <Link className="volver" to="/bandeja">
+        <ArrowLeft size={16} />
+        Volver a la bandeja
+      </Link>
+      <div className="barra">
+        <div>
+          <p className="antetitulo">Inventario</p>
+          <div className="barra__titulo">
+            <Warehouse size={24} />
+            <h2>Stock del almacén</h2>
+          </div>
+        </div>
+      </div>
       {error ? <Mensaje tipo="error">{error}</Mensaje> : null}
       {!datos && !error ? <Cargando /> : null}
       {datos && datos.items.length === 0 ? <p>El almacén no tiene stock registrado.</p> : null}
@@ -73,7 +83,13 @@ export function Stock() {
       ) : null}
       {datos && totalPaginas > 1 ? (
         <nav className="paginacion" aria-label="Paginación">
-          <button type="button" disabled={pagina <= 1} onClick={() => setPagina(pagina - 1)}>
+          <button
+            type="button"
+            className="boton--secundario"
+            disabled={pagina <= 1}
+            onClick={() => setPagina(pagina - 1)}
+          >
+            <ChevronLeft size={18} />
             Anterior
           </button>
           <span>
@@ -81,10 +97,12 @@ export function Stock() {
           </span>
           <button
             type="button"
+            className="boton--secundario"
             disabled={pagina >= totalPaginas}
             onClick={() => setPagina(pagina + 1)}
           >
             Siguiente
+            <ChevronRight size={18} />
           </button>
         </nav>
       ) : null}

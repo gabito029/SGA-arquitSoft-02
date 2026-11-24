@@ -1,5 +1,6 @@
 // Raíz de la interfaz: sesión, rutas y encabezado. Cada ruta protegida exige sesión y, si
 // corresponde, el rol; el backend vuelve a validar rol y órgano en cada petición.
+import { LucideProvider } from 'lucide-react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { RUTA_INGRESO, RutaProtegida } from './auth/RutaProtegida';
@@ -65,9 +66,12 @@ export function Rutas() {
 export default function App() {
   return (
     <SesionProveedor>
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <Rutas />
-      </BrowserRouter>
+      {/* Íconos de lucide-react (T107): mismo trazo y tamaño en toda la interfaz. */}
+      <LucideProvider size={18} strokeWidth={1.75} className="icono">
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <Rutas />
+        </BrowserRouter>
+      </LucideProvider>
     </SesionProveedor>
   );
 }

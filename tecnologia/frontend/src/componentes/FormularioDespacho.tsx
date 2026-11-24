@@ -1,3 +1,4 @@
+import { Boxes, Truck } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { ItemRequerimiento } from '../api/tipos';
 import { ADVERTENCIA_DESPACHO } from '../logica/acciones';
@@ -46,7 +47,10 @@ export function FormularioDespacho({ items, stock = null, enviando = false, onDe
 
   return (
     <section className="dialogo" aria-labelledby="titulo-despacho">
-      <h3 id="titulo-despacho">Despachar</h3>
+      <h3 id="titulo-despacho">
+        <Truck />
+        Despachar
+      </h3>
       {general ? <Mensaje tipo="aviso">{general}</Mensaje> : null}
       <fieldset className="formulario__campos" disabled={enviando || confirmando}>
         {items.map((i) => {
@@ -76,6 +80,7 @@ export function FormularioDespacho({ items, stock = null, enviando = false, onDe
                 />
               </Campo>
               <p id={`${id}-stock`} className="despacho__stock">
+                <Boxes size={16} />
                 {stock === null
                   ? 'Stock disponible: consultando…'
                   : disponible === undefined
@@ -92,6 +97,7 @@ export function FormularioDespacho({ items, stock = null, enviando = false, onDe
         })}
         <div className="formulario__acciones">
           <button type="button" className="boton" onClick={revisar}>
+            <Truck size={18} />
             Confirmar despacho
           </button>
         </div>
