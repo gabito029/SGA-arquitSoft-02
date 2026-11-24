@@ -49,26 +49,28 @@ export function Stock() {
       {!datos && !error ? <Cargando /> : null}
       {datos && datos.items.length === 0 ? <p>El almacén no tiene stock registrado.</p> : null}
       {datos && datos.items.length > 0 ? (
-        <table className="tabla">
-          <thead>
-            <tr>
-              <th scope="col">Código</th>
-              <th scope="col">Ítem</th>
-              <th scope="col">Cantidad</th>
-            </tr>
-          </thead>
-          <tbody>
-            {datos.items.map((s) => (
-              <tr key={s.item.id}>
-                <td>{s.item.codigo}</td>
-                <td>{s.item.nombre}</td>
-                <td>
-                  {s.cantidad} {s.item.unidad_medida}
-                </td>
+        <div className="tabla-contenedor">
+          <table className="tabla">
+            <thead>
+              <tr>
+                <th scope="col">Código</th>
+                <th scope="col">Ítem</th>
+                <th scope="col">Cantidad</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {datos.items.map((s) => (
+                <tr key={s.item.id}>
+                  <td>{s.item.codigo}</td>
+                  <td>{s.item.nombre}</td>
+                  <td>
+                    {s.cantidad} {s.item.unidad_medida}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : null}
       {datos && totalPaginas > 1 ? (
         <nav className="paginacion" aria-label="Paginación">

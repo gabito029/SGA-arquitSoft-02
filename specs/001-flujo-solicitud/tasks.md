@@ -372,24 +372,24 @@ del plan de 4 días, y al final está el [calendario por día](#calendario-por-d
 
 **Purpose**: pruebas de API y de carga, cobertura, evidencias y ensayo de la demo.
 
-- [ ] T089 [P] Crear `tecnologia/pruebas/postman/sga-001.postman_collection.json` y `local.postman_environment.json` (research §13):
+- [X] T089 [P] Crear `tecnologia/pruebas/postman/sga-001.postman_collection.json` y `local.postman_environment.json` (research §13):
   - Inicio de sesión de cada rol, guardando el token en variables.
   - El flujo completo: registrar, enviar, visto bueno, conformidad, aprobación, despacho, acta y verificación.
   - Los casos 401, 403 y 404 (EQ-01).
   - Los conflictos 409: NIVEL_YA_FIRMADO, STOCK_INSUFICIENTE y REQUIERE_COLOGE.
 
   Cada petición lleva su `pm.test`. Sirve también como demo de respaldo.
-- [ ] T090 Ejecutar la colección con `npx newman run … -r cli,htmlextra` contra Docker Compose y guardar el reporte en `evidencias/EQ-01/` y `evidencias/EQ-08/`
-- [ ] T091 [P] Crear `tecnologia/pruebas/k6/eq04_rendimiento.js` (EQ-04, valida el listado, el detalle y el registro de US1 y US5):
+- [X] T090 Ejecutar la colección con `npx newman run … -r cli,htmlextra` contra Docker Compose y guardar el reporte en `evidencias/EQ-01/` y `evidencias/EQ-08/`
+- [X] T091 [P] Crear `tecnologia/pruebas/k6/eq04_rendimiento.js` (EQ-04, valida el listado, el detalle y el registro de US1 y US5):
   - 20 VU constantes durante 5 min, con la mezcla 60 % `GET /requerimientos`, 30 % `GET /requerimientos/{id}` y 10 % `POST /requerimientos`.
   - `setup()` inicia sesión.
   - Los umbrales son `http_req_duration: ['p(95)<2000']` y `http_req_failed: ['rate<0.01']` (research §11).
 - [ ] T092 Ejecutar una corrida de referencia de T091 con `k6 run --summary-export evidencias/EQ-04/k6-resumen-001.json` contra Docker Compose. Repetirla con `CATALOGO_CACHE_ACTIVA=false` y guardar `evidencias/EQ-04/k6-resumen-001-sin-cache.json`, para comparar los p95 con y sin caché (principio VIII). Es opcional en 001: si falta tiempo, pasa a 002
-- [ ] T093 [P] Crear `tecnologia/pruebas/k6/eq09_escalabilidad.js` (40 VU, misma mezcla) y `tecnologia/pruebas/k6/estres_2000.js` (`ramping-vus` con escalones 50 → 200 → 500 → 1 000 → 2 000 VU, registrando p95, tasa de errores y punto de quiebre). Solo se escriben los scripts; se ejecutan en el incremento 002, que forma parte del Sprint 2 y es donde se cumple el estrés obligatorio del principio VII
-- [ ] T094 Comprobar la cobertura: pytest ≥ 60 % en `requests`, `rules`, `signing` e `inventory`, Jest ≥ 60 % en `src/logica`, `src/auth` y `src/api`, y 0 errores de Ruff y ESLint. Copiar los reportes (`htmlcov/`, `coverage/lcov-report/`) a `evidencias/EQ-07/`
-- [ ] T095 [P] Revisar el diseño responsive y la accesibilidad básica en `tecnologia/frontend/src/estilos.css` y en las páginas: etiquetas en todos los campos, foco visible, contraste y vista en un ancho de 360 px. La medición formal con Lighthouse queda para 002 (EQ-05)
-- [ ] T096 Ensayar de principio a fin la demo de `specs/001-flujo-solicitud/quickstart.md` (pasos 1 a 10), con la ruta de respaldo por Swagger (`/docs`) y Postman, y corregir lo que falle. Cronometrar el trabajo acumulado del flujo completo, del registro al acta firmada (SC-009: menos de 10 min), y guardar el tiempo de cada paso en `evidencias/SC-009/`
-- [ ] T097 [P] Actualizar la sección "Estado del proyecto" y agregar "Cómo ejecutar" en `README.md`, con un enlace a `quickstart.md`. `docs/` no se modifica
+- [X] T093 [P] Crear `tecnologia/pruebas/k6/eq09_escalabilidad.js` (40 VU, misma mezcla) y `tecnologia/pruebas/k6/estres_2000.js` (`ramping-vus` con escalones 50 → 200 → 500 → 1 000 → 2 000 VU, registrando p95, tasa de errores y punto de quiebre). Solo se escriben los scripts; se ejecutan en el incremento 002, que forma parte del Sprint 2 y es donde se cumple el estrés obligatorio del principio VII
+- [X] T094 Comprobar la cobertura: pytest ≥ 60 % en `requests`, `rules`, `signing` e `inventory`, Jest ≥ 60 % en `src/logica`, `src/auth` y `src/api`, y 0 errores de Ruff y ESLint. Copiar los reportes (`htmlcov/`, `coverage/lcov-report/`) a `evidencias/EQ-07/`
+- [X] T095 [P] Revisar el diseño responsive y la accesibilidad básica en `tecnologia/frontend/src/estilos.css` y en las páginas: etiquetas en todos los campos, foco visible, contraste y vista en un ancho de 360 px. La medición formal con Lighthouse queda para 002 (EQ-05)
+- [X] T096 Ensayar de principio a fin la demo de `specs/001-flujo-solicitud/quickstart.md` (pasos 1 a 10), con la ruta de respaldo por Swagger (`/docs`) y Postman, y corregir lo que falle. Cronometrar el trabajo acumulado del flujo completo, del registro al acta firmada (SC-009: menos de 10 min), y guardar el tiempo de cada paso en `evidencias/SC-009/`
+- [X] T097 [P] Actualizar la sección "Estado del proyecto" y agregar "Cómo ejecutar" en `README.md`, con un enlace a `quickstart.md`. `docs/` no se modifica
 
 ---
 

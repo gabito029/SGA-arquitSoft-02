@@ -98,4 +98,32 @@ Ing. Lizbeth Jaico Quispe
 ## Estado del proyecto
 - [x] Estructura del repositorio
 - [x] Sprint 1: análisis, arquitectura, diseño y modelo C4
-- [ ] Siguientes sprints: especificaciones SDD e implementación del prototipo
+- [x] Especificación SDD del incremento 001 (`specs/001-flujo-solicitud/`)
+- [x] Incremento 001, flujo principal de abastecimiento (rama `001-flujo-solicitud`):
+  registro y envío, conducto regular con firma Ed25519, aprobación del almacén y despacho con
+  bloqueo de stock, acta de recepción con verificación de integridad, línea de tiempo y anulación.
+  Evidencias de EQ-01, EQ-02, EQ-03, EQ-07 y EQ-08 en `evidencias/`.
+- [ ] Incremento 002 (Sprint 2): nivel del COLOGE, PDF verificable (DT-01), HTTPS y despliegue
+  (DT-02), y las corridas de carga y estrés con k6 (EQ-04, EQ-09, 2 000 usuarios).
+
+## Cómo ejecutar
+Requisitos: Docker Desktop con Docker Compose v2. La guía completa, con los usuarios de prueba y
+la demo paso a paso, está en
+[specs/001-flujo-solicitud/quickstart.md](specs/001-flujo-solicitud/quickstart.md).
+
+```bash
+cd tecnologia
+cp .env.example .env                                      # completar los valores; nunca se versiona
+python backend/scripts/generar_clave_firma.py >> .env     # clave Ed25519 de la firma
+docker compose up --build -d
+```
+
+| Servicio | URL |
+|---|---|
+| Aplicación web | http://localhost:8080 |
+| Swagger UI | http://localhost:8080/docs |
+| Salud | http://localhost:8080/health |
+
+Pruebas: `ruff check . && pytest --cov` en `tecnologia/backend` (requiere `DATABASE_URL_TEST`),
+`npm run lint && npx tsc --noEmit && npm run test:cov` en `tecnologia/frontend`, y la colección
+de Postman en `tecnologia/pruebas/postman/` con Newman.

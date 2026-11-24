@@ -6,6 +6,8 @@
   --color-texto: #1d2420;
   --color-texto-suave: #4a554e;
   --color-borde: #c6ccc7;
+  /* Borde de los campos: contraste ≥ 3:1 con el fondo (WCAG 1.4.11, EQ-05). */
+  --color-borde-campo: #6b746d;
   --color-primario: #2f5d3a;
   --color-primario-oscuro: #224529;
   --color-foco: #1a5fb4;
@@ -117,7 +119,7 @@ button:disabled {
   width: 100%;
   min-height: 44px;
   padding: 8px 10px;
-  border: 1px solid var(--color-borde);
+  border: 1px solid var(--color-borde-campo);
   border-radius: var(--radio);
   font: inherit;
   color: inherit;
@@ -350,6 +352,11 @@ button:disabled {
 
 .linea-tiempo__motivo {
   color: var(--color-aviso);
+}
+
+/* En celulares angostos (360 px) la tabla se desplaza en horizontal sin romper la página. */
+.tabla-contenedor {
+  overflow-x: auto;
 }
 
 @media (min-width: 768px) {

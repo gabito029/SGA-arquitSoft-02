@@ -1,0 +1,1418 @@
+{
+  "info": {
+    "name": "SGA 001 — Flujo principal de abastecimiento",
+    "description": "Colección del incremento 001 (research §13): inicio de sesión por rol, flujo completo de registro a acta y verificación, control de acceso (EQ-01) y conflictos 409. Sirve también como demo de respaldo. La contraseña se toma de la variable `contrasena` del entorno (no se versiona).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "0. Inicio de sesión",
+      "item": [
+        {
+          "name": "Login oficial.bim11",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}/api/v1/auth/login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": \"oficial.bim11\",\n  \"contrasena\": \"{{contrasena}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('entrega un token bearer', () => pm.expect(pm.response.json().token_type).to.eql('bearer'));",
+                  "pm.collectionVariables.set('t_oficial', pm.response.json().access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login cmdte.bim11",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}/api/v1/auth/login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": \"cmdte.bim11\",\n  \"contrasena\": \"{{contrasena}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('entrega un token bearer', () => pm.expect(pm.response.json().token_type).to.eql('bearer'));",
+                  "pm.collectionVariables.set('t_cmdte', pm.response.json().access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login jlog.1de",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}/api/v1/auth/login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": \"jlog.1de\",\n  \"contrasena\": \"{{contrasena}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('entrega un token bearer', () => pm.expect(pm.response.json().token_type).to.eql('bearer'));",
+                  "pm.collectionVariables.set('t_jlog', pm.response.json().access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login jlog.2de",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}/api/v1/auth/login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": \"jlog.2de\",\n  \"contrasena\": \"{{contrasena}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('entrega un token bearer', () => pm.expect(pm.response.json().token_type).to.eql('bearer'));",
+                  "pm.collectionVariables.set('t_jlog2', pm.response.json().access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login jalm.sinte",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}/api/v1/auth/login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": \"jalm.sinte\",\n  \"contrasena\": \"{{contrasena}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('entrega un token bearer', () => pm.expect(pm.response.json().token_type).to.eql('bearer'));",
+                  "pm.collectionVariables.set('t_jalm', pm.response.json().access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login almacenero.sinte",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}/api/v1/auth/login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": \"almacenero.sinte\",\n  \"contrasena\": \"{{contrasena}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('entrega un token bearer', () => pm.expect(pm.response.json().token_type).to.eql('bearer'));",
+                  "pm.collectionVariables.set('t_almacenero', pm.response.json().access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login auditor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}/api/v1/auth/login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": \"auditor\",\n  \"contrasena\": \"{{contrasena}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('entrega un token bearer', () => pm.expect(pm.response.json().token_type).to.eql('bearer'));",
+                  "pm.collectionVariables.set('t_auditor', pm.response.json().access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login oficial.bim21",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}/api/v1/auth/login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": \"oficial.bim21\",\n  \"contrasena\": \"{{contrasena}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('entrega un token bearer', () => pm.expect(pm.response.json().token_type).to.eql('bearer'));",
+                  "pm.collectionVariables.set('t_oficial21', pm.response.json().access_token);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1. Flujo completo",
+      "item": [
+        {
+          "name": "Catálogo de intendencia",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_oficial}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/catalogo/items?categoria=INTENDENCIA",
+              "host": [
+                "{{base_url}}/api/v1/catalogo/items?categoria=INTENDENCIA"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "const items = pm.response.json();",
+                  "const id = (c) => items.find((i) => i.codigo === c).id;",
+                  "pm.test('incluye INT-001, INT-002 e INT-010', () => ['INT-001','INT-002','INT-010'].forEach((c) => pm.expect(id(c)).to.be.a('string')));",
+                  "pm.collectionVariables.set('item_1', id('INT-001'));",
+                  "pm.collectionVariables.set('item_2', id('INT-002'));",
+                  "pm.collectionVariables.set('item_poncho', id('INT-010'));",
+                  "pm.test('cabecera Cache-Control', () => pm.expect(pm.response.headers.get('Cache-Control')).to.include('max-age=300'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1. Registrar (oficial.bim11)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_oficial}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"item_id\": \"{{item_1}}\",\n      \"cantidad\": 2\n    },\n    {\n      \"item_id\": \"{{item_2}}\",\n      \"cantidad\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201));",
+                  "pm.test('estado = BORRADOR', () => pm.expect(pm.response.json().estado).to.eql('BORRADOR'));",
+                  "pm.test('código REQ-AAAA-NNNNNN', () => pm.expect(pm.response.json().codigo).to.match(/^REQ-\\d{4}-\\d{6}$/));",
+                  "pm.collectionVariables.set('req_id', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2. Enviar (oficial.bim11)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_oficial}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_id}}/enviar",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_id}}/enviar"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('estado = PENDIENTE_VB_UNIDAD', () => pm.expect(pm.response.json().estado).to.eql('PENDIENTE_VB_UNIDAD'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3. Visto bueno (cmdte.bim11)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_cmdte}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_id}}/firmas",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_id}}/firmas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"APROBAR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201));",
+                  "pm.test('estado = PENDIENTE_CONFORMIDAD', () => pm.expect(pm.response.json().estado).to.eql('PENDIENTE_CONFORMIDAD'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4. Conformidad (jlog.1de)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_jlog}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_id}}/firmas",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_id}}/firmas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"APROBAR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201));",
+                  "pm.test('estado = PENDIENTE_APROBACION', () => pm.expect(pm.response.json().estado).to.eql('PENDIENTE_APROBACION'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5. Aprobación del almacén (jalm.sinte)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_jalm}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_id}}/firmas",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_id}}/firmas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"APROBAR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201));",
+                  "pm.test('estado = APROBADA', () => pm.expect(pm.response.json().estado).to.eql('APROBADA'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "6. Despacho (almacenero.sinte)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_almacenero}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_id}}/despacho",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_id}}/despacho"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"item_id\": \"{{item_1}}\",\n      \"cantidad\": 2\n    },\n    {\n      \"item_id\": \"{{item_2}}\",\n      \"cantidad\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201));",
+                  "pm.test('estado = EN_TRANSITO', () => pm.expect(pm.response.json().estado).to.eql('EN_TRANSITO'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "7. Acta con una diferencia (oficial.bim11)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_oficial}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_id}}/acta",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_id}}/acta"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"item_id\": \"{{item_1}}\",\n      \"cantidad_recibida\": 1,\n      \"observacion\": \"Llego 1 de 2\"\n    },\n    {\n      \"item_id\": \"{{item_2}}\",\n      \"cantidad_recibida\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201));",
+                  "pm.test('registra la diferencia', () => pm.expect(pm.response.json().tiene_diferencias).to.be.true);",
+                  "pm.test('firma de nivel ACTA_RECEPCION', () => pm.expect(pm.response.json().firma.nivel).to.eql('ACTA_RECEPCION'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "8. Verificación (auditor)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_auditor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_id}}/verificacion",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_id}}/verificacion"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('resultado = INTEGRA', () => pm.expect(pm.response.json().resultado).to.eql('INTEGRA'));",
+                  "pm.test('verifica las 4 firmas', () => pm.expect(pm.response.json().firmas).to.have.lengthOf(4));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "9. Línea de tiempo (oficial.bim11)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_oficial}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_id}}/historial",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_id}}/historial"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "const acciones = pm.response.json().map((e) => e.accion);",
+                  "pm.test('los 7 pasos en orden', () => pm.expect(acciones).to.eql(['CREAR','ENVIAR','FIRMAR','FIRMAR','FIRMAR','DESPACHAR','FIRMAR_ACTA']));",
+                  "pm.test('cada paso con usuario, órgano y fecha', () => pm.response.json().forEach((e) => { pm.expect(e.usuario).to.be.a('string').and.not.empty; pm.expect(e.organo.codigo).to.be.a('string'); pm.expect(e.ocurrido_en).to.be.a('string'); }));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "10. Stock del almacén (jalm.sinte)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_jalm}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/inventario/stock?size=50",
+              "host": [
+                "{{base_url}}/api/v1/inventario/stock?size=50"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('lista el stock', () => pm.expect(pm.response.json().total).to.be.above(0));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Control de acceso (EQ-01)",
+      "item": [
+        {
+          "name": "401 sin token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));",
+                  "pm.test('codigo = NO_AUTENTICADO', () => pm.expect(pm.response.json().codigo).to.eql('NO_AUTENTICADO'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "403 otro rol registra (cmdte.bim11)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_cmdte}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"item_id\": \"{{item_1}}\",\n      \"cantidad\": 2\n    },\n    {\n      \"item_id\": \"{{item_2}}\",\n      \"cantidad\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403', () => pm.response.to.have.status(403));",
+                  "pm.test('codigo = SIN_PERMISO', () => pm.expect(pm.response.json().codigo).to.eql('SIN_PERMISO'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "404 otra División (jlog.2de)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_jlog2}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_id}}",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 404', () => pm.response.to.have.status(404));",
+                  "pm.test('codigo = NO_ENCONTRADO', () => pm.expect(pm.response.json().codigo).to.eql('NO_ENCONTRADO'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "404 otra unidad (oficial.bim21)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_oficial21}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_id}}/historial",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_id}}/historial"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Conflictos 409",
+      "item": [
+        {
+          "name": "409 NIVEL_YA_FIRMADO (cmdte.bim11 firma de nuevo)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_cmdte}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_id}}/firmas",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_id}}/firmas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"APROBAR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 409', () => pm.response.to.have.status(409));",
+                  "pm.test('codigo = NIVEL_YA_FIRMADO', () => pm.expect(pm.response.json().codigo).to.eql('NIVEL_YA_FIRMADO'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Catálogo de material de guerra",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_oficial}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/catalogo/items?categoria=MATERIAL_GUERRA",
+              "host": [
+                "{{base_url}}/api/v1/catalogo/items?categoria=MATERIAL_GUERRA"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('item_mg', pm.response.json().find((i) => i.codigo === 'MG-001').id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar material de guerra",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_oficial}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"item_id\": \"{{item_mg}}\",\n      \"cantidad\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('req_mg', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "409 REQUIERE_COLOGE (enviar material de guerra)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_oficial}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_mg}}/enviar",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_mg}}/enviar"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 409', () => pm.response.to.have.status(409));",
+                  "pm.test('codigo = REQUIERE_COLOGE', () => pm.expect(pm.response.json().codigo).to.eql('REQUIERE_COLOGE'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Anular el material de guerra bloqueado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_oficial}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_mg}}/anular",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_mg}}/anular"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivo\": \"Bloqueado hasta la autorización del COLOGE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('estado = ANULADA', () => pm.expect(pm.response.json().estado).to.eql('ANULADA'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar 500 ponchos (más que el stock)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_oficial}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"item_id\": \"{{item_poncho}}\",\n      \"cantidad\": 500\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('req_ponchos', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Enviar ponchos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_oficial}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_ponchos}}/enviar",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_ponchos}}/enviar"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "VB ponchos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_cmdte}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_ponchos}}/firmas",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_ponchos}}/firmas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"APROBAR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Conformidad ponchos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_jlog}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_ponchos}}/firmas",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_ponchos}}/firmas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"APROBAR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Aprobación ponchos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_jalm}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_ponchos}}/firmas",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_ponchos}}/firmas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"APROBAR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "409 STOCK_INSUFICIENTE (despachar 500 ponchos)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_almacenero}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_ponchos}}/despacho",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_ponchos}}/despacho"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"item_id\": \"{{item_poncho}}\",\n      \"cantidad\": 500\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 409', () => pm.response.to.have.status(409));",
+                  "pm.test('codigo = STOCK_INSUFICIENTE', () => pm.expect(pm.response.json().codigo).to.eql('STOCK_INSUFICIENTE'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "El despacho fallido no cambia nada (sigue APROBADA)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_almacenero}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_ponchos}}",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_ponchos}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('estado = APROBADA', () => pm.expect(pm.response.json().estado).to.eql('APROBADA'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "t_oficial",
+      "value": ""
+    },
+    {
+      "key": "t_cmdte",
+      "value": ""
+    },
+    {
+      "key": "t_jlog",
+      "value": ""
+    },
+    {
+      "key": "t_jlog2",
+      "value": ""
+    },
+    {
+      "key": "t_jalm",
+      "value": ""
+    },
+    {
+      "key": "t_almacenero",
+      "value": ""
+    },
+    {
+      "key": "t_auditor",
+      "value": ""
+    },
+    {
+      "key": "t_oficial21",
+      "value": ""
+    },
+    {
+      "key": "item_1",
+      "value": ""
+    },
+    {
+      "key": "item_2",
+      "value": ""
+    },
+    {
+      "key": "item_poncho",
+      "value": ""
+    },
+    {
+      "key": "item_mg",
+      "value": ""
+    },
+    {
+      "key": "req_id",
+      "value": ""
+    },
+    {
+      "key": "req_mg",
+      "value": ""
+    },
+    {
+      "key": "req_ponchos",
+      "value": ""
+    }
+  ]
+}
