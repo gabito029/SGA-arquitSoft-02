@@ -175,6 +175,12 @@ class RepositorioRequerimientosPostgres:
     # --- Escritura ---
 
     def guardar(self, requerimiento: Requerimiento) -> None:
+        """Inserta o actualiza el requerimiento y sus ítems.
+
+        Al actualizar, los ítems se escriben **antes** que el estado: el disparador de la migración
+        0002 bloquea los ítems cuando el requerimiento ya está en un estado final, así que el acta
+        (EN_TRANSITO → CONFIRMADA) debe registrar lo recibido mientras aún está EN_TRANSITO.
+        """
         r = requerimiento
         modelo = self._sesion.get(RequerimientoModelo, r.id)
         if modelo is None:
@@ -186,15 +192,20 @@ class RepositorioRequerimientosPostgres:
                 almacen_id=r.almacen_id,
                 categoria=r.categoria,
                 creado_por=r.creado_por,
+                estado=r.estado,
+                monto_total=r.monto_total,
+                version=r.version,
             )
             self._sesion.add(modelo)
+            self._sesion.flush()
+            self._sincronizar_items(r)
         else:
+            self._sincronizar_items(r)
+            self._sesion.flush()
             modelo.actualizado_en = datetime.now(UTC)
-        modelo.estado = r.estado
-        modelo.monto_total = r.monto_total
-        modelo.version = r.version
-        self._sesion.flush()
-        self._sincronizar_items(r)
+            modelo.estado = r.estado
+            modelo.monto_total = r.monto_total
+            modelo.version = r.version
         self._sesion.flush()
         self._sesion.refresh(modelo)
         r.creado_en = modelo.creado_en

@@ -17,6 +17,8 @@ from app.modules.catalog.dominio.tipos import Categoria
 from app.modules.catalog.infraestructura.dependencias import construir_consulta_catalogo
 from app.modules.identity.infraestructura.dependencias import construir_consulta_usuarios
 from app.modules.inventory.infraestructura.dependencias import construir_servicio_despacho
+from app.modules.requests.aplicacion.confirmar_recepcion import ConfirmarRecepcion
+from app.modules.requests.aplicacion.consultar_acta import ConsultarActa, VerificarIntegridad
 from app.modules.requests.aplicacion.consultar_firmas import ConsultarFirmas
 from app.modules.requests.aplicacion.consultar_requerimientos import ConsultarRequerimientos
 from app.modules.requests.aplicacion.despachar_requerimiento import DespacharRequerimiento
@@ -28,7 +30,10 @@ from app.modules.requests.infraestructura.repositorio_postgres import (
     RepositorioRequerimientosPostgres,
 )
 from app.modules.rules.dominio.regla_aprobacion import ReglaCologePorCategoriaOMonto
-from app.modules.signing.infraestructura.dependencias import construir_servicio_firma
+from app.modules.signing.infraestructura.dependencias import (
+    construir_servicio_firma,
+    construir_verificador,
+)
 
 
 class ConsultaCatalogoServicio:
@@ -108,6 +113,31 @@ def construir_despachar(sesion: Session) -> DespacharRequerimiento:
         repositorio=RepositorioRequerimientosPostgres(sesion),
         inventario=construir_servicio_despacho(sesion),
         auditoria=construir_registro_auditoria(sesion),
+    )
+
+
+def construir_confirmar_recepcion(sesion: Session) -> ConfirmarRecepcion:
+    return ConfirmarRecepcion(
+        repositorio=RepositorioRequerimientosPostgres(sesion),
+        firmas=construir_servicio_firma(sesion),
+        auditoria=construir_registro_auditoria(sesion),
+    )
+
+
+def construir_consultar_acta(sesion: Session) -> ConsultarActa:
+    return ConsultarActa(
+        repositorio=RepositorioRequerimientosPostgres(sesion),
+        firmas=construir_servicio_firma(sesion),
+        usuarios=construir_consulta_usuarios(sesion),
+        catalogo=_catalogo(sesion),
+    )
+
+
+def construir_verificar(sesion: Session) -> VerificarIntegridad:
+    return VerificarIntegridad(
+        repositorio=RepositorioRequerimientosPostgres(sesion),
+        verificador=construir_verificador(sesion),
+        usuarios=construir_consulta_usuarios(sesion),
     )
 
 

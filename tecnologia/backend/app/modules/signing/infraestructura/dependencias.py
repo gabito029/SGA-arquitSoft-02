@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import obtener_configuracion
 from app.modules.signing.aplicacion.servicio_firma import ServicioFirma
+from app.modules.signing.aplicacion.verificar_requerimiento import VerificarRequerimiento
 from app.modules.signing.infraestructura.firmador_ed25519 import FirmadorEd25519
 from app.modules.signing.infraestructura.repositorio_postgres import RepositorioFirmasPostgres
 
@@ -21,3 +22,7 @@ def obtener_firmador() -> FirmadorEd25519:
 
 def construir_servicio_firma(sesion: Session) -> ServicioFirma:
     return ServicioFirma(RepositorioFirmasPostgres(sesion), obtener_firmador())
+
+
+def construir_verificador(sesion: Session) -> VerificarRequerimiento:
+    return VerificarRequerimiento(construir_servicio_firma(sesion))

@@ -316,6 +316,23 @@ button:disabled {
   border-bottom: 1px solid var(--color-borde);
   text-align: left;
 }
+/* Acta: las líneas con diferencias entre lo despachado y lo recibido se resaltan. */
+.acta__linea {
+  padding: 8px;
+  border-left: 4px solid transparent;
+}
+
+.acta__linea--diferencia {
+  border-left-color: var(--color-aviso);
+  background: var(--color-aviso-fondo);
+}
+
+.acta__aviso {
+  margin: 0 0 8px;
+  font-weight: 600;
+  color: var(--color-aviso);
+}
+
 @media (min-width: 768px) {
   .contenedor {
     padding: calc(var(--espacio) * 2);

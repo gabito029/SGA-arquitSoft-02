@@ -297,27 +297,27 @@ del plan de 4 días, y al final está el [calendario por día](#calendario-por-d
 
 ### Tests for User Story 4
 
-- [ ] T074 [P] [US4] Prueba de integración en `tecnologia/backend/tests/integracion/test_acta.py` con los escenarios 1 a 4 y 6 de la US4:
+- [X] T074 [P] [US4] Prueba de integración en `tecnologia/backend/tests/integracion/test_acta.py` con los escenarios 1 a 4 y 6 de la US4:
   - El acta registra lo recibido y las diferencias, con `tiene_diferencias` correcto.
   - Un oficial de otra unidad o de otro rol → 403 o 404.
   - Volver a firmar → 409.
   - Hacer `UPDATE` sobre el acta o sus ítems en la base de datos es rechazado por el disparador.
   - Firmar algo que no está EN_TRANSITO → 409.
   - La verificación responde INTEGRA, con el firmante y la fecha.
-- [ ] T075 [P] [US4] Prueba de integración EQ-02 en `tecnologia/backend/tests/integracion/test_eq02_integridad.py`. Para cada campo firmado (cantidad recibida, cantidad solicitada, firmante y fecha), desactiva el disparador dentro de la prueba, altera el dato en la base de datos y comprueba que `/verificacion` responde ALTERADA en el 100 % de los casos. Incluye el caso contrario, para descartar falsos positivos: después del despacho (EN_TRANSITO) y otra vez después del acta (CONFIRMADA), las firmas VB_UNIDAD, CONFORMIDAD_GU y APROBACION_ALMACEN siguen dando INTEGRA. El resumen se guarda en `evidencias/EQ-02/`
-- [ ] T098 [US4] Ampliar la matriz EQ-01 de T057 en `tecnologia/backend/tests/integracion/test_eq01_control_acceso.py` con despachar y firmar el acta (Día 3, cuando ya existen T070 y T078). Cada rol al que no le corresponde la acción espera 403 o 409, y un ALMACENERO de otro almacén o un OFICIAL_LOGISTICA de otra unidad espera 404. Actualiza el resumen de `evidencias/EQ-01/`
+- [X] T075 [P] [US4] Prueba de integración EQ-02 en `tecnologia/backend/tests/integracion/test_eq02_integridad.py`. Para cada campo firmado (cantidad recibida, cantidad solicitada, firmante y fecha), desactiva el disparador dentro de la prueba, altera el dato en la base de datos y comprueba que `/verificacion` responde ALTERADA en el 100 % de los casos. Incluye el caso contrario, para descartar falsos positivos: después del despacho (EN_TRANSITO) y otra vez después del acta (CONFIRMADA), las firmas VB_UNIDAD, CONFORMIDAD_GU y APROBACION_ALMACEN siguen dando INTEGRA. El resumen se guarda en `evidencias/EQ-02/`
+- [X] T098 [US4] Ampliar la matriz EQ-01 de T057 en `tecnologia/backend/tests/integracion/test_eq01_control_acceso.py` con despachar y firmar el acta (Día 3, cuando ya existen T070 y T078). Cada rol al que no le corresponde la acción espera 403 o 409, y un ALMACENERO de otro almacén o un OFICIAL_LOGISTICA de otra unidad espera 404. Actualiza el resumen de `evidencias/EQ-01/`
 
 ### Implementation for User Story 4
 
-- [ ] T076 [US4] Implementar `tecnologia/backend/app/modules/requests/aplicacion/confirmar_recepcion.py`. Solo actúa el OFICIAL_LOGISTICA de `data-model.md requerimiento.unidad_id`, con la solicitud EN_TRANSITO. Todo va en una sola transacción y **en este orden**, primero los ítems y luego el estado, porque el disparador de T022 bloquea los ítems cuando el requerimiento ya está en un estado final:
+- [X] T076 [US4] Implementar `tecnologia/backend/app/modules/requests/aplicacion/confirmar_recepcion.py`. Solo actúa el OFICIAL_LOGISTICA de `data-model.md requerimiento.unidad_id`, con la solicitud EN_TRANSITO. Todo va en una sola transacción y **en este orden**, primero los ítems y luego el estado, porque el disparador de T022 bloquea los ítems cuando el requerimiento ya está en un estado final:
   1. Registra `item_requerimiento.cantidad_recibida` e `item_requerimiento.observacion`.
   2. Firma el nivel ACTA_RECEPCION con el contenido canónico del acta de research §3, que agrega lo despachado, lo recibido y las observaciones (T060).
   3. Crea el acta según `data-model.md acta_recepcion.requerimiento_id`, `acta_recepcion.firma_id` (la firma del paso 2) y `acta_recepcion.tiene_diferencias`.
   4. Por último, pasa a CONFIRMADA y registra el historial y la auditoría.
-- [ ] T077 [US4] Implementar `tecnologia/backend/app/modules/signing/aplicacion/verificar_requerimiento.py`. Para cada firma, reconstruye el contenido canónico con los datos **actuales** de la base de datos y con los mismos campos que usa T060 para ese nivel (research §3: sin `estado` ni `version`, y con lo despachado, lo recibido y las observaciones solo en ACTA_RECEPCION). Luego recalcula la huella y verifica la firma según `metodo`. Devuelve INTEGRA o ALTERADA por firma y el resultado global (FR-024, FR-025)
-- [ ] T078 [US4] Agregar `POST` y `GET /api/v1/requerimientos/{id}/acta` y `GET /api/v1/requerimientos/{id}/verificacion` en `tecnologia/backend/app/modules/requests/presentacion/router.py`, según `contracts/openapi.yaml`. El AUDITOR puede consultar y verificar
-- [ ] T079 [US4] Agregar en `tecnologia/frontend/src/paginas/DetalleSolicitud.tsx` el formulario **Firmar acta** (cantidad recibida y observación por ítem, resaltando las diferencias) y el botón **Verificar**, que muestra Íntegra o Alterada por firma junto con el firmante y la fecha (Día 4)
-- [ ] T080 [P] [US4] Prueba Jest en `tecnologia/frontend/tests/paginas/Acta.test.tsx`: las diferencias se resaltan; el resultado ALTERADA se muestra como alerta; INTEGRA se muestra como éxito (Día 4)
+- [X] T077 [US4] Implementar `tecnologia/backend/app/modules/signing/aplicacion/verificar_requerimiento.py`. Para cada firma, reconstruye el contenido canónico con los datos **actuales** de la base de datos y con los mismos campos que usa T060 para ese nivel (research §3: sin `estado` ni `version`, y con lo despachado, lo recibido y las observaciones solo en ACTA_RECEPCION). Luego recalcula la huella y verifica la firma según `metodo`. Devuelve INTEGRA o ALTERADA por firma y el resultado global (FR-024, FR-025)
+- [X] T078 [US4] Agregar `POST` y `GET /api/v1/requerimientos/{id}/acta` y `GET /api/v1/requerimientos/{id}/verificacion` en `tecnologia/backend/app/modules/requests/presentacion/router.py`, según `contracts/openapi.yaml`. El AUDITOR puede consultar y verificar
+- [X] T079 [US4] Agregar en `tecnologia/frontend/src/paginas/DetalleSolicitud.tsx` el formulario **Firmar acta** (cantidad recibida y observación por ítem, resaltando las diferencias) y el botón **Verificar**, que muestra Íntegra o Alterada por firma junto con el firmante y la fecha (Día 4)
+- [X] T080 [P] [US4] Prueba Jest en `tecnologia/frontend/tests/paginas/Acta.test.tsx`: las diferencias se resaltan; el resultado ALTERADA se muestra como alerta; INTEGRA se muestra como éxito (Día 4)
 
 **Checkpoint**: flujo completo de punta a punta por API (Día 3) y desde la web (Día 4).
 

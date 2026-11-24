@@ -17,6 +17,7 @@ from app.modules.signing.dominio.contenido_canonico import (
     serializar,
 )
 from app.modules.signing.dominio.puertos import (
+    ActaRegistrada,
     FirmadorDocumentos,
     FirmaRegistrada,
     RepositorioFirmas,
@@ -61,6 +62,22 @@ class ServicioFirma:
         )
         self._repositorio.guardar(firma)
         return firma
+
+    def registrar_acta(self, firma: FirmaRegistrada, tiene_diferencias: bool) -> ActaRegistrada:
+        """Crea el acta de recepción apuntando a su firma, que debe ser de nivel ACTA_RECEPCION."""
+        if firma.nivel is not NivelFirma.ACTA_RECEPCION:
+            raise ValueError("El acta debe apuntar a una firma de nivel ACTA_RECEPCION.")
+        acta = ActaRegistrada(
+            id=uuid.uuid4(),
+            requerimiento_id=firma.requerimiento_id,
+            firma_id=firma.id,
+            tiene_diferencias=tiene_diferencias,
+        )
+        self._repositorio.guardar_acta(acta)
+        return acta
+
+    def acta(self, requerimiento_id: uuid.UUID) -> ActaRegistrada | None:
+        return self._repositorio.acta(requerimiento_id)
 
     def firmas(self, requerimiento_id: uuid.UUID) -> list[FirmaRegistrada]:
         return self._repositorio.listar(requerimiento_id)

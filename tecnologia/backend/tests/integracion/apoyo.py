@@ -61,6 +61,36 @@ def despachar(cliente, login, rid: str, cantidades: dict[str, int], usuario="alm
     return cliente.post(f"{URL}/{rid}/despacho", json=cuerpo_despacho, headers=login(usuario))
 
 
+def crear_en_transito(cliente, login, datos: dict = INTENDENCIA) -> str:
+    """Solicitud APROBADA y despachada completa (EN_TRANSITO)."""
+    rid = crear_aprobada(cliente, login, datos)
+    cantidades = {
+        i["item"]["codigo"]: i["cantidad_solicitada"]
+        for i in cliente.get(f"{URL}/{rid}", headers=login("oficial.bim11")).json()["items"]
+    }
+    respuesta = despachar(cliente, login, rid, cantidades)
+    assert respuesta.status_code == 201, respuesta.text
+    return rid
+
+
+def firmar_acta(
+    cliente,
+    login,
+    rid: str,
+    recibido: dict[str, int],
+    usuario="oficial.bim11",
+    observaciones: dict[str, str] | None = None,
+):
+    observaciones = observaciones or {}
+    lineas = []
+    for codigo, cantidad in recibido.items():
+        linea = {"item_id": item(codigo), "cantidad_recibida": cantidad}
+        if codigo in observaciones:
+            linea["observacion"] = observaciones[codigo]
+        lineas.append(linea)
+    return cliente.post(f"{URL}/{rid}/acta", json={"items": lineas}, headers=login(usuario))
+
+
 def stock(motor, codigo: str, almacen: str = "SINTE") -> int:
     with motor.connect() as conexion:
         return conexion.scalar(

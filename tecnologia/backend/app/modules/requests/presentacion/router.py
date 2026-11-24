@@ -15,20 +15,26 @@ from app.modules.requests.aplicacion.consultar_requerimientos import TAMANO_MAXI
 from app.modules.requests.aplicacion.politica_acceso import Actor
 from app.modules.requests.dominio.estado import EstadoRequerimiento
 from app.modules.requests.infraestructura.dependencias import (
+    construir_confirmar_recepcion,
     construir_consultar,
+    construir_consultar_acta,
     construir_consultar_firmas,
     construir_despachar,
     construir_enviar,
     construir_firmar,
     construir_registrar,
+    construir_verificar,
 )
 from app.modules.requests.presentacion.esquemas import (
+    ActaEntrada,
+    ActaSalida,
     DecisionFirmaEntrada,
     DespachoEntrada,
     FirmaSalida,
     PaginaRequerimientosSalida,
     RequerimientoEntrada,
     RequerimientoSalida,
+    VerificacionSalida,
 )
 
 router = APIRouter(prefix="/api/v1/requerimientos", tags=["Requerimientos"])
@@ -229,3 +235,68 @@ def despachar(
         construir_despachar(uow.sesion).ejecutar(actor, id, entrada.a_cantidades())
         vista = construir_consultar(uow.sesion).detalle(actor, id)
     return RequerimientoSalida.desde_vista(vista)
+
+
+# --- Acta de recepción y verificación (US4) ---
+
+
+@router.post(
+    "/{id}/acta",
+    response_model=ActaSalida,
+    status_code=status.HTTP_201_CREATED,
+    tags=["Firmas"],
+    summary="Firmar el acta de recepción (HU08, RF07)",
+    description="Solo OFICIAL_LOGISTICA de la unidad solicitante, con el requerimiento "
+    "EN_TRANSITO. Registra lo recibido y las diferencias, firma con Ed25519 y deja el acta "
+    "inmutable; el requerimiento pasa a CONFIRMADA.",
+    responses={**_R401, **_R403, **_R404, **_R409, **_R422},
+)
+def firmar_acta(
+    id: uuid.UUID,
+    entrada: ActaEntrada,
+    usuario: UsuarioActual = Depends(solo_oficial),
+    fabrica_uow: FabricaUnidadTrabajo = Depends(obtener_fabrica_uow),
+) -> ActaSalida:
+    actor = _actor(usuario)
+    with fabrica_uow() as uow:
+        construir_confirmar_recepcion(uow.sesion).ejecutar(actor, id, entrada.a_recepcion())
+        vista = construir_consultar_acta(uow.sesion).ejecutar(actor, id)
+    return ActaSalida.desde_vista(vista)
+
+
+@router.get(
+    "/{id}/acta",
+    response_model=ActaSalida,
+    tags=["Firmas"],
+    summary="Consultar el acta de recepción",
+    responses={**_R401, **_R404},
+)
+def consultar_acta(
+    id: uuid.UUID,
+    usuario: UsuarioActual = Depends(usuario_actual),
+    fabrica_uow: FabricaUnidadTrabajo = Depends(obtener_fabrica_uow),
+) -> ActaSalida:
+    with fabrica_uow() as uow:
+        vista = construir_consultar_acta(uow.sesion).ejecutar(_actor(usuario), id)
+    return ActaSalida.desde_vista(vista)
+
+
+@router.get(
+    "/{id}/verificacion",
+    response_model=VerificacionSalida,
+    tags=["Firmas"],
+    summary="Verificar la integridad de cada firma y del acta (FR-024, FR-025, EQ-02)",
+    description="Reconstruye el contenido canónico de cada firma con los datos actuales y los "
+    "campos fijos de su nivel (research §3; nunca estado ni version) y responde INTEGRA o "
+    "ALTERADA. En el incremento 001 es el único medio de verificación; el PDF verificable llega "
+    "en 002 (desviación temporal DT-01 de la constitución v1.2.0).",
+    responses={**_R401, **_R404},
+)
+def verificar(
+    id: uuid.UUID,
+    usuario: UsuarioActual = Depends(usuario_actual),
+    fabrica_uow: FabricaUnidadTrabajo = Depends(obtener_fabrica_uow),
+) -> VerificacionSalida:
+    with fabrica_uow() as uow:
+        vista = construir_verificar(uow.sesion).ejecutar(_actor(usuario), id)
+    return VerificacionSalida.desde_vista(vista)

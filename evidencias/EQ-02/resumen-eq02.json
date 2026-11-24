@@ -1,0 +1,184 @@
+{
+  "escenario": "EQ-02 integridad de firmas y del acta (incremento 001)",
+  "generado_en": "2026-11-24T12:52:21+00:00",
+  "casos": 14,
+  "cumplidos": 14,
+  "porcentaje": 100.0,
+  "resultados": [
+    {
+      "tipo": "alteracion",
+      "caso": "cantidad_recibida",
+      "esperado": [
+        "ACTA_RECEPCION"
+      ],
+      "obtenido": [
+        "ACTA_RECEPCION"
+      ],
+      "global": "ALTERADA",
+      "cumple": true
+    },
+    {
+      "tipo": "alteracion",
+      "caso": "cantidad_solicitada",
+      "esperado": [
+        "ACTA_RECEPCION",
+        "APROBACION_ALMACEN",
+        "CONFORMIDAD_GU",
+        "VB_UNIDAD"
+      ],
+      "obtenido": [
+        "ACTA_RECEPCION",
+        "APROBACION_ALMACEN",
+        "CONFORMIDAD_GU",
+        "VB_UNIDAD"
+      ],
+      "global": "ALTERADA",
+      "cumple": true
+    },
+    {
+      "tipo": "alteracion",
+      "caso": "cantidad_despachada",
+      "esperado": [
+        "ACTA_RECEPCION"
+      ],
+      "obtenido": [
+        "ACTA_RECEPCION"
+      ],
+      "global": "ALTERADA",
+      "cumple": true
+    },
+    {
+      "tipo": "alteracion",
+      "caso": "observacion",
+      "esperado": [
+        "ACTA_RECEPCION"
+      ],
+      "obtenido": [
+        "ACTA_RECEPCION"
+      ],
+      "global": "ALTERADA",
+      "cumple": true
+    },
+    {
+      "tipo": "alteracion",
+      "caso": "firmante_acta",
+      "esperado": [
+        "ACTA_RECEPCION"
+      ],
+      "obtenido": [
+        "ACTA_RECEPCION"
+      ],
+      "global": "ALTERADA",
+      "cumple": true
+    },
+    {
+      "tipo": "alteracion",
+      "caso": "firmante_vb",
+      "esperado": [
+        "VB_UNIDAD"
+      ],
+      "obtenido": [
+        "VB_UNIDAD"
+      ],
+      "global": "ALTERADA",
+      "cumple": true
+    },
+    {
+      "tipo": "alteracion",
+      "caso": "fecha_acta",
+      "esperado": [
+        "ACTA_RECEPCION"
+      ],
+      "obtenido": [
+        "ACTA_RECEPCION"
+      ],
+      "global": "ALTERADA",
+      "cumple": true
+    },
+    {
+      "tipo": "alteracion",
+      "caso": "fecha_conformidad",
+      "esperado": [
+        "CONFORMIDAD_GU"
+      ],
+      "obtenido": [
+        "CONFORMIDAD_GU"
+      ],
+      "global": "ALTERADA",
+      "cumple": true
+    },
+    {
+      "tipo": "alteracion",
+      "caso": "decision",
+      "esperado": [
+        "APROBACION_ALMACEN"
+      ],
+      "obtenido": [
+        "APROBACION_ALMACEN"
+      ],
+      "global": "ALTERADA",
+      "cumple": true
+    },
+    {
+      "tipo": "alteracion",
+      "caso": "bytes_de_la_firma",
+      "esperado": [
+        "ACTA_RECEPCION"
+      ],
+      "obtenido": [
+        "ACTA_RECEPCION"
+      ],
+      "global": "ALTERADA",
+      "cumple": true
+    },
+    {
+      "tipo": "alteracion",
+      "caso": "huella",
+      "esperado": [
+        "VB_UNIDAD"
+      ],
+      "obtenido": [
+        "VB_UNIDAD"
+      ],
+      "global": "ALTERADA",
+      "cumple": true
+    },
+    {
+      "tipo": "sin_falso_positivo",
+      "caso": "APROBADA",
+      "esperado": "INTEGRA",
+      "obtenido": {
+        "VB_UNIDAD": "INTEGRA",
+        "CONFORMIDAD_GU": "INTEGRA",
+        "APROBACION_ALMACEN": "INTEGRA"
+      },
+      "global": "INTEGRA",
+      "cumple": true
+    },
+    {
+      "tipo": "sin_falso_positivo",
+      "caso": "EN_TRANSITO",
+      "esperado": "INTEGRA",
+      "obtenido": {
+        "VB_UNIDAD": "INTEGRA",
+        "CONFORMIDAD_GU": "INTEGRA",
+        "APROBACION_ALMACEN": "INTEGRA"
+      },
+      "global": "INTEGRA",
+      "cumple": true
+    },
+    {
+      "tipo": "sin_falso_positivo",
+      "caso": "CONFIRMADA",
+      "esperado": "INTEGRA",
+      "obtenido": {
+        "VB_UNIDAD": "INTEGRA",
+        "CONFORMIDAD_GU": "INTEGRA",
+        "APROBACION_ALMACEN": "INTEGRA",
+        "ACTA_RECEPCION": "INTEGRA"
+      },
+      "global": "INTEGRA",
+      "cumple": true
+    }
+  ]
+}

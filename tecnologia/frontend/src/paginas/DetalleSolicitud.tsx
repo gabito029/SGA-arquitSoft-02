@@ -1,15 +1,16 @@
 // Detalle de la solicitud: datos, ítems, firmas registradas y las acciones que la API permite al
-// usuario (FR-029): Firmar y Rechazar (US2) y Despachar (US3). El acta, la verificación, la línea
-// de tiempo y la anulación se agregan en las historias siguientes.
+// usuario (FR-029): Firmar y Rechazar (US2), Despachar (US3), Firmar acta y Verificar (US4).
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api, ErrorApi } from '../api/cliente';
-import type { Firma, Requerimiento } from '../api/tipos';
+import type { Firma, Requerimiento, Verificacion } from '../api/tipos';
 import { Cargando } from '../componentes/Cargando';
 import { DialogoMotivo } from '../componentes/DialogoMotivo';
-import { FormularioDespacho } from '../componentes/FormularioDespacho';
 import { EstadoEtiqueta } from '../componentes/EstadoEtiqueta';
+import { FormularioActa } from '../componentes/FormularioActa';
+import { FormularioDespacho } from '../componentes/FormularioDespacho';
 import { Mensaje } from '../componentes/Mensaje';
+import { ResultadoVerificacion } from '../componentes/ResultadoVerificacion';
 import { decisionAprobar, decisionRechazar, puede } from '../logica/acciones';
 import { ETIQUETAS_NIVEL, etiquetaEstado } from '../logica/estados';
 import { MENSAJE_GENERICO } from '../logica/mensajes';
@@ -42,10 +43,14 @@ function ListaFirmas({ firmas }: { firmas: Firma[] }) {
   );
 }
 
+type CuerpoDespacho = { items: { item_id: string; cantidad: number }[] };
+type CuerpoActa = { items: { item_id: string; cantidad_recibida: number; observacion?: string }[] };
+
 export function DetalleSolicitud() {
   const { id } = useParams<{ id: string }>();
   const [req, setReq] = useState<Requerimiento | null>(null);
   const [firmas, setFirmas] = useState<Firma[]>([]);
+  const [verificacion, setVerificacion] = useState<Verificacion | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [errorAccion, setErrorAccion] = useState<string | null>(null);
   const [exito, setExito] = useState<string | null>(null);
@@ -72,14 +77,15 @@ export function DetalleSolicitud() {
   }, [cargar]);
 
   /** Ejecuta una acción, muestra el resultado y recarga el detalle. */
-  async function ejecutar(accion: () => Promise<Requerimiento>, mensaje: (r: Requerimiento) => string) {
+  async function ejecutar<T>(accion: () => Promise<T>, mensaje: (r: T) => string) {
     setEnviando(true);
     setErrorAccion(null);
     setExito(null);
+    setVerificacion(null);
     try {
-      const actualizado = await accion();
+      const resultado = await accion();
       setRechazando(false);
-      setExito(mensaje(actualizado));
+      setExito(mensaje(resultado));
       await cargar();
     } catch (e: unknown) {
       setErrorAccion(textoError(e));
@@ -97,18 +103,41 @@ export function DetalleSolicitud() {
     );
   }
 
-  function despachar(cuerpo: { items: { item_id: string; cantidad: number }[] }) {
+  function rechazar(motivo: string) {
+    void ejecutar(
+      () => api.post<Requerimiento>(`/requerimientos/${id}/firmas`, decisionRechazar(motivo)),
+      () => 'Rechazó la solicitud.',
+    );
+  }
+
+  function despachar(cuerpo: CuerpoDespacho) {
     void ejecutar(
       () => api.post<Requerimiento>(`/requerimientos/${id}/despacho`, cuerpo),
       () => 'Despacho registrado. La solicitud está en tránsito.',
     );
   }
 
-  function rechazar(motivo: string) {
+  function firmarActa(cuerpo: CuerpoActa) {
     void ejecutar(
-      () => api.post<Requerimiento>(`/requerimientos/${id}/firmas`, decisionRechazar(motivo)),
-      () => 'Rechazó la solicitud.',
+      () => api.post<{ tiene_diferencias: boolean }>(`/requerimientos/${id}/acta`, cuerpo),
+      (acta) =>
+        acta.tiene_diferencias
+          ? 'Acta firmada con diferencias registradas. La solicitud está recibida.'
+          : 'Acta firmada. La solicitud está recibida.',
     );
+  }
+
+  async function verificar() {
+    setEnviando(true);
+    setErrorAccion(null);
+    setExito(null);
+    try {
+      setVerificacion(await api.get<Verificacion>(`/requerimientos/${id}/verificacion`));
+    } catch (e: unknown) {
+      setErrorAccion(textoError(e));
+    } finally {
+      setEnviando(false);
+    }
   }
 
   return (
@@ -138,6 +167,8 @@ export function DetalleSolicitud() {
                   {i.cantidad_solicitada} {i.item.unidad_medida}
                 </strong>
                 {i.cantidad_despachada != null ? <span>Despachado: {i.cantidad_despachada}</span> : null}
+                {i.cantidad_recibida != null ? <span>Recibido: {i.cantidad_recibida}</span> : null}
+                {i.observacion ? <span>Observación: {i.observacion}</span> : null}
               </li>
             ))}
           </ul>
@@ -146,25 +177,33 @@ export function DetalleSolicitud() {
           {errorAccion ? <Mensaje tipo="error">{errorAccion}</Mensaje> : null}
           {enviando ? <Cargando /> : null}
 
-          {puede(req, 'FIRMAR') || puede(req, 'RECHAZAR') ? (
-            <div className="formulario__acciones">
-              {puede(req, 'FIRMAR') ? (
-                <button type="button" className="boton" disabled={enviando} onClick={firmar}>
-                  Firmar
-                </button>
-              ) : null}
-              {puede(req, 'RECHAZAR') ? (
-                <button
-                  type="button"
-                  className="boton--secundario"
-                  disabled={enviando}
-                  onClick={() => setRechazando(true)}
-                >
-                  Rechazar
-                </button>
-              ) : null}
-            </div>
-          ) : null}
+          <div className="formulario__acciones">
+            {puede(req, 'FIRMAR') ? (
+              <button type="button" className="boton" disabled={enviando} onClick={firmar}>
+                Firmar
+              </button>
+            ) : null}
+            {puede(req, 'RECHAZAR') ? (
+              <button
+                type="button"
+                className="boton--secundario"
+                disabled={enviando}
+                onClick={() => setRechazando(true)}
+              >
+                Rechazar
+              </button>
+            ) : null}
+            {firmas.length > 0 ? (
+              <button
+                type="button"
+                className="boton--secundario"
+                disabled={enviando}
+                onClick={() => void verificar()}
+              >
+                Verificar
+              </button>
+            ) : null}
+          </div>
           {rechazando ? (
             <DialogoMotivo
               titulo="Rechazar la solicitud"
@@ -178,7 +217,11 @@ export function DetalleSolicitud() {
           {puede(req, 'DESPACHAR') ? (
             <FormularioDespacho items={req.items} enviando={enviando} onDespachar={despachar} />
           ) : null}
+          {puede(req, 'FIRMAR_ACTA') ? (
+            <FormularioActa items={req.items} enviando={enviando} onFirmar={firmarActa} />
+          ) : null}
 
+          {verificacion ? <ResultadoVerificacion verificacion={verificacion} /> : null}
           <ListaFirmas firmas={firmas} />
         </article>
       ) : null}

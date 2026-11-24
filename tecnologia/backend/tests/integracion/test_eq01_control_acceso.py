@@ -1,11 +1,12 @@
-"""T057 — EQ-01: control de acceso por rol y jurisdicción (FR-002, FR-003; data-model.md §7).
+"""T057 y T098 — EQ-01: control de acceso por rol y jurisdicción (FR-002, FR-003;
+data-model.md §7).
 
 Matriz parametrizada sobre una solicitud de intendencia de BIM-11 (1.ª DE, almacén SINTE):
 
-- Cada usuario intenta cada acción del conducto regular (enviar, firmar o rechazar) en cada
-  estado. Solo el actor que corresponde lo logra; el resto recibe 403 (rol sin permiso), 404 (fuera
-  de su jurisdicción o aún no visible para su rol) o 409 (no corresponde al estado actual), y la
-  solicitud no cambia.
+- Cada usuario intenta cada acción del flujo (enviar, firmar o rechazar en cada nivel,
+  despachar y firmar el acta) en cada estado. Solo el actor que corresponde lo logra; el resto
+  recibe 403 (rol sin permiso), 404 (fuera de su jurisdicción o aún no visible para su rol) o 409
+  (no corresponde al estado actual), y la solicitud no cambia.
 - Sin token responde 401.
 - Fuera de la jurisdicción, consultar responde 404.
 - Un BORRADOR solo lo ven los oficiales de logística de su unidad.
@@ -24,7 +25,14 @@ import pytest
 from sqlalchemy import text
 
 from seeds.cargar import id_fijo
-from tests.integracion.apoyo import INTENDENCIA, URL, avanzar, crear_enviada
+from tests.integracion.apoyo import (
+    INTENDENCIA,
+    URL,
+    avanzar,
+    crear_en_transito,
+    crear_enviada,
+    item,
+)
 
 RAIZ_REPO = Path(__file__).resolve().parents[4]
 EVIDENCIA = RAIZ_REPO / "evidencias" / "EQ-01" / "resumen-eq01.json"
@@ -34,12 +42,15 @@ PROPIOS = ["oficial.bim11", "cmdte.bim11", "jlog.1de", "jalm.sinte", "almacenero
 AJENOS = ["oficial.bim21", "cmdte.bim12", "cmdte.bim21", "jlog.2de", "jalm.smge", "almacenero.smge"]
 USUARIOS = PROPIOS + AJENOS
 
-# Estado inicial → cuántos niveles del conducto regular se aprueban para llegar a él.
-ESTADOS: dict[str, int | None] = {
+# Estado inicial → cuántos niveles del conducto regular se aprueban para llegar a él
+# (None: BORRADOR sin enviar; "despachada": APROBADA y despachada, EN_TRANSITO).
+ESTADOS: dict[str, int | str | None] = {
     "BORRADOR": None,
     "PENDIENTE_VB_UNIDAD": 0,
     "PENDIENTE_CONFORMIDAD": 1,
     "PENDIENTE_APROBACION": 2,
+    "APROBADA": 3,
+    "EN_TRANSITO": "despachada",
 }
 
 MOTIVO = "Motivo de prueba EQ-01"
@@ -52,6 +63,26 @@ ACCIONES: dict[str, Accion] = {
     "RECHAZAR": lambda c, rid, h: c.post(
         f"{URL}/{rid}/firmas", json={"decision": "RECHAZAR", "motivo": MOTIVO}, headers=h
     ),
+    "DESPACHAR": lambda c, rid, h: c.post(
+        f"{URL}/{rid}/despacho",
+        json={
+            "items": [
+                {"item_id": item("INT-001"), "cantidad": 10},
+                {"item_id": item("INT-002"), "cantidad": 5},
+            ]
+        },
+        headers=h,
+    ),
+    "FIRMAR_ACTA": lambda c, rid, h: c.post(
+        f"{URL}/{rid}/acta",
+        json={
+            "items": [
+                {"item_id": item("INT-001"), "cantidad_recibida": 10},
+                {"item_id": item("INT-002"), "cantidad_recibida": 5},
+            ]
+        },
+        headers=h,
+    ),
 }
 
 # Los únicos (estado, acción, usuario) permitidos; todo lo demás debe denegarse.
@@ -63,6 +94,8 @@ PERMITIDOS = {
     ("PENDIENTE_CONFORMIDAD", "RECHAZAR", "jlog.1de"),
     ("PENDIENTE_APROBACION", "FIRMAR", "jalm.sinte"),
     ("PENDIENTE_APROBACION", "RECHAZAR", "jalm.sinte"),
+    ("APROBADA", "DESPACHAR", "almacenero.sinte"),
+    ("EN_TRANSITO", "FIRMAR_ACTA", "oficial.bim11"),
 }
 
 # Roles que el endpoint admite (los demás reciben 403 antes de mirar la solicitud).
@@ -70,6 +103,8 @@ ROLES_ENDPOINT = {
     "ENVIAR": {"oficial"},
     "FIRMAR": {"cmdte", "jlog", "jalm"},
     "RECHAZAR": {"cmdte", "jlog", "jalm"},
+    "DESPACHAR": {"almacenero"},
+    "FIRMAR_ACTA": {"oficial"},
 }
 
 RESULTADOS: list[dict] = []
@@ -118,6 +153,8 @@ def preparar(cliente, login, estado: str) -> str:
         creado = cliente.post(URL, json=INTENDENCIA, headers=login("oficial.bim11"))
         assert creado.status_code == 201, creado.text
         return creado.json()["id"]
+    if niveles == "despachada":
+        return crear_en_transito(cliente, login)
     rid = crear_enviada(cliente, login)
     avanzar(cliente, login, rid, niveles)
     return rid
@@ -166,7 +203,7 @@ def test_accion_que_no_le_corresponde_se_deniega(cliente, login, motor, estado, 
 def test_solo_el_actor_que_corresponde_lo_logra(cliente, login, estado, accion, usuario):
     rid = preparar(cliente, login, estado)
     respuesta = ACCIONES[accion](cliente, rid, login(usuario))
-    esperado = 200 if accion == "ENVIAR" else 201
+    esperado = 200 if accion == "ENVIAR" else 201  # crear recursos (firma, despacho, acta)
     registrar(
         "accion_permitida",
         f"{estado}/{accion}/{usuario}",
@@ -183,7 +220,7 @@ def test_sin_token_responde_401(cliente, login, accion):
     registrar("sin_token", accion, 401, respuesta.status_code, respuesta.status_code == 401)
 
 
-@pytest.mark.parametrize("recurso", ["", "/firmas"])
+@pytest.mark.parametrize("recurso", ["", "/firmas", "/verificacion", "/acta"])
 def test_consultar_sin_token_responde_401(cliente, login, recurso):
     rid = preparar(cliente, login, "PENDIENTE_VB_UNIDAD")
     respuesta = cliente.get(f"{URL}/{rid}{recurso}")
@@ -197,7 +234,7 @@ def test_consultar_sin_token_responde_401(cliente, login, recurso):
 def test_fuera_de_su_jurisdiccion_consultar_responde_404(cliente, login, estado, usuario):
     rid = preparar(cliente, login, estado)
     cabeceras = login(usuario)
-    for recurso in ("", "/firmas"):
+    for recurso in ("", "/firmas", "/verificacion"):
         respuesta = cliente.get(f"{URL}/{rid}{recurso}", headers=cabeceras)
         registrar(
             "consulta_ajena",

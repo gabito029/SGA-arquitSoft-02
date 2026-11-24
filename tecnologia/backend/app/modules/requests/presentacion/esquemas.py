@@ -8,17 +8,20 @@ from pydantic import BaseModel, Field, field_validator
 
 from app.modules.catalog.dominio.tipos import Categoria
 from app.modules.identity.dominio.rol import Rol
+from app.modules.requests.aplicacion.confirmar_recepcion import LineaRecepcion
+from app.modules.requests.aplicacion.consultar_acta import VistaActa, VistaVerificacion
 from app.modules.requests.aplicacion.consultar_firmas import VistaFirma
 from app.modules.requests.aplicacion.consultar_requerimientos import (
     PaginaVistas,
     Resumen,
+    VistaItem,
     VistaRequerimiento,
 )
 from app.modules.requests.aplicacion.despachar_requerimiento import CantidadDespacho
 from app.modules.requests.aplicacion.politica_acceso import Accion
 from app.modules.requests.aplicacion.registrar_requerimiento import LineaEntrada
 from app.modules.requests.dominio.estado import EstadoRequerimiento
-from app.modules.signing.dominio.tipos import DecisionFirma, NivelFirma
+from app.modules.signing.dominio.tipos import DecisionFirma, NivelFirma, ResultadoVerificacion
 
 # --- Entrada ---
 
@@ -74,6 +77,23 @@ class ItemRequerimientoSalida(BaseModel):
     cantidad_recibida: int | None = None
     observacion: str | None = None
 
+    @classmethod
+    def desde_vista(cls, i: VistaItem) -> "ItemRequerimientoSalida":
+        return cls(
+            item=ItemSalida(
+                id=i.item.id,
+                codigo=i.item.codigo,
+                nombre=i.item.nombre,
+                categoria=i.item.categoria,
+                unidad_medida=i.item.unidad_medida,
+                valor_unitario=f"{i.item.valor_unitario:.2f}",
+            ),
+            cantidad_solicitada=i.cantidad_solicitada,
+            cantidad_despachada=i.cantidad_despachada,
+            cantidad_recibida=i.cantidad_recibida,
+            observacion=i.observacion,
+        )
+
 
 class RequerimientoSalida(BaseModel):
     id: uuid.UUID
@@ -102,23 +122,7 @@ class RequerimientoSalida(BaseModel):
             gran_unidad=OrganoResumenSalida.desde(v.gran_unidad),
             almacen=OrganoResumenSalida.desde(v.almacen),
             monto_total=f"{v.monto_total:.2f}" if v.monto_total is not None else None,
-            items=[
-                ItemRequerimientoSalida(
-                    item=ItemSalida(
-                        id=i.item.id,
-                        codigo=i.item.codigo,
-                        nombre=i.item.nombre,
-                        categoria=i.item.categoria,
-                        unidad_medida=i.item.unidad_medida,
-                        valor_unitario=f"{i.item.valor_unitario:.2f}",
-                    ),
-                    cantidad_solicitada=i.cantidad_solicitada,
-                    cantidad_despachada=i.cantidad_despachada,
-                    cantidad_recibida=i.cantidad_recibida,
-                    observacion=i.observacion,
-                )
-                for i in v.items
-            ],
+            items=[ItemRequerimientoSalida.desde_vista(i) for i in v.items],
             creado_en=v.creado_en,
             actualizado_en=v.actualizado_en,
             acciones_disponibles=v.acciones_disponibles,
@@ -180,6 +184,83 @@ class FirmaSalida(BaseModel):
             huella_sha256=v.huella_sha256,
             metodo=v.metodo,
             firmado_en=v.firmado_en,
+        )
+
+
+class LineaActaEntrada(BaseModel):
+    item_id: uuid.UUID
+    cantidad_recibida: int = Field(ge=0, description="Cantidad entera recibida, ≥ 0")
+    observacion: str | None = Field(default=None, max_length=500)
+
+
+class ActaEntrada(BaseModel):
+    items: list[LineaActaEntrada] = Field(min_length=1)
+
+    @field_validator("items")
+    @classmethod
+    def _sin_repetidos(cls, items: list[LineaActaEntrada]) -> list[LineaActaEntrada]:
+        ids = [i.item_id for i in items]
+        if len(set(ids)) != len(ids):
+            raise ValueError("El acta no puede repetir un ítem.")
+        return items
+
+    def a_recepcion(self) -> list[LineaRecepcion]:
+        return [
+            LineaRecepcion(
+                item_id=i.item_id, cantidad_recibida=i.cantidad_recibida, observacion=i.observacion
+            )
+            for i in self.items
+        ]
+
+
+class ActaSalida(BaseModel):
+    id: uuid.UUID
+    requerimiento_id: uuid.UUID
+    firma: FirmaSalida
+    tiene_diferencias: bool
+    items: list[ItemRequerimientoSalida]
+
+    @classmethod
+    def desde_vista(cls, v: VistaActa) -> "ActaSalida":
+        return cls(
+            id=v.id,
+            requerimiento_id=v.requerimiento_id,
+            firma=FirmaSalida.desde_vista(v.firma),
+            tiene_diferencias=v.tiene_diferencias,
+            items=[ItemRequerimientoSalida.desde_vista(i) for i in v.items],
+        )
+
+
+class VerificacionFirmaSalida(BaseModel):
+    firma_id: uuid.UUID
+    nivel: NivelFirma
+    resultado: ResultadoVerificacion
+    firmante: str
+    firmado_en: datetime
+
+
+class VerificacionSalida(BaseModel):
+    requerimiento_id: uuid.UUID
+    resultado: ResultadoVerificacion = Field(
+        description="ALTERADA si cualquiera de las firmas no se verifica"
+    )
+    firmas: list[VerificacionFirmaSalida]
+
+    @classmethod
+    def desde_vista(cls, v: VistaVerificacion) -> "VerificacionSalida":
+        return cls(
+            requerimiento_id=v.requerimiento_id,
+            resultado=v.resultado,
+            firmas=[
+                VerificacionFirmaSalida(
+                    firma_id=f.firma_id,
+                    nivel=f.nivel,
+                    resultado=f.resultado,
+                    firmante=f.firmante,
+                    firmado_en=f.firmado_en,
+                )
+                for f in v.firmas
+            ],
         )
 
 

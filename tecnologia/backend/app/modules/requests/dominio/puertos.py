@@ -15,7 +15,11 @@ from app.modules.inventory.dominio.puertos import LineaDespacho
 from app.modules.requests.dominio.estado import AccionHistorial, EstadoRequerimiento
 from app.modules.requests.dominio.requerimiento import Requerimiento
 from app.modules.signing.dominio.contenido_canonico import DocumentoFirmable, Firmante
-from app.modules.signing.dominio.puertos import FirmaRegistrada
+from app.modules.signing.dominio.puertos import (
+    ActaRegistrada,
+    FirmaRegistrada,
+    VerificacionRequerimiento,
+)
 from app.modules.signing.dominio.tipos import DecisionFirma, NivelFirma
 
 __all__ = [
@@ -32,6 +36,7 @@ __all__ = [
     "RegistroAuditoria",
     "RepositorioRequerimientos",
     "Transaccion",
+    "VerificadorFirmas",
 ]
 
 
@@ -164,6 +169,16 @@ class FirmasRequerimiento(Protocol):
     def firmas(self, requerimiento_id: uuid.UUID) -> list[FirmaRegistrada]: ...
 
     def niveles_firmados(self, requerimiento_id: uuid.UUID) -> set[NivelFirma]: ...
+
+    def registrar_acta(self, firma: FirmaRegistrada, tiene_diferencias: bool) -> ActaRegistrada: ...
+
+    def acta(self, requerimiento_id: uuid.UUID) -> ActaRegistrada | None: ...
+
+
+class VerificadorFirmas(Protocol):
+    """Verificación de integridad que ofrece ``signing`` (FR-024)."""
+
+    def ejecutar(self, documento_actual: DocumentoFirmable) -> VerificacionRequerimiento: ...
 
 
 class DespachoInventario(Protocol):

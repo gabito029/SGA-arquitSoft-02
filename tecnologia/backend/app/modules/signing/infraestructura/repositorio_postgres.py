@@ -8,9 +8,9 @@ from sqlalchemy.orm import Session
 
 from app.modules.identity.dominio.rol import Rol
 from app.modules.signing.dominio.errores import NivelYaRegistrado
-from app.modules.signing.dominio.puertos import FirmaRegistrada
+from app.modules.signing.dominio.puertos import ActaRegistrada, FirmaRegistrada
 from app.modules.signing.dominio.tipos import NivelFirma
-from app.modules.signing.infraestructura.modelos import FirmaModelo
+from app.modules.signing.infraestructura.modelos import ActaRecepcionModelo, FirmaModelo
 
 
 def _registro(m: FirmaModelo) -> FirmaRegistrada:
@@ -68,6 +68,37 @@ class RepositorioFirmasPostgres:
                 .order_by(FirmaModelo.firmado_en, FirmaModelo.id)
             )
         ]
+
+    def guardar_acta(self, acta: ActaRegistrada) -> None:
+        try:
+            with self._sesion.begin_nested():
+                self._sesion.add(
+                    ActaRecepcionModelo(
+                        id=acta.id,
+                        requerimiento_id=acta.requerimiento_id,
+                        firma_id=acta.firma_id,
+                        tiene_diferencias=acta.tiene_diferencias,
+                    )
+                )
+                self._sesion.flush()
+        except IntegrityError as error:
+            raise NivelYaRegistrado("El acta de recepción ya fue firmada.") from error
+
+    def acta(self, requerimiento_id: uuid.UUID) -> ActaRegistrada | None:
+        m = self._sesion.scalar(
+            select(ActaRecepcionModelo).where(
+                ActaRecepcionModelo.requerimiento_id == requerimiento_id
+            )
+        )
+        if m is None:
+            return None
+        return ActaRegistrada(
+            id=m.id,
+            requerimiento_id=m.requerimiento_id,
+            firma_id=m.firma_id,
+            tiene_diferencias=m.tiene_diferencias,
+            creado_en=m.creado_en,
+        )
 
     def niveles(self, requerimiento_id: uuid.UUID) -> set[NivelFirma]:
         return set(
