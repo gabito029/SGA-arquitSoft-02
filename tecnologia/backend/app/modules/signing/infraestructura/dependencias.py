@@ -1,4 +1,5 @@
-"""Composición del módulo de firma: el servicio público con el firmador Ed25519 configurado."""
+"""Composición del módulo de firma: el servicio público con el firmador Ed25519 configurado y,
+desde 002, los adaptadores de documentos (disco y ReportLab)."""
 
 from functools import lru_cache
 
@@ -7,7 +8,9 @@ from sqlalchemy.orm import Session
 from app.core.config import obtener_configuracion
 from app.modules.signing.aplicacion.servicio_firma import ServicioFirma
 from app.modules.signing.aplicacion.verificar_requerimiento import VerificarRequerimiento
+from app.modules.signing.infraestructura.almacen_documentos_disco import AlmacenDocumentosDisco
 from app.modules.signing.infraestructura.firmador_ed25519 import FirmadorEd25519
+from app.modules.signing.infraestructura.generador_pdf_reportlab import GeneradorPdfReportLab
 from app.modules.signing.infraestructura.repositorio_postgres import RepositorioFirmasPostgres
 
 
@@ -26,3 +29,13 @@ def construir_servicio_firma(sesion: Session) -> ServicioFirma:
 
 def construir_verificador(sesion: Session) -> VerificarRequerimiento:
     return VerificarRequerimiento(construir_servicio_firma(sesion))
+
+
+def obtener_almacen_documentos() -> AlmacenDocumentosDisco:
+    """El almacenamiento de documentos de ADR-010; hoy, el disco local (volumen de Docker)."""
+    return AlmacenDocumentosDisco(obtener_configuracion().documentos_dir)
+
+
+@lru_cache
+def obtener_generador_pdf() -> GeneradorPdfReportLab:
+    return GeneradorPdfReportLab()

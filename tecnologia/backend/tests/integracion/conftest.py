@@ -11,6 +11,7 @@
 """
 
 import os
+import tempfile
 from collections.abc import Callable, Iterator
 from pathlib import Path
 
@@ -58,6 +59,9 @@ os.environ["CONTRASENA_DEMO"] = CONTRASENA_PRUEBAS
 CLAVE_FIRMA, _PEM_FIRMA = _clave_en_memoria()
 os.environ["FIRMA_CLAVE_PRIVADA"] = _PEM_FIRMA
 os.environ["FIRMA_CLAVE_ID"] = ""  # se deriva de la clave pública
+# Los PDF de las pruebas (002) se guardan en una carpeta temporal, nunca en el volumen real.
+CARPETA_DOCUMENTOS = tempfile.mkdtemp(prefix="sga-documentos-")
+os.environ["DOCUMENTOS_DIR"] = CARPETA_DOCUMENTOS
 
 from app.core import base_datos, config  # noqa: E402
 

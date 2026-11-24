@@ -49,3 +49,22 @@ def test_un_modulo_no_usa_la_infraestructura_de_otro(archivo: Path):
             if otro != modulo and capa == "infraestructura" and not es_composicion:
                 ajenas.append(importado)
     assert ajenas == [], f"{archivo} usa infraestructura de otro módulo: {ajenas}"
+
+
+# --- Incremento 002: ReportLab y el disco solo en la infraestructura de signing (ADR-010) ---
+
+ARCHIVOS_SIGNING_SIN_INFRAESTRUCTURA = sorted(
+    list(RAIZ_MODULOS.glob("signing/dominio/*.py"))
+    + list(RAIZ_MODULOS.glob("signing/aplicacion/*.py"))
+)
+PROHIBIDOS_FUERA_DE_INFRAESTRUCTURA = ("reportlab", "os", "pathlib", "shutil")
+
+
+@pytest.mark.parametrize(
+    "archivo", ARCHIVOS_SIGNING_SIN_INFRAESTRUCTURA, ids=lambda p: f"{p.parent.name}/{p.name}"
+)
+def test_documentos_sin_reportlab_ni_disco_fuera_de_la_infraestructura(archivo: Path):
+    prohibidas = [
+        m for m in _importaciones(archivo) if m.split(".")[0] in PROHIBIDOS_FUERA_DE_INFRAESTRUCTURA
+    ]
+    assert prohibidas == [], f"{archivo} importa {prohibidas}"
