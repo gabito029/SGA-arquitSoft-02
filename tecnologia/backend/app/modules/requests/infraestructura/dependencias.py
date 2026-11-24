@@ -20,6 +20,7 @@ from app.modules.inventory.infraestructura.dependencias import construir_servici
 from app.modules.requests.aplicacion.anular_requerimiento import AnularRequerimiento
 from app.modules.requests.aplicacion.confirmar_recepcion import ConfirmarRecepcion
 from app.modules.requests.aplicacion.consultar_acta import ConsultarActa, VerificarIntegridad
+from app.modules.requests.aplicacion.consultar_documento import ArmadorDocumento, ConsultarDocumento
 from app.modules.requests.aplicacion.consultar_firmas import ConsultarFirmas
 from app.modules.requests.aplicacion.consultar_historial import ConsultarHistorial
 from app.modules.requests.aplicacion.consultar_requerimientos import ConsultarRequerimientos
@@ -171,4 +172,23 @@ def construir_consultar(sesion: Session) -> ConsultarRequerimientos:
     return ConsultarRequerimientos(
         repositorio=RepositorioRequerimientosPostgres(sesion),
         catalogo=_catalogo(sesion),
+    )
+
+
+# --- Incremento 002: documento oficial y PDF ---
+
+
+def construir_armador_documento(sesion: Session) -> ArmadorDocumento:
+    return ArmadorDocumento(
+        repositorio=RepositorioRequerimientosPostgres(sesion),
+        firmas=construir_servicio_firma(sesion),
+        usuarios=construir_consulta_usuarios(sesion),
+        catalogo=_catalogo(sesion),
+    )
+
+
+def construir_consultar_documento(sesion: Session) -> ConsultarDocumento:
+    return ConsultarDocumento(
+        repositorio=RepositorioRequerimientosPostgres(sesion),
+        armador=construir_armador_documento(sesion),
     )

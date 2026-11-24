@@ -12,6 +12,7 @@ import {
   Clock,
   Coins,
   Feather,
+  FileText,
   Package,
   ShieldCheck,
   Stamp,
@@ -20,11 +21,19 @@ import {
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { api, ErrorApi } from '../api/cliente';
+import { obtenerDocumento } from '../api/documentos';
 import { stockPorItem } from '../api/inventario';
-import type { EntradaHistorial, Firma, Requerimiento, Verificacion } from '../api/tipos';
+import type {
+  Documento,
+  EntradaHistorial,
+  Firma,
+  Requerimiento,
+  Verificacion,
+} from '../api/tipos';
 import { Cargando } from '../componentes/Cargando';
 import { DialogoConfirmacion } from '../componentes/DialogoConfirmacion';
 import { DialogoMotivo } from '../componentes/DialogoMotivo';
+import { DocumentoOficial } from '../componentes/DocumentoOficial';
 import { EstadoEtiqueta } from '../componentes/EstadoEtiqueta';
 import { FormularioActa } from '../componentes/FormularioActa';
 import { FormularioDespacho } from '../componentes/FormularioDespacho';
@@ -106,6 +115,7 @@ export function DetalleSolicitud() {
   const [firmas, setFirmas] = useState<Firma[]>([]);
   const [verificacion, setVerificacion] = useState<Verificacion | null>(null);
   const [historial, setHistorial] = useState<EntradaHistorial[] | null>(null);
+  const [documento, setDocumento] = useState<Documento | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [errorAccion, setErrorAccion] = useState<string | null>(null);
   const [exito, setExito] = useState<string | null>(exitoInicial);
@@ -158,6 +168,7 @@ export function DetalleSolicitud() {
     setExito(null);
     setVerificacion(null);
     setHistorial(null);
+    setDocumento(null);
     try {
       const resultado = await accion();
       setRechazando(false);
@@ -233,6 +244,19 @@ export function DetalleSolicitud() {
     setErrorAccion(null);
     try {
       setHistorial(await api.get<EntradaHistorial[]>(`/requerimientos/${id}/historial`));
+    } catch (e: unknown) {
+      setErrorAccion(textoError(e));
+    }
+  }
+
+  async function verDocumento() {
+    if (documento) {
+      setDocumento(null);
+      return;
+    }
+    setErrorAccion(null);
+    try {
+      setDocumento(await obtenerDocumento(id ?? ''));
     } catch (e: unknown) {
       setErrorAccion(textoError(e));
     }
@@ -408,6 +432,26 @@ export function DetalleSolicitud() {
 
           {verificacion ? <ResultadoVerificacion verificacion={verificacion} /> : null}
           <ListaFirmas firmas={firmas} />
+
+          <section className="seccion" aria-labelledby="titulo-documento">
+            <p className="antetitulo">Documento oficial</p>
+            <h3 id="titulo-documento">
+              <FileText />
+              Documento
+            </h3>
+            <div className="acciones">
+              <button
+                type="button"
+                className="boton--secundario"
+                aria-expanded={documento !== null}
+                onClick={() => void verDocumento()}
+              >
+                <FileText size={18} />
+                {documento ? 'Ocultar documento' : 'Ver documento'}
+              </button>
+            </div>
+            {documento ? <DocumentoOficial documento={documento} /> : null}
+          </section>
 
           <section className="seccion" aria-labelledby="titulo-historial">
             <p className="antetitulo">Conducto regular</p>

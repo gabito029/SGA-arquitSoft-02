@@ -114,14 +114,18 @@ components:
     Resumen:
       type: object
       properties: { id: { type: string, format: uuid }, codigo: { type: string }, nombre: { type: string } }
+    Referencia:
+      type: object
+      properties: { codigo: { type: string }, nombre: { type: string } }
     Sello:
       type: object
       properties:
+        firma_id: { type: string, format: uuid }
         nivel: { type: string, enum: [VB_UNIDAD, CONFORMIDAD_GU, APROBACION_ALMACEN, ACTA_RECEPCION] }
         decision: { type: string, enum: [APROBAR, RECHAZAR] }
         firmante: { type: string }
         rol: { type: string }
-        organo: { $ref: '#/components/schemas/Resumen' }
+        organo: { $ref: '#/components/schemas/Referencia' }
         firmado_en: { type: string, format: date-time }
         metodo: { type: string }
         huella_sha256: { type: string }
@@ -130,10 +134,11 @@ components:
       type: object
       properties:
         tipo: { type: string, enum: [REQUERIMIENTO, ACTA] }
+        requerimiento_id: { type: string, format: uuid }
         codigo: { type: string, example: REQ-2026-000001 }
-        unidad: { $ref: '#/components/schemas/Resumen' }
-        gran_unidad: { $ref: '#/components/schemas/Resumen' }
-        almacen: { $ref: '#/components/schemas/Resumen' }
+        unidad: { $ref: '#/components/schemas/Referencia' }
+        gran_unidad: { $ref: '#/components/schemas/Referencia' }
+        almacen: { $ref: '#/components/schemas/Referencia' }
         fecha: { type: string, format: date-time }
         items:
           type: array

@@ -10,6 +10,7 @@ from app.modules.catalog.dominio.tipos import Categoria
 from app.modules.identity.dominio.rol import Rol
 from app.modules.requests.aplicacion.confirmar_recepcion import LineaRecepcion
 from app.modules.requests.aplicacion.consultar_acta import VistaActa, VistaVerificacion
+from app.modules.requests.aplicacion.consultar_documento import VistaDocumento
 from app.modules.requests.aplicacion.consultar_firmas import VistaFirma
 from app.modules.requests.aplicacion.consultar_historial import VistaHistorial
 from app.modules.requests.aplicacion.consultar_requerimientos import (
@@ -22,6 +23,7 @@ from app.modules.requests.aplicacion.despachar_requerimiento import CantidadDesp
 from app.modules.requests.aplicacion.politica_acceso import Accion
 from app.modules.requests.aplicacion.registrar_requerimiento import LineaEntrada
 from app.modules.requests.dominio.estado import AccionHistorial, EstadoRequerimiento
+from app.modules.signing.dominio.documento import Referencia, SelloDocumento, TipoDocumento
 from app.modules.signing.dominio.tipos import DecisionFirma, NivelFirma, ResultadoVerificacion
 
 # --- Entrada ---
@@ -308,4 +310,100 @@ class PaginaRequerimientosSalida(BaseModel):
             total=p.total,
             page=p.page,
             size=p.size,
+        )
+
+
+# --- Documento oficial (incremento 002; contrato Documento) ---
+
+
+class ReferenciaSalida(BaseModel):
+    codigo: str
+    nombre: str
+
+    @classmethod
+    def desde(cls, r: Referencia | None) -> "ReferenciaSalida | None":
+        return None if r is None else cls(codigo=r.codigo, nombre=r.nombre)
+
+
+class SelloSalida(BaseModel):
+    firma_id: uuid.UUID
+    nivel: NivelFirma
+    decision: DecisionFirma
+    firmante: str
+    rol: Rol
+    organo: ReferenciaSalida
+    firmado_en: datetime
+    metodo: str
+    huella_sha256: str
+    motivo: str | None = None
+
+    @classmethod
+    def desde(cls, s: SelloDocumento) -> "SelloSalida":
+        return cls(
+            firma_id=s.firma_id,
+            nivel=s.nivel,
+            decision=s.decision,
+            firmante=s.firmante,
+            rol=Rol(s.rol),
+            organo=ReferenciaSalida(codigo=s.organo.codigo, nombre=s.organo.nombre),
+            firmado_en=s.firmado_en,
+            metodo=s.metodo,
+            huella_sha256=s.huella_sha256,
+            motivo=s.motivo,
+        )
+
+
+class LineaDocumentoSalida(BaseModel):
+    codigo: str
+    descripcion: str
+    unidad_medida: str
+    categoria: str
+    cantidad_solicitada: int
+    cantidad_despachada: int | None = Field(default=None, description="Solo en ACTA")
+    cantidad_recibida: int | None = Field(default=None, description="Solo en ACTA")
+    observacion: str | None = Field(default=None, description="Solo en ACTA")
+
+
+class DocumentoSalida(BaseModel):
+    tipo: TipoDocumento
+    requerimiento_id: uuid.UUID
+    codigo: str = Field(description="Número del requerimiento, p. ej. REQ-2026-000001")
+    unidad: ReferenciaSalida
+    gran_unidad: ReferenciaSalida | None
+    almacen: ReferenciaSalida | None
+    fecha: datetime | None
+    items: list[LineaDocumentoSalida]
+    sellos: list[SelloSalida]
+    tiene_diferencias: bool | None = Field(default=None, description="Solo en ACTA")
+    huella_contenido: str = Field(description="SHA-256 del contenido del documento (en el PDF)")
+    pdf_disponible: bool = Field(description="True si ya tiene al menos una firma")
+
+    @classmethod
+    def desde_vista(cls, v: VistaDocumento) -> "DocumentoSalida":
+        d = v.documento
+        return cls(
+            tipo=d.tipo,
+            requerimiento_id=d.requerimiento_id,
+            codigo=d.numero,
+            unidad=ReferenciaSalida(codigo=d.unidad.codigo, nombre=d.unidad.nombre),
+            gran_unidad=ReferenciaSalida.desde(d.gran_unidad),
+            almacen=ReferenciaSalida.desde(d.almacen),
+            fecha=d.fecha,
+            items=[
+                LineaDocumentoSalida(
+                    codigo=li.codigo,
+                    descripcion=li.descripcion,
+                    unidad_medida=li.unidad_medida,
+                    categoria=li.categoria,
+                    cantidad_solicitada=li.cantidad_solicitada,
+                    cantidad_despachada=li.cantidad_despachada,
+                    cantidad_recibida=li.cantidad_recibida,
+                    observacion=li.observacion,
+                )
+                for li in d.lineas
+            ],
+            sellos=[SelloSalida.desde(s) for s in d.sellos],
+            tiene_diferencias=d.tiene_diferencias,
+            huella_contenido=v.huella_contenido,
+            pdf_disponible=v.pdf_disponible,
         )

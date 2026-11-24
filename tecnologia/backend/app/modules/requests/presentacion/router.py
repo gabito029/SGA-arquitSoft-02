@@ -19,6 +19,7 @@ from app.modules.requests.infraestructura.dependencias import (
     construir_confirmar_recepcion,
     construir_consultar,
     construir_consultar_acta,
+    construir_consultar_documento,
     construir_consultar_firmas,
     construir_consultar_historial,
     construir_despachar,
@@ -32,6 +33,7 @@ from app.modules.requests.presentacion.esquemas import (
     ActaSalida,
     DecisionFirmaEntrada,
     DespachoEntrada,
+    DocumentoSalida,
     EntradaHistorialSalida,
     FirmaSalida,
     MotivoEntrada,
@@ -304,6 +306,28 @@ def verificar(
     with fabrica_uow() as uow:
         vista = construir_verificar(uow.sesion).ejecutar(_actor(usuario), id)
     return VerificacionSalida.desde_vista(vista)
+
+
+# --- Documento oficial (incremento 002, US1 y US4) ---
+
+
+@router.get(
+    "/{id}/documento",
+    response_model=DocumentoSalida,
+    tags=["Documentos"],
+    summary="Documento oficial del requerimiento: encabezado, ítems y sellos (FR-001 a FR-004)",
+    description="Los mismos datos que imprime el PDF. Lleva los sellos del conducto regular; el "
+    "del acta va en /{id}/acta/documento. Lo ajeno responde 404.",
+    responses={**_R401, **_R404},
+)
+def documento(
+    id: uuid.UUID,
+    usuario: UsuarioActual = Depends(usuario_actual),
+    fabrica_uow: FabricaUnidadTrabajo = Depends(obtener_fabrica_uow),
+) -> DocumentoSalida:
+    with fabrica_uow() as uow:
+        vista = construir_consultar_documento(uow.sesion).ejecutar(_actor(usuario), id)
+    return DocumentoSalida.desde_vista(vista)
 
 
 # --- Línea de tiempo (US5) ---

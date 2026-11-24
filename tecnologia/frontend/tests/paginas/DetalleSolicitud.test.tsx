@@ -5,6 +5,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import type { Firma } from '../../src/api/tipos';
 import { DetalleSolicitud } from '../../src/paginas/DetalleSolicitud';
 import { requerimiento } from '../apoyo/catalogo';
+import { documento } from '../apoyo/documento';
 import { respuesta, simularFetch } from '../apoyo/respuestas';
 
 const ID = 'cccccccc-0000-0000-0000-000000000001';
@@ -270,5 +271,32 @@ describe('DetalleSolicitud', () => {
     );
     renderizar();
     expect(await screen.findByRole('alert')).toHaveTextContent('no pertenece a su jurisdicción');
+  });
+  it('muestra el documento oficial a pedido y lo oculta (T020)', async () => {
+    const fetchSimulado = simularFetch(
+      respuesta(200, requerimiento({ estado: 'PENDIENTE_CONFORMIDAD', acciones_disponibles: [] })),
+      respuesta(200, []),
+      respuesta(200, documento()),
+    );
+    renderizar();
+    const usuario = userEvent.setup();
+    await usuario.click(await screen.findByRole('button', { name: 'Ver documento' }));
+    expect(
+      await screen.findByRole('article', { name: /Documento oficial: Requerimiento/ }),
+    ).toBeInTheDocument();
+    expect(fetchSimulado.mock.calls[2][0]).toMatch(/\/documento$/);
+    await usuario.click(screen.getByRole('button', { name: 'Ocultar documento' }));
+    expect(screen.queryByRole('article', { name: /Documento oficial/ })).not.toBeInTheDocument();
+  });
+
+  it('muestra el error si el documento no se puede cargar', async () => {
+    simularFetch(
+      respuesta(200, requerimiento({ estado: 'PENDIENTE_CONFORMIDAD', acciones_disponibles: [] })),
+      respuesta(200, []),
+      respuesta(404, { codigo: 'NO_ENCONTRADO', mensaje: 'No existe' }),
+    );
+    renderizar();
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'Ver documento' }));
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
   });
 });

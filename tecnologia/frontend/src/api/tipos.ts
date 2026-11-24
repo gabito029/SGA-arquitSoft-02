@@ -167,3 +167,70 @@ export interface Stock {
   item: Item;
   cantidad: number;
 }
+
+// --- Incremento 002: documento oficial y PDF verificable ---
+
+export type TipoDocumento = 'REQUERIMIENTO' | 'ACTA';
+
+export interface Referencia {
+  codigo: string;
+  nombre: string;
+}
+
+/** Una firma registrada presentada como sello digital (contrato Sello). */
+export interface Sello {
+  firma_id: string;
+  nivel: NivelFirma;
+  decision: 'APROBAR' | 'RECHAZAR';
+  firmante: string;
+  rol: Rol;
+  organo: Referencia;
+  firmado_en: string;
+  metodo: string;
+  huella_sha256: string;
+  motivo?: string | null;
+}
+
+export interface LineaDocumento {
+  codigo: string;
+  descripcion: string;
+  unidad_medida: string;
+  categoria: string;
+  cantidad_solicitada: number;
+  cantidad_despachada?: number | null;
+  cantidad_recibida?: number | null;
+  observacion?: string | null;
+}
+
+/** Documento oficial del requerimiento o del acta (contrato Documento). */
+export interface Documento {
+  tipo: TipoDocumento;
+  requerimiento_id: string;
+  codigo: string;
+  unidad: Referencia;
+  gran_unidad?: Referencia | null;
+  almacen?: Referencia | null;
+  fecha?: string | null;
+  items: LineaDocumento[];
+  sellos: Sello[];
+  tiene_diferencias?: boolean | null;
+  huella_contenido: string;
+  pdf_disponible: boolean;
+}
+
+export type ResultadoPdf = 'AUTENTICO' | 'ALTERADO';
+
+export interface DocumentoVerificado {
+  codigo_verificacion: string;
+  tipo: TipoDocumento;
+  requerimiento_id: string;
+  requerimiento_codigo: string;
+  emitido_en: string;
+  sellos: Sello[];
+}
+
+export interface VerificacionPdf {
+  resultado: ResultadoPdf;
+  motivo: string;
+  documento?: DocumentoVerificado | null;
+}

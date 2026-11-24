@@ -1110,6 +1110,102 @@ button:disabled,
 }
 
 /* --- Escritorio --- */
+/* --- Documento oficial (incremento 002): oficio sobrio, sin logos ni escudos oficiales --- */
+.documento {
+  margin-top: 12px;
+  padding: 16px;
+  border: 1px solid var(--color-borde);
+  border-top: 4px solid var(--color-primario);
+  border-radius: var(--radio);
+  background: var(--color-superficie);
+}
+
+.documento__encabezado {
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.documento__sistema {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-texto-suave);
+}
+
+.documento__titulo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 6px 0 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-primario);
+}
+
+.documento__datos {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 12px;
+  margin: 0;
+  text-align: left;
+}
+
+.documento__datos dt {
+  font-weight: 700;
+}
+
+.documento__datos dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.documento__tabla {
+  overflow-x: auto;
+  margin-bottom: 12px;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+}
+
+.documento__tabla caption {
+  padding: 8px 12px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.documento__nota,
+.documento__huella {
+  margin: 8px 0;
+  font-size: 0.875rem;
+}
+
+.sello__motivo {
+  margin: 6px 0 0;
+  font-size: 0.875rem;
+}
+
+.revision {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 12px 0;
+  font-weight: 700;
+}
+
+.revision input {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  accent-color: var(--color-primario);
+}
+
+.dialogo__documento {
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
 @media (min-width: 768px) {
   .tabla--bandeja {
     border: 1px solid var(--color-borde);

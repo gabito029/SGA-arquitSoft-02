@@ -51,12 +51,12 @@ Rutas: `B/` = `tecnologia/backend/`, `F/` = `tecnologia/frontend/`.
 
 **Independent Test**: una solicitud con dos firmas muestra el encabezado completo, los ítems y dos sellos con todos sus datos; un usuario de otra unidad recibe 404.
 
-- [ ] T015 [P] [US1] Prueba de integración en `B/tests/integracion/test_documentos.py`: `GET /requerimientos/{id}/documento` → 200 con encabezado, ítems y sellos en orden (incluido un rechazo con su motivo), sin el sello del acta; 401 sin sesión; 404 para otra unidad
-- [ ] T016 [US1] Crear `B/app/modules/requests/aplicacion/consultar_documento.py`: `ConsultarDocumento` aplica `cargar_visible`, arma `DocumentoPdf` (tipo REQUERIMIENTO o ACTA) con el catálogo, las firmas y los motivos de la línea de tiempo (data-model.md, "Qué incluye cada documento"); devuelve también `pdf_disponible`
-- [ ] T017 [US1] Agregar `DocumentoSalida` y `SelloSalida` a `B/app/modules/requests/presentacion/esquemas.py`, la ruta `GET /{id}/documento` a `B/app/modules/requests/presentacion/router.py` y su construcción en `B/app/modules/requests/infraestructura/dependencias.py` (contrato `Documento`)
-- [ ] T018 [P] [US1] Prueba Jest `F/tests/componentes/DocumentoOficial.test.tsx`: encabezado (SGA, número, unidad, Gran Unidad, almacén, fecha), tabla de ítems, un sello por firma con nivel, decisión, cargo, órgano, fecha, hora, método y huella abreviada, y el texto "Todavía no hay firmas."
-- [ ] T019 [US1] Agregar los tipos `Documento`/`Sello` a `F/src/api/tipos.ts` y `obtenerDocumento(id)` a `F/src/api/cliente.ts`, con su prueba en `F/tests/api/cliente.test.ts`
-- [ ] T020 [US1] Crear `F/src/componentes/DocumentoOficial.tsx` (reutiliza `huellaAbreviada`, `fechaHora` y las etiquetas de nivel; estilos `.documento` en `F/src/estilos.css`, legibles en celular) y mostrarlo en la sección "Documento" de `F/src/paginas/DetalleSolicitud.tsx`, actualizando `F/tests/paginas/DetalleSolicitud.test.tsx`
+- [X] T015 [P] [US1] Prueba de integración en `B/tests/integracion/test_documentos.py`: `GET /requerimientos/{id}/documento` → 200 con encabezado, ítems y sellos en orden (incluido un rechazo con su motivo), sin el sello del acta; 401 sin sesión; 404 para otra unidad
+- [X] T016 [US1] Crear `B/app/modules/requests/aplicacion/consultar_documento.py`: `ConsultarDocumento` aplica `cargar_visible`, arma `DocumentoPdf` (tipo REQUERIMIENTO o ACTA) con el catálogo, las firmas y los motivos de la línea de tiempo (data-model.md, "Qué incluye cada documento"); devuelve también `pdf_disponible`
+- [X] T017 [US1] Agregar `DocumentoSalida` y `SelloSalida` a `B/app/modules/requests/presentacion/esquemas.py`, la ruta `GET /{id}/documento` a `B/app/modules/requests/presentacion/router.py` y su construcción en `B/app/modules/requests/infraestructura/dependencias.py` (contrato `Documento`)
+- [X] T018 [P] [US1] Prueba Jest `F/tests/componentes/DocumentoOficial.test.tsx`: encabezado (SGA, número, unidad, Gran Unidad, almacén, fecha), tabla de ítems, un sello por firma con nivel, decisión, cargo, órgano, fecha, hora, método y huella abreviada, y el texto "Todavía no hay firmas."
+- [X] T019 [US1] Agregar los tipos `Documento`/`Sello` a `F/src/api/tipos.ts` y `obtenerDocumento(id)` a `F/src/api/cliente.ts`, con su prueba en `F/tests/api/cliente.test.ts`
+- [X] T020 [US1] Crear `F/src/componentes/DocumentoOficial.tsx` (reutiliza `huellaAbreviada`, `fechaHora` y las etiquetas de nivel; estilos `.documento` en `F/src/estilos.css`, legibles en celular) y mostrarlo en la sección "Documento" de `F/src/paginas/DetalleSolicitud.tsx`, actualizando `F/tests/paginas/DetalleSolicitud.test.tsx`
 
 **Checkpoint**: US1 funciona sola.
 
