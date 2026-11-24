@@ -1,0 +1,17 @@
+{
+  "escenario": "EQ-01 control de acceso (incremento 001)",
+  "generado_en": "2026-11-24T13:26:40+00:00",
+  "casos": 536,
+  "cumplidos": 536,
+  "porcentaje": 100.0,
+  "por_tipo": {
+    "accion_denegada": 351,
+    "accion_permitida": 9,
+    "bandeja_ajena": 36,
+    "borrador": 5,
+    "consulta_ajena": 108,
+    "sin_jurisdiccion": 18,
+    "sin_token": 9
+  },
+  "fallidos": []
+}

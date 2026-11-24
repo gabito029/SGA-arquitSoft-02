@@ -1,0 +1,70 @@
+﻿........................................................................ [  8%]
+........................................................................ [ 17%]
+........................................................................ [ 25%]
+........................................................................ [ 34%]
+........................................................................ [ 42%]
+........................................................................ [ 51%]
+........................................................................ [ 59%]
+........................................................................ [ 68%]
+........................................................................ [ 76%]
+........................................................................ [ 85%]
+........................................................................ [ 93%]
+.......................................................                  [100%]
+============================== warnings summary ===============================
+tests/integracion/test_acta.py::test_acta_sin_diferencias
+  C:\Users\ASUS\Desktop\SGA-arquitSoft-02\tecnologia\backend\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=============================== tests coverage ================================
+_______________ coverage: platform win32, python 3.13.9-final-0 _______________
+
+Name                                                            Stmts   Miss Branch BrPart  Cover   Missing
+-----------------------------------------------------------------------------------------------------------
+app\modules\inventory\aplicacion\servicio_despacho.py              19      0      4      0   100%
+app\modules\inventory\dominio\errores.py                            4      0      0      0   100%
+app\modules\inventory\dominio\puertos.py                           23      0      0      0   100%
+app\modules\inventory\dominio\tipos.py                              4      0      0      0   100%
+app\modules\inventory\infraestructura\dependencias.py               5      0      0      0   100%
+app\modules\inventory\infraestructura\modelos.py                   25      0      0      0   100%
+app\modules\inventory\infraestructura\repositorio_postgres.py      24      0      2      0   100%
+app\modules\inventory\presentacion\router.py                       35      1      2      1    95%   58
+app\modules\requests\aplicacion\anular_requerimiento.py            25      0      2      0   100%
+app\modules\requests\aplicacion\confirmar_recepcion.py             37      0      0      0   100%
+app\modules\requests\aplicacion\consultar_acta.py                  52      0      2      0   100%
+app\modules\requests\aplicacion\consultar_firmas.py                38      0      0      0   100%
+app\modules\requests\aplicacion\consultar_historial.py             31      0      0      0   100%
+app\modules\requests\aplicacion\consultar_requerimientos.py        73      0      2      0   100%
+app\modules\requests\aplicacion\despachar_requerimiento.py         29      0      0      0   100%
+app\modules\requests\aplicacion\enviar_requerimiento.py            36      0      0      0   100%
+app\modules\requests\aplicacion\firmar_requerimiento.py            55      1      8      1    97%   114
+app\modules\requests\aplicacion\politica_acceso.py                 71      1     32      1    98%   79
+app\modules\requests\aplicacion\registrar_requerimiento.py         76      3     22      3    94%   44, 59, 140
+app\modules\requests\dominio\errores.py                            22      0      0      0   100%
+app\modules\requests\dominio\estado.py                             23      0      0      0   100%
+app\modules\requests\dominio\firma_nivel.py                         6      0      0      0   100%
+app\modules\requests\dominio\puertos.py                            82      0      0      0   100%
+app\modules\requests\dominio\requerimiento.py                     182      0     36      1    99%   250->exit
+app\modules\requests\infraestructura\dependencias.py               69      2      4      2    95%   64, 76
+app\modules\requests\infraestructura\modelos.py                    47      0      0      0   100%
+app\modules\requests\infraestructura\repositorio_postgres.py      101      1     28      3    97%   136, 139->141, 145->155
+app\modules\requests\presentacion\esquemas.py                     157      1      6      1    99%   209
+app\modules\requests\presentacion\router.py                       100      0      0      0   100%
+app\modules\rules\dominio\regla_aprobacion.py                      11      0      2      0   100%
+app\modules\signing\aplicacion\servicio_firma.py                   34      1      2      1    94%   69
+app\modules\signing\aplicacion\verificar_requerimiento.py          11      0      0      0   100%
+app\modules\signing\dominio\contenido_canonico.py                  41      0      4      0   100%
+app\modules\signing\dominio\errores.py                              4      0      0      0   100%
+app\modules\signing\dominio\puertos.py                             44      0      0      0   100%
+app\modules\signing\dominio\tipos.py                               12      0      0      0   100%
+app\modules\signing\infraestructura\dependencias.py                15      0      0      0   100%
+app\modules\signing\infraestructura\firmador_ed25519.py            35      1      6      1    95%   41
+app\modules\signing\infraestructura\modelos.py                     31      0      0      0   100%
+app\modules\signing\infraestructura\repositorio_postgres.py        38      4      2      0    90%   59-60, 84-85
+-----------------------------------------------------------------------------------------------------------
+TOTAL                                                            1727     16    166     15    98%
+
+20 empty files skipped.
+Coverage HTML written to dir htmlcov
+Required test coverage of 60.0% reached. Total coverage: 98.36%
+847 passed, 1 warning in 375.06s (0:06:15)

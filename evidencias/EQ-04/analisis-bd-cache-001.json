@@ -1,0 +1,94 @@
+{
+  "escenario": "Análisis de la base de datos y de la caché del catálogo (EQ-04, T092)",
+  "fecha": "2026-11-24",
+  "fuente": "Diferencias de pg_stat_database antes y después de cada corrida de k6, y EXPLAIN (ANALYZE, BUFFERS) de la consulta de la bandeja.",
+  "p95_por_operacion": {
+    "con_cache": {
+      "detalle": {
+        "p95_ms": 28.0,
+        "media_ms": 17.5
+      },
+      "bandeja": {
+        "p95_ms": 34.2,
+        "media_ms": 22.8
+      },
+      "registro": {
+        "p95_ms": 61.2,
+        "media_ms": 38.5
+      }
+    },
+    "sin_cache": {
+      "registro": {
+        "p95_ms": 363.3,
+        "media_ms": 168.4
+      },
+      "bandeja": {
+        "p95_ms": 1088.7,
+        "media_ms": 505.5
+      },
+      "detalle": {
+        "p95_ms": 172.4,
+        "media_ms": 73.7
+      }
+    }
+  },
+  "carga_en_postgresql_por_corrida": {
+    "con-cache": {
+      "peticiones": 5873,
+      "transacciones": 11843,
+      "tx_por_peticion": 2.02,
+      "bloques_leidos_cache_pg": 719026,
+      "bloques_por_peticion": 122.4,
+      "filas_devueltas": 9653435,
+      "filas_devueltas_por_peticion": 1644,
+      "filas_obtenidas_por_peticion": 8.6,
+      "lecturas_de_disco": 5,
+      "requerimientos_al_inicio": 640
+    },
+    "sin-cache": {
+      "peticiones": 4479,
+      "transacciones": 9043,
+      "tx_por_peticion": 2.02,
+      "bloques_leidos_cache_pg": 1555849,
+      "bloques_por_peticion": 347.4,
+      "filas_devueltas": 12085798,
+      "filas_devueltas_por_peticion": 2698,
+      "filas_obtenidas_por_peticion": 158.4,
+      "lecturas_de_disco": 0,
+      "requerimientos_al_inicio": 1228
+    },
+    "eq09-1": {
+      "peticiones": 11664,
+      "transacciones": 23418,
+      "tx_por_peticion": 2.01,
+      "bloques_leidos_cache_pg": 2789101,
+      "bloques_por_peticion": 239.1,
+      "filas_devueltas": 106662604,
+      "filas_devueltas_por_peticion": 9145,
+      "filas_obtenidas_por_peticion": 19.9,
+      "lecturas_de_disco": 0,
+      "requerimientos_al_inicio": 7134
+    },
+    "eq09-2": {
+      "peticiones": 11627,
+      "transacciones": 23397,
+      "tx_por_peticion": 2.01,
+      "bloques_leidos_cache_pg": 3293750,
+      "bloques_por_peticion": 283.3,
+      "filas_devueltas": 122542902,
+      "filas_devueltas_por_peticion": 10540,
+      "filas_obtenidas_por_peticion": 21.0,
+      "lecturas_de_disco": 0,
+      "requerimientos_al_inicio": 8319
+    }
+  },
+  "plan_de_la_bandeja": {
+    "consulta": "SELECT … FROM requerimiento WHERE unidad_id = :bim11 ORDER BY creado_en DESC, id LIMIT 20",
+    "filas_en_la_tabla": 9469,
+    "plan": "Seq Scan + top-N heapsort (no usa el índice (unidad_id, estado, creado_en DESC))",
+    "tiempo_ms": 3.6,
+    "bloques": 230,
+    "acierto_cache_postgresql_pct": 99.99,
+    "motivo": "Todas las solicitudes de la prueba son de BIM-11 y el índice empieza por (unidad_id, estado): sin filtro por estado, el orden creado_en DESC, id no sale del índice y el planificador prefiere recorrer la tabla."
+  }
+}

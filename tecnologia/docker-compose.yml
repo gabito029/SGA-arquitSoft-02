@@ -1,0 +1,60 @@
+# SGA: entorno local con Docker Compose (C4 nivel 2, ADR-012 y ADR-013).
+# Uso: cp .env.example .env  →  docker compose up --build -d
+# En 002 se suman uptime-kuma y el escalamiento con --scale api=2.
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sga}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Definir POSTGRES_PASSWORD en .env}
+      POSTGRES_DB: ${POSTGRES_DB:-sga}
+    volumes:
+      - datos_db:/var/lib/postgresql/data
+    # Solo en la máquina local, para las pruebas de integración y el desarrollo sin contenedores.
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build: ./backend
+    env_file: .env
+    environment:
+      # Dentro de la red de Compose la base de datos está en el host "db".
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-sga}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-sga}
+      # Al arrancar se aplican las migraciones y, si es true, los seeds ficticios (idempotentes).
+      CARGAR_SEEDS: ${CARGAR_SEEDS:-true}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)",
+        ]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  web:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  datos_db:

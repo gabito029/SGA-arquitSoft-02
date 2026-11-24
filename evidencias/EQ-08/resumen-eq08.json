@@ -1,0 +1,68 @@
+{
+  "escenario": "EQ-08 trazabilidad del flujo completo (incremento 001)",
+  "generado_en": "2026-11-24T13:26:57+00:00",
+  "pasos": [
+    {
+      "accion": "ENVIAR",
+      "estado_anterior": "BORRADOR",
+      "estado_nuevo": "PENDIENTE_VB_UNIDAD",
+      "usuario": "Oficial de logística BIM-11",
+      "rol": "OFICIAL_LOGISTICA",
+      "organo": "BIM-11",
+      "ocurrido_en": "2026-11-24T13:26:56.858359Z"
+    },
+    {
+      "accion": "FIRMAR",
+      "estado_anterior": "PENDIENTE_VB_UNIDAD",
+      "estado_nuevo": "PENDIENTE_CONFORMIDAD",
+      "usuario": "Comandante BIM-11",
+      "rol": "COMANDANTE_UNIDAD",
+      "organo": "BIM-11",
+      "ocurrido_en": "2026-11-24T13:26:56.936250Z"
+    },
+    {
+      "accion": "FIRMAR",
+      "estado_anterior": "PENDIENTE_CONFORMIDAD",
+      "estado_nuevo": "PENDIENTE_APROBACION",
+      "usuario": "Jefe de logística 1.ª DE",
+      "rol": "JEFE_LOGISTICA_GU",
+      "organo": "1DE",
+      "ocurrido_en": "2026-11-24T13:26:57.033296Z"
+    },
+    {
+      "accion": "FIRMAR",
+      "estado_anterior": "PENDIENTE_APROBACION",
+      "estado_nuevo": "APROBADA",
+      "usuario": "Jefe del almacén de Intendencia",
+      "rol": "JEFE_ALMACEN",
+      "organo": "SINTE",
+      "ocurrido_en": "2026-11-24T13:26:57.122137Z"
+    },
+    {
+      "accion": "DESPACHAR",
+      "estado_anterior": "APROBADA",
+      "estado_nuevo": "EN_TRANSITO",
+      "usuario": "Almacenero de Intendencia",
+      "rol": "ALMACENERO",
+      "organo": "SINTE",
+      "ocurrido_en": "2026-11-24T13:26:57.259698Z"
+    },
+    {
+      "accion": "FIRMAR_ACTA",
+      "estado_anterior": "EN_TRANSITO",
+      "estado_nuevo": "CONFIRMADA",
+      "usuario": "Oficial de logística BIM-11",
+      "rol": "OFICIAL_LOGISTICA",
+      "organo": "BIM-11",
+      "ocurrido_en": "2026-11-24T13:26:57.368551Z"
+    }
+  ],
+  "pasos_confirmados_por_sql": "6/6",
+  "porcentaje": 100.0,
+  "cadena_auditoria": {
+    "registros": 7,
+    "huellas_que_no_cuadran": []
+  },
+  "endpoints_de_escritura_sobre_historial": [],
+  "cumple": true
+}

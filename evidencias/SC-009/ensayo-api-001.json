@@ -1,0 +1,17 @@
+{
+  "escenario": "SC-009 ensayo del quickstart §4, pasos 1 a 10 (ruta de respaldo por la API)",
+  "generado_en": "2026-11-24T13:20:35Z",
+  "total_ms": 7170,
+  "pasos": [
+    {"paso":1,"descripcion":"Registrar y enviar (oficial.bim11)","resultado":"PENDIENTE_VB_UNIDAD","esperado":"PENDIENTE_VB_UNIDAD","ok":true,"ms_acumulados":584},
+    {"paso":2,"descripcion":"Visto bueno (cmdte.bim11)","resultado":"PENDIENTE_CONFORMIDAD","esperado":"PENDIENTE_CONFORMIDAD","ok":true,"ms_acumulados":931},
+    {"paso":3,"descripcion":"Aislamiento (jlog.2de): bandeja sin la solicitud y detalle","resultado":"404-bandeja0","esperado":"404-bandeja0","ok":true,"ms_acumulados":1388},
+    {"paso":4,"descripcion":"Conformidad (jlog.1de)","resultado":"PENDIENTE_APROBACION","esperado":"PENDIENTE_APROBACION","ok":true,"ms_acumulados":1782},
+    {"paso":5,"descripcion":"Aprobación (jalm.sinte)","resultado":"APROBADA","esperado":"APROBADA","ok":true,"ms_acumulados":2137},
+    {"paso":6,"descripcion":"Despacho (almacenero.sinte) y stock descontado","resultado":"EN_TRANSITO-baja4","esperado":"EN_TRANSITO-baja4","ok":true,"ms_acumulados":2835},
+    {"paso":7,"descripcion":"Acta con una diferencia (oficial.bim11)","resultado":"CONFIRMADA-diferencias_true","esperado":"CONFIRMADA-diferencias_true","ok":true,"ms_acumulados":3408},
+    {"paso":8,"descripcion":"Línea de tiempo (CREAR + 6 pasos) y Verificar","resultado":"pasos7-INTEGRA","esperado":"pasos7-INTEGRA","ok":true,"ms_acumulados":3990},
+    {"paso":9,"descripcion":"Bloqueo del COLOGE y anulación","resultado":"REQUIERE_COLOGE-ANULADA","esperado":"REQUIERE_COLOGE-ANULADA","ok":true,"ms_acumulados":4870},
+    {"paso":10,"descripcion":"Alteración (comando del quickstart) y nueva verificación","resultado":"ALTERADA","esperado":"ALTERADA","ok":true,"ms_acumulados":6019}
+  ]
+}

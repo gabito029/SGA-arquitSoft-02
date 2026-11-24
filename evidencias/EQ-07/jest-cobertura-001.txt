@@ -1,0 +1,109 @@
+PASS tests/logica/despacho.test.ts (13.552 s)
+PASS tests/logica/estadosYMensajes.test.ts (13.832 s)
+PASS tests/logica/acciones.test.ts
+PASS tests/api/cliente.test.ts (14.481 s)
+PASS tests/config.test.ts
+PASS tests/componentes/LineaTiempo.test.tsx (14.778 s)
+PASS tests/logica/validacionSolicitud.test.ts
+PASS tests/auth/RutaProtegida.test.tsx (15.161 s)
+  ● Console
+
+    console.warn
+      ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+
+    [0m [90m  7 |[39m
+     [90m  8 |[39m [36mfunction[39m renderizar(roles[33m?[39m[33m:[39m [33mParameters[39m[33m<[39m[36mtypeof[39m [33mRutaProtegida[39m[33m>[39m[[35m0[39m][[32m'roles'[39m]) {
+    [31m[1m>[22m[39m[90m  9 |[39m   [36mreturn[39m render(
+     [90m    |[39m                [31m[1m^[22m[39m
+     [90m 10 |[39m     [33m<[39m[33mSesionProveedor[39m[33m>[39m
+     [90m 11 |[39m       [33m<[39m[33mMemoryRouter[39m initialEntries[33m=[39m{[[32m'/bandeja'[39m]}[33m>[39m
+     [90m 12 |[39m         [33m<[39m[33mRoutes[39m[33m>[39m[0m
+
+      at warn (node_modules/react-router/lib/deprecations.ts:9:13)
+      at warnOnce (node_modules/react-router/lib/deprecations.ts:14:3)
+      at logDeprecation (node_modules/react-router/lib/deprecations.ts:26:5)
+      at logV6DeprecationWarnings (node_modules/react-router/lib/components.tsx:257:25)
+      at commitHookEffectListMount (node_modules/react-dom/cjs/react-dom.development.js:23189:26)
+      at commitPassiveMountOnFiber (node_modules/react-dom/cjs/react-dom.development.js:24970:11)
+      at commitPassiveMountEffects_complete (node_modules/react-dom/cjs/react-dom.development.js:24930:9)
+      at commitPassiveMountEffects_begin (node_modules/react-dom/cjs/react-dom.development.js:24917:7)
+      at commitPassiveMountEffects (node_modules/react-dom/cjs/react-dom.development.js:24905:3)
+      at flushPassiveEffectsImpl (node_modules/react-dom/cjs/react-dom.development.js:27078:3)
+      at flushPassiveEffects (node_modules/react-dom/cjs/react-dom.development.js:27023:14)
+      at node_modules/react-dom/cjs/react-dom.development.js:26808:9
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at node_modules/@testing-library/react/dist/act-compat.js:47:25
+      at renderRoot (node_modules/@testing-library/react/dist/pure.js:180:26)
+      at render (node_modules/@testing-library/react/dist/pure.js:271:10)
+      at renderizar (tests/auth/RutaProtegida.test.tsx:9:16)
+      at Object.<anonymous> (tests/auth/RutaProtegida.test.tsx:32:5)
+
+    console.warn
+      ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+    [0m [90m  7 |[39m
+     [90m  8 |[39m [36mfunction[39m renderizar(roles[33m?[39m[33m:[39m [33mParameters[39m[33m<[39m[36mtypeof[39m [33mRutaProtegida[39m[33m>[39m[[35m0[39m][[32m'roles'[39m]) {
+    [31m[1m>[22m[39m[90m  9 |[39m   [36mreturn[39m render(
+     [90m    |[39m                [31m[1m^[22m[39m
+     [90m 10 |[39m     [33m<[39m[33mSesionProveedor[39m[33m>[39m
+     [90m 11 |[39m       [33m<[39m[33mMemoryRouter[39m initialEntries[33m=[39m{[[32m'/bandeja'[39m]}[33m>[39m
+     [90m 12 |[39m         [33m<[39m[33mRoutes[39m[33m>[39m[0m
+
+      at warn (node_modules/react-router/lib/deprecations.ts:9:13)
+      at warnOnce (node_modules/react-router/lib/deprecations.ts:14:3)
+      at logDeprecation (node_modules/react-router/lib/deprecations.ts:37:5)
+      at logV6DeprecationWarnings (node_modules/react-router/lib/components.tsx:257:25)
+      at commitHookEffectListMount (node_modules/react-dom/cjs/react-dom.development.js:23189:26)
+      at commitPassiveMountOnFiber (node_modules/react-dom/cjs/react-dom.development.js:24970:11)
+      at commitPassiveMountEffects_complete (node_modules/react-dom/cjs/react-dom.development.js:24930:9)
+      at commitPassiveMountEffects_begin (node_modules/react-dom/cjs/react-dom.development.js:24917:7)
+      at commitPassiveMountEffects (node_modules/react-dom/cjs/react-dom.development.js:24905:3)
+      at flushPassiveEffectsImpl (node_modules/react-dom/cjs/react-dom.development.js:27078:3)
+      at flushPassiveEffects (node_modules/react-dom/cjs/react-dom.development.js:27023:14)
+      at node_modules/react-dom/cjs/react-dom.development.js:26808:9
+      at flushActQueue (node_modules/react/cjs/react.development.js:2667:24)
+      at act (node_modules/react/cjs/react.development.js:2582:11)
+      at node_modules/@testing-library/react/dist/act-compat.js:47:25
+      at renderRoot (node_modules/@testing-library/react/dist/pure.js:180:26)
+      at render (node_modules/@testing-library/react/dist/pure.js:271:10)
+      at renderizar (tests/auth/RutaProtegida.test.tsx:9:16)
+      at Object.<anonymous> (tests/auth/RutaProtegida.test.tsx:32:5)
+
+PASS tests/logica/acta.test.ts
+PASS tests/componentes/Componentes.test.tsx (15.624 s)
+PASS tests/auth/SesionContexto.test.tsx (16.132 s)
+PASS tests/paginas/Bandeja.test.tsx (16.592 s)
+PASS tests/paginas/Despacho.test.tsx (17.315 s)
+PASS tests/paginas/Anular.test.tsx (17.63 s)
+PASS tests/paginas/Acta.test.tsx (17.686 s)
+PASS tests/paginas/InicioSesion.test.tsx (17.856 s)
+PASS tests/paginas/Stock.test.tsx (17.958 s)
+PASS tests/paginas/DetalleSolicitud.test.tsx (18.006 s)
+PASS tests/paginas/NuevaSolicitud.test.tsx (19.013 s)
+-------------------------|---------|----------|---------|---------|-------------------
+File                     | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------------|---------|----------|---------|---------|-------------------
+All files                |     100 |    98.37 |     100 |     100 |                   
+ src                     |     100 |      100 |     100 |     100 |                   
+  leerConfig.ts          |     100 |      100 |     100 |     100 |                   
+ src/api                 |     100 |      100 |     100 |     100 |                   
+  cliente.ts             |     100 |      100 |     100 |     100 |                   
+ src/auth                |     100 |      100 |     100 |     100 |                   
+  RutaProtegida.tsx      |     100 |      100 |     100 |     100 |                   
+  SesionContexto.tsx     |     100 |      100 |     100 |     100 |                   
+ src/logica              |     100 |    97.26 |     100 |     100 |                   
+  acciones.ts            |     100 |      100 |     100 |     100 |                   
+  acta.ts                |     100 |    94.73 |     100 |     100 | 36                
+  despacho.ts            |     100 |    93.75 |     100 |     100 | 29                
+  estados.ts             |     100 |      100 |     100 |     100 |                   
+  historial.ts           |     100 |      100 |     100 |     100 |                   
+  mensajes.ts            |     100 |      100 |     100 |     100 |                   
+  validacionSolicitud.ts |     100 |      100 |     100 |     100 |                   
+-------------------------|---------|----------|---------|---------|-------------------
+
+Test Suites: 19 passed, 19 total
+Tests:       134 passed, 134 total
+Snapshots:   0 total
+Time:        32.153 s
+Ran all test suites.

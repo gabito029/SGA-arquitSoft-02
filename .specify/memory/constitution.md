@@ -1,26 +1,29 @@
 <!--
 Informe de impacto de sincronización (Sync Impact Report)
-- Cambio de versión: plantilla sin versión → 1.0.0 (ratificación inicial).
-  Los borradores anteriores de esta sesión nunca se confirmaron en Git (HEAD contiene solo la
-  plantilla); este texto los reemplaza antes de su adopción, por lo que se mantiene 1.0.0.
-- Principios definidos (11, a pedido del usuario; la plantilla traía 5 marcadores):
-  I. Fidelidad a la arquitectura documentada (NO NEGOCIABLE)
-  II. Especificaciones SDD
-  III. Desarrollo incremental
-  IV. API REST documentada
-  V. Diseño limpio
-  VI. Pruebas automatizadas con pytest (NO NEGOCIABLE)  [antes en el pedido: "Pruebas con Jest"]
-  VII. Validación de atributos de calidad
-  VIII. Datos y caché
-  IX. Reglas de dominio
-  X. Actores y seguridad
-  XI. Documentación, código y commits en español
-- Secciones añadidas: "Conflictos con docs/ y su resolución", "Flujo de desarrollo y puertas de
-  calidad", "Governance".
-- Secciones eliminadas: ninguna.
+- Cambio de versión: 1.1.0 → 1.2.0 (MINOR).
+  Motivo: se aprueban dos desviaciones temporales que cambian materialmente cómo se cumplen los
+  principios IX y X en el incremento 001, con una obligación nueva de cierre en el incremento 002.
+  No es MAJOR porque ningún principio se elimina ni se redefine (la meta final no cambia), ni PATCH
+  porque cambia lo que se acepta como cumplimiento en 001.
+- Enmienda por decisión de la autora (2026-11-22). `docs/` no se modifica.
+- Principios modificados:
+  IX. Reglas de dominio: se remite a la desviación temporal DT-01 (en 001 la firma de cada nivel y
+      del acta se verifica con el endpoint de verificación, INTEGRA/ALTERADA; el PDF verificable
+      llega en 002).
+  X. Actores y seguridad: se remite a la desviación temporal DT-02 (HTTP en el entorno local de
+     001; HTTPS en 002 junto con el despliegue).
+- Secciones modificadas: "Conflictos con docs/ y su resolución" (dos filas nuevas y el apartado
+  "Desviaciones temporales del incremento 001"); "Flujo de desarrollo y puertas de calidad" (el
+  incremento 002 no termina sin cerrar DT-01 y DT-02).
+- Secciones añadidas: ninguna. Secciones eliminadas: ninguna.
 - Plantillas dependientes: no se modifican; leen la constitución en tiempo de ejecución.
-- Pendientes: ninguno con marcador TODO. La estrategia de caché y las herramientas de migración
-  se deciden en /speckit-plan (principio VIII).
+- Artefactos afectados: specs/001-flujo-solicitud/plan.md ya declara HTTPS como DV-04 (conviene
+  enlazarla a DT-02) y lista el PDF en "Pendiente para el incremento 002", pero no lo declara como
+  desviación en Complexity Tracking: conviene agregar una fila que lo enlace a DT-01. Revisar en
+  spec.md la frase "el PDF del acta (RF05) se puede incorporar en un incremento posterior", que
+  ahora es obligatorio en 002.
+- Por revisar: EQ-02 de docs/ dice "ALTERADO"; specs/ y DT-01 usan "ALTERADA". Falta decidir el valor.
+- Pendientes: ninguno con marcador TODO.
 -->
 
 # Constitución del SGA — Sistema de Gestión de Almacén con Firma Digital
@@ -47,6 +50,9 @@ Spec-Driven Development (SDD).
 - Si una especificación, plan, tarea o esta misma constitución contradice `docs/`, **prevalece
   `docs/`**. Todo conflicto DEBE reportarse explícitamente (en la sección de complejidad del plan
   o en "Conflictos con docs/ y su resolución"); nunca se resuelve en silencio.
+- Una desviación de `docs/` solo es válida si la aprueba la autora y queda registrada en
+  "Conflictos con docs/ y su resolución", con su motivo y su alcance. Así se cambia la forma de
+  cumplir `docs/` sin reescribirla.
 
 **Justificación:** el Sprint 2 consiste en implementar y validar la arquitectura diseñada en el
 Sprint 1; si el código se aparta de ella, la validación pierde sentido.
@@ -98,18 +104,24 @@ servicio la mantiene al día.
 
 **Justificación:** mantenibilidad (AC07) y reglas de negocio que se prueban sin infraestructura.
 
-### VI. Pruebas automatizadas con pytest (NO NEGOCIABLE)
+### VI. Pruebas automatizadas: pytest en el backend y Jest en el frontend (NO NEGOCIABLE)
 
-- Las funcionalidades y reglas de negocio DEBEN tener pruebas automatizadas con las herramientas
-  de `docs/`: **pytest** (unitarias), **pytest + httpx** (integración de la API) y **pytest-cov**
-  (reporte de cobertura), más **Ruff** para el análisis estático.
+- **Backend**: las funcionalidades y reglas de negocio DEBEN tener pruebas automatizadas con las
+  herramientas de `docs/` (ADR-011): **pytest** (unitarias), **pytest + httpx** (integración de la
+  API) y **pytest-cov** (reporte de cobertura), más **Ruff** para el análisis estático. Jest NO
+  PUEDE usarse en el backend.
+- **Frontend**: la lógica de la interfaz (validaciones de formularios, acciones visibles por rol y
+  estado, rutas protegidas, manejo de errores y estados de carga) y sus componentes principales
+  DEBEN tener pruebas con **Jest**, con **reporte de cobertura** y un umbral mínimo del **60 %**
+  en la lógica, la sesión y el cliente de la API. Lo exige el entregable del Sprint 2.
 - Son obligatorias las pruebas de: el conducto regular (ningún nivel se omite ni firma dos veces),
   todas las transiciones de estado válidas e inválidas, y la inmutabilidad y verificación del
   acta firmada (incluido el caso de un documento alterado).
 - La cobertura de los módulos críticos (Requerimientos, Reglas, Firma digital e Inventario) DEBE
   ser de **60 % o más**, con 0 errores de Ruff (EQ-07).
-- Un pipeline de **GitHub Actions** DEBE ejecutar Ruff y todas las pruebas, con su cobertura, en
-  cada push y cada pull request. Un pipeline en rojo bloquea la integración.
+- Un pipeline de **GitHub Actions** DEBE ejecutar, en cada push y cada pull request, Ruff y pytest
+  con cobertura en el backend, y el lint y Jest con cobertura en el frontend. Un pipeline en rojo
+  bloquea la integración, y los reportes de cobertura se publican como artefactos.
 
 **Justificación:** los errores en estas reglas comprometen la integridad del proceso logístico.
 
@@ -118,11 +130,17 @@ servicio la mantiene al día.
 - Cada escenario de `docs/01-analisis-de-sistema/08-escenarios-atributos-calidad.md` (EQ-01 a
   EQ-09) DEBE tener una prueba que lo valide, con la herramienta y la medida que define el propio
   escenario: pytest + httpx (EQ-01, EQ-08), pytest + `cryptography` (EQ-02), pytest + PostgreSQL
-  (EQ-03), **Locust** (EQ-04, EQ-09), Google Lighthouse (EQ-05), `docker kill` + Uptime Kuma
-  (EQ-06) y regresión + pytest-cov + Ruff (EQ-07).
-- Además de las medidas de `docs/`, PUEDE ejecutarse con Locust una prueba de estrés con carga
-  progresiva hasta **2 000 usuarios concurrentes** para hallar el límite del sistema; su resultado
-  se reporta, pero no sustituye a los criterios de aceptación de EQ-04 y EQ-09.
+  (EQ-03), Google Lighthouse (EQ-05), `docker kill` + Uptime Kuma (EQ-06) y regresión + pytest-cov
+  + Ruff (EQ-07). Hay una excepción aprobada: para **EQ-04 y EQ-09 se usa k6** en lugar de
+  Locust. Se cambia solo la herramienta: el estímulo y las medidas de `docs/` (p95 < 2 s con 20
+  usuarios y con 40 usuarios en 2 instancias) siguen siendo el criterio de aceptación.
+- DEBE ejecutarse con **k6** una prueba de estrés con carga progresiva hasta **2 000 usuarios
+  virtuales concurrentes**, porque la exige el entregable del Sprint 2. Su resultado (p95, tasa de
+  errores y punto de quiebre) se reporta, pero no sustituye a los criterios de aceptación de
+  EQ-04 y EQ-09.
+- Las pruebas de la API desde fuera del proceso DEBEN tener una colección **Postman** versionada,
+  ejecutable con **Newman**, que cubra el flujo principal y los casos de rechazo (401, 403, 404,
+  409). Complementa a pytest, que sigue siendo la fuente de verdad de la lógica.
 - Las evidencias (reportes, capturas, resultados) DEBEN guardarse en el repositorio **fuera de
   `docs/`**, en una carpeta de evidencias por escenario.
 
@@ -164,7 +182,8 @@ diseño de los datos, no solo del código.
   **Ed25519** usando la clave del sistema, en cada nivel y en el acta, con PDF verificable. El
   acta de recepción la firma el **oficial de logística de la unidad**; una vez firmada es
   **inmutable** y la verificación DEBE responder ALTERADO ante cualquier cambio (EQ-02). La
-  criptografía se usa desde la librería `cryptography`, nunca programada a mano.
+  criptografía se usa desde la librería `cryptography`, nunca programada a mano. En el incremento
+  001 rige la desviación temporal DT-01 (sin PDF; ver "Conflictos con docs/ y su resolución").
 - **Alcance:** solo **intendencia** y **material de guerra**; fuera quedan compras, presupuesto,
   pagos y el SIGA MEF (RC12).
 
@@ -180,7 +199,9 @@ sistema.
   (ADR-006). El acceso se controla por rol y por órgano en el backend, en cada petición, con
   mínimo privilegio: sin sesión 401, sin permiso 403, recurso de otra unidad 404 (EQ-01).
 - Las contraseñas DEBEN guardarse con hash seguro y la comunicación DEBE ser por HTTPS (AC01).
-  Credenciales, claves de firma y secretos NO PUEDEN versionarse; se usan variables de entorno.
+  En el incremento 001 rige la desviación temporal DT-02 (HTTP solo en el entorno local; ver
+  "Conflictos con docs/ y su resolución"). Credenciales, claves de firma y secretos NO PUEDEN
+  versionarse; se usan variables de entorno.
 
 **Justificación:** la información logística militar es sensible y cada decisión tiene un
 responsable identificable.
@@ -197,14 +218,19 @@ responsable identificable.
 
 ## Conflictos con docs/ y su resolución
 
-Conflictos detectados entre el pedido original de esta constitución y `docs/`, resueltos a favor
-de `docs/` según el principio I (decisión confirmada por la autora el 2026-11-22):
+Conflictos detectados entre los pedidos de la autora y `docs/`. Salvo las desviaciones aprobadas
+indicadas, se resuelven a favor de `docs/` según el principio I (decisiones de la autora del
+2026-11-22):
 
 | Pedido original | Lo que fija `docs/` | Resolución |
 |---|---|---|
 | Backend Node.js con pruebas en Jest | Python + FastAPI; pytest, httpx, pytest-cov y Ruff (ADR-011, C4, EQ-01/02/03/07/08) | Se usa el stack de `docs/` (principios I y VI) |
-| Pruebas de carga con k6 | Locust con 20 y 40 usuarios, p95 < 2 s (EQ-04, EQ-09) | Locust; la prueba de 2 000 usuarios es estrés adicional (VII) |
+| Pruebas de carga con k6 hasta 2 000 VU (entregable del Sprint 2) | Locust con 20 y 40 usuarios, p95 < 2 s (EQ-04, EQ-09) | **Desviación aprobada (v1.1.0)**: se usa k6 y se conservan las medidas de `docs/`; el estrés de 2 000 VU es obligatorio y se reporta aparte (VII) |
+| Pruebas del frontend con Jest y cobertura (entregable del Sprint 2) | `docs/` no define pruebas del frontend; el backend usa pytest (ADR-011) | **Ampliación aprobada (v1.1.0)**: Jest solo en el frontend; el backend sigue con pytest (VI) |
+| Pruebas de la API con Postman | `docs/` usa pytest + httpx para la API (EQ-01, EQ-08) | **Ampliación aprobada (v1.1.0)**: colección Postman/Newman como complemento; pytest sigue siendo el criterio (VII) |
 | Firma del MVP como hash SHA-256 solo | SHA-256 + Ed25519 con PDF verificable (ADR-004) | Ed25519 desde el MVP (IX) |
+| Firma del incremento 001 verificada sin PDF | SHA-256 + Ed25519 con PDF verificable (ADR-004, RF05, ADR-010) | **Desviación temporal aprobada DT-01 (v1.2.0)**: en 001 la firma de cada nivel y del acta se verifica con el endpoint de verificación (INTEGRA/ALTERADA); el PDF verificable se implementa en 002 (IX) |
+| Entorno local del incremento 001 por HTTP | Comunicación por HTTPS (AC01) | **Desviación temporal aprobada DT-02 (v1.2.0)**: en 001 el entorno local usa HTTP; HTTPS se implementa en 002 junto con el despliegue (X) |
 | MVP: solicitud → División/Brigada → despacho → acta | Ningún nivel puede omitirse (RN02): incluye comandante y jefe de almacén | El MVP incluye esos niveles (ver abajo) |
 | Estrategia de caché obligatoria | Sin caché en la arquitectura | El plan la propone y reporta cualquier componente nuevo (VIII) |
 | Código en `tecnologia/` (README) | Estructura `backend/app/modules/...` (diseño interno) | Se respeta la estructura interna de `docs/`; su ubicación en el repositorio se fija en el plan |
@@ -217,6 +243,21 @@ las solicitudes que requieran autorización del COLOGE en lugar de omitir ese ni
 riesgo pasan por la aprobación manual del jefe de almacén. Ambas son desviaciones temporales que el
 plan del MVP DEBE declarar.
 
+**Desviaciones temporales del incremento 001 (DT-01 y DT-02):** son válidas solo en el incremento
+001 y su cierre es **obligatorio en el incremento 002, dentro del Sprint 2**. No PUEDEN prorrogarse
+a un incremento posterior sin una nueva enmienda. Mientras rijan:
+
+- **DT-01 (principio IX):** la firma Ed25519 sobre la huella SHA-256 se aplica igual en cada nivel
+  y en el acta; solo falta el PDF. El endpoint de verificación DEBE responder INTEGRA o ALTERADA y
+  sus pruebas (incluido el documento alterado, EQ-02) son obligatorias desde 001. En 002 se genera
+  el PDF verificable de cada firma y del acta (RF05, ADR-010).
+- **DT-02 (principio X / AC01):** HTTP se admite solo en el entorno local de desarrollo y de la
+  demo; ningún despliegue fuera de ese entorno PUEDE usar HTTP. Las demás medidas de seguridad del
+  principio X (JWT, control por rol y órgano, hash de contraseñas, secretos fuera del repositorio)
+  rigen desde 001. En 002 se configura HTTPS junto con el despliegue.
+- El plan y las tareas de 001 DEBEN declarar ambas desviaciones, y el plan de 002 DEBE incluir las
+  tareas que las cierran.
+
 ## Flujo de desarrollo y puertas de calidad
 
 - Por cada incremento: `/speckit-specify` → `/speckit-clarify` (si hay ambigüedades) →
@@ -227,6 +268,8 @@ plan del MVP DEBE declarar.
 - Un incremento está terminado cuando: cumple su especificación, el flujo principal sigue
   funcionando, el pipeline de GitHub Actions está en verde (VI), los escenarios de calidad que
   afecta tienen prueba y evidencia (VII) y los cambios están en commits convencionales (XI).
+- El incremento 002 no está terminado mientras sigan abiertas las desviaciones temporales DT-01
+  (PDF verificable) y DT-02 (HTTPS).
 
 ## Governance
 
@@ -237,7 +280,7 @@ plan del MVP DEBE declarar.
   enmendarse en consecuencia.
 - **Procedimiento de enmienda:** toda modificación se hace con `/speckit-constitution`, describe
   el cambio y su motivo, actualiza la versión y la fecha de última enmienda, y se registra en un
-  commit `docs:` propio (por ejemplo, `docs: enmendar constitución a v1.1.0 (...)`). Las
+  commit `docs:` propio (por ejemplo, `docs: enmendar constitución a v1.2.0 (...)`). Las
   especificaciones y planes afectados DEBEN revisarse.
 - **Versionado semántico:**
   - **MAJOR**: se elimina o redefine un principio de forma incompatible con el trabajo previo.
@@ -246,4 +289,4 @@ plan del MVP DEBE declarar.
 - **Revisión de cumplimiento:** cada plan y cada cierre de incremento verifican el cumplimiento de
   los principios; los incumplimientos se corrigen o se justifican explícitamente.
 
-**Version**: 1.0.0 | **Ratified**: 2026-11-22 | **Last Amended**: 2026-11-22
+**Version**: 1.2.0 | **Ratified**: 2026-11-22 | **Last Amended**: 2026-11-22
