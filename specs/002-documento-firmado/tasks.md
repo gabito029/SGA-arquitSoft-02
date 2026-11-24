@@ -21,11 +21,11 @@ Rutas: `B/` = `tecnologia/backend/`, `F/` = `tecnologia/frontend/`.
 
 ## Phase 1: Setup
 
-- [ ] T001 Agregar `reportlab>=4.2` a las dependencias de `B/pyproject.toml` e instalarla en el entorno local
-- [ ] T002 [P] Agregar `documentos_dir` (por defecto `/datos/documentos`) y `pdf_tamano_maximo` (5 MB) a `B/app/core/config.py`, y `DOCUMENTOS_DIR`/`PDF_TAMANO_MAXIMO` sin secretos a `tecnologia/.env.example`
-- [ ] T003 [P] Montar el volumen `documentos` en `/datos/documentos` del servicio `api` en `tecnologia/docker-compose.yml`, y crear esa carpeta con dueño `sga` antes de `USER sga` en `B/Dockerfile` (research §7)
-- [ ] T004 [P] Agregar `client_max_body_size 6m;` a `location /api/` en `tecnologia/nginx/default.conf` (research §6)
-- [ ] T005 Crear la migración `B/migrations/versions/0003_documento_emitido.py` con la tabla, los índices únicos y el disparador de inmutabilidad de `data-model.md`, columna por columna: `documento_emitido.id`, `documento_emitido.codigo_verificacion`, `documento_emitido.tipo`, `documento_emitido.requerimiento_id`, `documento_emitido.ultima_firma_id`, `documento_emitido.firmas_incluidas`, `documento_emitido.huella_contenido`, `documento_emitido.huella_sha256`, `documento_emitido.firma`, `documento_emitido.metodo`, `documento_emitido.clave_id`, `documento_emitido.clave_almacen`, `documento_emitido.tamano_bytes`, `documento_emitido.emitido_por`, `documento_emitido.organo_id` y `documento_emitido.emitido_en`, y su modelo `DocumentoEmitidoModelo` en `B/app/modules/signing/infraestructura/modelos.py`
+- [X] T001 Agregar `reportlab>=4.2` a las dependencias de `B/pyproject.toml` e instalarla en el entorno local
+- [X] T002 [P] Agregar `documentos_dir` (por defecto `/datos/documentos`) y `pdf_tamano_maximo` (5 MB) a `B/app/core/config.py`, y `DOCUMENTOS_DIR`/`PDF_TAMANO_MAXIMO` sin secretos a `tecnologia/.env.example`
+- [X] T003 [P] Montar el volumen `documentos` en `/datos/documentos` del servicio `api` en `tecnologia/docker-compose.yml`, y crear esa carpeta con dueño `sga` antes de `USER sga` en `B/Dockerfile` (research §7)
+- [X] T004 [P] Agregar `client_max_body_size 6m;` a `location /api/` en `tecnologia/nginx/default.conf` (research §6)
+- [X] T005 Crear la migración `B/migrations/versions/0003_documento_emitido.py` con la tabla, los índices únicos y el disparador de inmutabilidad de `data-model.md`, columna por columna: `documento_emitido.id`, `documento_emitido.codigo_verificacion`, `documento_emitido.tipo`, `documento_emitido.requerimiento_id`, `documento_emitido.ultima_firma_id`, `documento_emitido.firmas_incluidas`, `documento_emitido.huella_contenido`, `documento_emitido.huella_sha256`, `documento_emitido.firma`, `documento_emitido.metodo`, `documento_emitido.clave_id`, `documento_emitido.clave_almacen`, `documento_emitido.tamano_bytes`, `documento_emitido.emitido_por`, `documento_emitido.organo_id` y `documento_emitido.emitido_en`, y su modelo `DocumentoEmitidoModelo` en `B/app/modules/signing/infraestructura/modelos.py`
 
 ---
 

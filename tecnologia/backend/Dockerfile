@@ -20,7 +20,8 @@ RUN pip install --no-deps . \
     && sed -i 's/\r$//' docker-entrypoint.sh \
     && chmod +x docker-entrypoint.sh
 
-RUN useradd --create-home --uid 1000 sga
+# Carpeta del almacenamiento de documentos (ADR-010): el volumen nuevo hereda este dueño.
+RUN useradd --create-home --uid 1000 sga     && mkdir -p /datos/documentos && chown sga:sga /datos/documentos
 USER sga
 
 EXPOSE 8000

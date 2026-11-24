@@ -32,6 +32,11 @@ class Configuracion(BaseSettings):
 
     contrasena_demo: str | None = None
 
+    # Almacenamiento de los PDF firmados (ADR-010). En Docker es el volumen "documentos".
+    documentos_dir: str = "/datos/documentos"
+    # Tamaño máximo de un PDF subido para verificarlo (FR-016).
+    pdf_tamano_maximo: int = Field(default=5 * 1024 * 1024, gt=0)
+
 
 @lru_cache
 def obtener_configuracion() -> Configuracion:
