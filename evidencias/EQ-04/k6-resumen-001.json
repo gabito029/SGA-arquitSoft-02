@@ -1,0 +1,197 @@
+{
+  "metrics": {
+    "http_req_tls_handshaking": {
+      "avg": 0,
+      "min": 0,
+      "med": 0,
+      "max": 0,
+      "p(90)": 0,
+      "p(95)": 0
+    },
+    "http_req_duration{nombre:detalle}": {
+      "avg": 17.500100768386403,
+      "min": 1.6901,
+      "med": 14.4949,
+      "max": 283.4074,
+      "p(90)": 23.874590000000005,
+      "p(95)": 27.967789999999972,
+      "thresholds": {
+        "p(95)<2000": false
+      }
+    },
+    "http_req_receiving": {
+      "p(95)": 0.5689,
+      "avg": 0.12977857994210806,
+      "min": 0,
+      "med": 0,
+      "max": 10.2935,
+      "p(90)": 0.55318
+    },
+    "checks": {
+      "passes": 5871,
+      "fails": 0,
+      "value": 1
+    },
+    "http_req_connecting": {
+      "avg": 0.006105635961178274,
+      "min": 0,
+      "med": 0,
+      "max": 2.7194,
+      "p(90)": 0,
+      "p(95)": 0
+    },
+    "http_req_waiting": {
+      "p(95)": 40.74045999999999,
+      "avg": 22.68392937170104,
+      "min": 1.6622,
+      "med": 19.3571,
+      "max": 452.8422,
+      "p(90)": 32.76782
+    },
+    "vus_max": {
+      "value": 20,
+      "min": 20,
+      "max": 20
+    },
+    "http_req_failed": {
+      "passes": 0,
+      "fails": 5873,
+      "thresholds": {
+        "rate<0.01": false
+      },
+      "value": 0
+    },
+    "http_req_duration{expected_response:true}": {
+      "min": 1.6768,
+      "med": 19.522,
+      "max": 453.3627,
+      "p(90)": 33.02528,
+      "p(95)": 40.750119999999995,
+      "avg": 22.816567648561183
+    },
+    "iterations": {
+      "rate": 19.468865863828857,
+      "count": 5870
+    },
+    "http_req_duration{nombre:bandeja}": {
+      "avg": 22.832186622363484,
+      "min": 1.6768,
+      "med": 20.2639,
+      "max": 279.2653,
+      "p(90)": 29.7853,
+      "p(95)": 34.1532,
+      "thresholds": {
+        "p(95)<2000": false
+      }
+    },
+    "http_req_sending": {
+      "avg": 0.002859696918099778,
+      "min": 0,
+      "med": 0,
+      "max": 2.1785,
+      "p(90)": 0,
+      "p(95)": 0
+    },
+    "data_received": {
+      "count": 66600445,
+      "rate": 220891.8450044823
+    },
+    "http_req_blocked": {
+      "avg": 0.013262268006129743,
+      "min": 0,
+      "med": 0,
+      "max": 32.8768,
+      "p(90)": 0,
+      "p(95)": 0
+    },
+    "vus": {
+      "value": 5,
+      "min": 5,
+      "max": 20
+    },
+    "http_req_duration": {
+      "avg": 22.816567648561183,
+      "min": 1.6768,
+      "med": 19.522,
+      "max": 453.3627,
+      "p(90)": 33.02528,
+      "p(95)": 40.750119999999995,
+      "thresholds": {
+        "p(95)<2000": false
+      }
+    },
+    "data_sent": {
+      "count": 2888863,
+      "rate": 9581.411626231384
+    },
+    "http_req_duration{nombre:registro}": {
+      "max": 293.5042,
+      "p(90)": 52.366319999999995,
+      "p(95)": 61.18935999999996,
+      "avg": 38.503515502555366,
+      "min": 23.5853,
+      "med": 35.0461,
+      "thresholds": {
+        "p(95)<2000": false
+      }
+    },
+    "http_reqs": {
+      "count": 5873,
+      "rate": 19.478815880454324
+    },
+    "iteration_duration": {
+      "p(90)": 1033.51963,
+      "p(95)": 1041.2448,
+      "avg": 1023.3049920954013,
+      "min": 1001.9954,
+      "med": 1020.0766,
+      "max": 1295.3487
+    }
+  },
+  "root_group": {
+    "name": "",
+    "path": "",
+    "id": "d41d8cd98f00b204e9800998ecf8427e",
+    "groups": {
+      "setup": {
+        "id": "5c0f8025f7e0b6654089e5b00e950f1a",
+        "groups": {},
+        "checks": {
+          "login 200": {
+            "fails": 0,
+            "name": "login 200",
+            "path": "::setup::login 200",
+            "id": "647055af8ffe21e58084ae4b140cdda0",
+            "passes": 1
+          }
+        },
+        "name": "setup",
+        "path": "::setup"
+      }
+    },
+    "checks": {
+      "bandeja 200": {
+        "path": "::bandeja 200",
+        "id": "bb0247c97155868712e3ee3d0334789f",
+        "passes": 3461,
+        "fails": 0,
+        "name": "bandeja 200"
+      },
+      "detalle 200": {
+        "name": "detalle 200",
+        "path": "::detalle 200",
+        "id": "b213a430f302c6ed46dcbdeb9f053b4a",
+        "passes": 1822,
+        "fails": 0
+      },
+      "registro 201": {
+        "path": "::registro 201",
+        "id": "7fc48a4e7bed335630b68d087734bf12",
+        "passes": 587,
+        "fails": 0,
+        "name": "registro 201"
+      }
+    }
+  },
+  "nota": "Se quitó setup_data (contenía el token de sesión de la prueba)."
+}

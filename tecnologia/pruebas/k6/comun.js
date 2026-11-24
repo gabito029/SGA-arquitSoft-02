@@ -36,20 +36,23 @@ export function preparar() {
   return { cabeceras, items, requerimientoId: creada.json('id') };
 }
 
-/** Mezcla de EQ-04/EQ-09: 60 % bandeja, 30 % detalle y 10 % registro. */
-export function mezcla(datos) {
+/**
+ * Mezcla de EQ-04/EQ-09: 60 % bandeja, 30 % detalle y 10 % registro. `etiquetas` se agrega a cada
+ * petición (por ejemplo, el escalón de la prueba de estrés).
+ */
+export function mezcla(datos, etiquetas = {}) {
   const opciones = { headers: datos.cabeceras };
   const azar = Math.random();
   if (azar < 0.6) {
     const r = http.get(`${API}/requerimientos?page=1&size=20`, {
       ...opciones,
-      tags: { nombre: 'bandeja' },
+      tags: { nombre: 'bandeja', ...etiquetas },
     });
     check(r, { 'bandeja 200': (x) => x.status === 200 });
   } else if (azar < 0.9) {
     const r = http.get(`${API}/requerimientos/${datos.requerimientoId}`, {
       ...opciones,
-      tags: { nombre: 'detalle' },
+      tags: { nombre: 'detalle', ...etiquetas },
     });
     check(r, { 'detalle 200': (x) => x.status === 200 });
   } else {
@@ -57,7 +60,7 @@ export function mezcla(datos) {
     const r = http.post(
       `${API}/requerimientos`,
       JSON.stringify({ items: [{ item_id: item, cantidad: 1 }] }),
-      { ...opciones, tags: { nombre: 'registro' } },
+      { ...opciones, tags: { nombre: 'registro', ...etiquetas } },
     );
     check(r, { 'registro 201': (x) => x.status === 201 });
   }

@@ -1,0 +1,1097 @@
+{
+  "escenario": "Estrés progresivo 50 → 200 → 500 → 1 000 → 2 000 VU (k6/estres_2000.js, T093)",
+  "fecha": "2026-11-24",
+  "herramienta": "k6 v2.4.0 en el mismo equipo que Docker Compose (1 instancia de la API, 1 proceso uvicorn)",
+  "estado_de_la_corrida": "Interrumpida a los 848 s de 960 s (88 %), con 2 000 VU activos y 52 197 iteraciones completas: Claude Code detuvo la corrida por memoria crítica del equipo anfitrión y k6 se cerró a la fuerza, por lo que no escribió su --summary-export. Los datos salen del registro de progreso de k6 (una línea por segundo) y de docker stats cada 10 s.",
+  "metodo": "Throughput = iteraciones completas por segundo en la meseta de cada escalón (1 iteración = 1 petición + 1 s de pausa). Latencia media estimada por la ley de Little: VU / throughput − 1 s. No hay p95 por escalón porque el resumen no llegó a escribirse.",
+  "escalones": [
+    {
+      "vus": 50,
+      "meseta_s": [
+        60,
+        179
+      ],
+      "iteraciones_por_s": 48.6,
+      "iteraciones_esperadas_por_s": 50,
+      "eficiencia_pct": 97.2,
+      "latencia_media_estimada_s": 0.03,
+      "meseta_completa": true
+    },
+    {
+      "vus": 200,
+      "meseta_s": [
+        240,
+        359
+      ],
+      "iteraciones_por_s": 70.7,
+      "iteraciones_esperadas_por_s": 200,
+      "eficiencia_pct": 35.4,
+      "latencia_media_estimada_s": 1.83,
+      "meseta_completa": true
+    },
+    {
+      "vus": 500,
+      "meseta_s": [
+        420,
+        539
+      ],
+      "iteraciones_por_s": 72.2,
+      "iteraciones_esperadas_por_s": 500,
+      "eficiencia_pct": 14.4,
+      "latencia_media_estimada_s": 5.92,
+      "meseta_completa": true
+    },
+    {
+      "vus": 1000,
+      "meseta_s": [
+        600,
+        719
+      ],
+      "iteraciones_por_s": 66.9,
+      "iteraciones_esperadas_por_s": 1000,
+      "eficiencia_pct": 6.7,
+      "latencia_media_estimada_s": 13.94,
+      "meseta_completa": true
+    },
+    {
+      "vus": 2000,
+      "meseta_s": [
+        780,
+        848
+      ],
+      "iteraciones_por_s": 56.8,
+      "iteraciones_esperadas_por_s": 2000,
+      "eficiencia_pct": 2.8,
+      "latencia_media_estimada_s": 34.2,
+      "meseta_completa": false
+    }
+  ],
+  "punto_de_quiebre": {
+    "vus_aprox": "80-100",
+    "descripcion": "El throughput deja de crecer en ~70 req/s entre 80 y 100 VU; desde ahí cada VU extra solo alarga la cola. La latencia media estimada pasa de 0,2 s (80 VU) a 1,8 s (200 VU), 5,9 s (500), 13,9 s (1 000) y 34,2 s (2 000)."
+  },
+  "errores": "k6 no registró avisos ni timeouts (límite de 60 s por petición); la API respondió todas las peticiones, cada vez más lento. Después del corte /health respondió de inmediato.",
+  "causa_de_la_degradacion": "Una sola instancia con un único proceso uvicorn (Python, sin --workers): la CPU de la API se estabiliza en 125-150 % (un núcleo y algo de E/S) mientras PostgreSQL queda en 11-37 % de CPU. El cuello de botella es la CPU del proceso de la API, no la base de datos. Además, k6 (≈770 MB con 2 000 VU) compartía la memoria del equipo con Docker, lo que terminó con la corrida.",
+  "recursos_docker_cada_10_s": [
+    {
+      "t_s": 0,
+      "api": {
+        "cpu": "41.68%",
+        "memoria": "70.08MiB"
+      },
+      "web": {
+        "cpu": "0.07%",
+        "memoria": "14.06MiB"
+      },
+      "db": {
+        "cpu": "11.29%",
+        "memoria": "190.6MiB"
+      }
+    },
+    {
+      "t_s": 12,
+      "api": {
+        "cpu": "14.14%",
+        "memoria": "71.16MiB"
+      },
+      "web": {
+        "cpu": "0.90%",
+        "memoria": "13.84MiB"
+      },
+      "db": {
+        "cpu": "4.67%",
+        "memoria": "194.1MiB"
+      }
+    },
+    {
+      "t_s": 25,
+      "api": {
+        "cpu": "22.11%",
+        "memoria": "71.32MiB"
+      },
+      "web": {
+        "cpu": "2.01%",
+        "memoria": "14.15MiB"
+      },
+      "db": {
+        "cpu": "4.99%",
+        "memoria": "194.5MiB"
+      }
+    },
+    {
+      "t_s": 37,
+      "api": {
+        "cpu": "34.38%",
+        "memoria": "71.79MiB"
+      },
+      "web": {
+        "cpu": "2.61%",
+        "memoria": "14.71MiB"
+      },
+      "db": {
+        "cpu": "18.31%",
+        "memoria": "200.1MiB"
+      }
+    },
+    {
+      "t_s": 50,
+      "api": {
+        "cpu": "48.52%",
+        "memoria": "72.18MiB"
+      },
+      "web": {
+        "cpu": "3.63%",
+        "memoria": "14.55MiB"
+      },
+      "db": {
+        "cpu": "9.93%",
+        "memoria": "200.3MiB"
+      }
+    },
+    {
+      "t_s": 62,
+      "api": {
+        "cpu": "52.49%",
+        "memoria": "73.04MiB"
+      },
+      "web": {
+        "cpu": "4.37%",
+        "memoria": "14.5MiB"
+      },
+      "db": {
+        "cpu": "13.51%",
+        "memoria": "211.2MiB"
+      }
+    },
+    {
+      "t_s": 75,
+      "api": {
+        "cpu": "61.56%",
+        "memoria": "72.99MiB"
+      },
+      "web": {
+        "cpu": "4.24%",
+        "memoria": "14.82MiB"
+      },
+      "db": {
+        "cpu": "11.60%",
+        "memoria": "212.4MiB"
+      }
+    },
+    {
+      "t_s": 87,
+      "api": {
+        "cpu": "57.43%",
+        "memoria": "72.93MiB"
+      },
+      "web": {
+        "cpu": "4.40%",
+        "memoria": "14.68MiB"
+      },
+      "db": {
+        "cpu": "9.91%",
+        "memoria": "212.5MiB"
+      }
+    },
+    {
+      "t_s": 100,
+      "api": {
+        "cpu": "60.90%",
+        "memoria": "73.45MiB"
+      },
+      "web": {
+        "cpu": "4.14%",
+        "memoria": "14.98MiB"
+      },
+      "db": {
+        "cpu": "23.04%",
+        "memoria": "212.6MiB"
+      }
+    },
+    {
+      "t_s": 112,
+      "api": {
+        "cpu": "58.53%",
+        "memoria": "72.77MiB"
+      },
+      "web": {
+        "cpu": "4.45%",
+        "memoria": "15.27MiB"
+      },
+      "db": {
+        "cpu": "12.13%",
+        "memoria": "213MiB"
+      }
+    },
+    {
+      "t_s": 125,
+      "api": {
+        "cpu": "53.85%",
+        "memoria": "72.74MiB"
+      },
+      "web": {
+        "cpu": "4.27%",
+        "memoria": "14.96MiB"
+      },
+      "db": {
+        "cpu": "11.49%",
+        "memoria": "212.8MiB"
+      }
+    },
+    {
+      "t_s": 137,
+      "api": {
+        "cpu": "58.49%",
+        "memoria": "73.2MiB"
+      },
+      "web": {
+        "cpu": "4.27%",
+        "memoria": "15.48MiB"
+      },
+      "db": {
+        "cpu": "11.92%",
+        "memoria": "212.9MiB"
+      }
+    },
+    {
+      "t_s": 150,
+      "api": {
+        "cpu": "60.99%",
+        "memoria": "72.71MiB"
+      },
+      "web": {
+        "cpu": "4.31%",
+        "memoria": "15.25MiB"
+      },
+      "db": {
+        "cpu": "12.06%",
+        "memoria": "213MiB"
+      }
+    },
+    {
+      "t_s": 162,
+      "api": {
+        "cpu": "57.79%",
+        "memoria": "72.74MiB"
+      },
+      "web": {
+        "cpu": "4.42%",
+        "memoria": "15.04MiB"
+      },
+      "db": {
+        "cpu": "24.98%",
+        "memoria": "213.3MiB"
+      }
+    },
+    {
+      "t_s": 175,
+      "api": {
+        "cpu": "62.87%",
+        "memoria": "73.51MiB"
+      },
+      "web": {
+        "cpu": "4.29%",
+        "memoria": "15.27MiB"
+      },
+      "db": {
+        "cpu": "11.17%",
+        "memoria": "216.1MiB"
+      }
+    },
+    {
+      "t_s": 187,
+      "api": {
+        "cpu": "79.72%",
+        "memoria": "73.91MiB"
+      },
+      "web": {
+        "cpu": "5.76%",
+        "memoria": "15.17MiB"
+      },
+      "db": {
+        "cpu": "17.69%",
+        "memoria": "219.6MiB"
+      }
+    },
+    {
+      "t_s": 200,
+      "api": {
+        "cpu": "146.65%",
+        "memoria": "87.19MiB"
+      },
+      "web": {
+        "cpu": "5.46%",
+        "memoria": "15.97MiB"
+      },
+      "db": {
+        "cpu": "30.23%",
+        "memoria": "237.7MiB"
+      }
+    },
+    {
+      "t_s": 212,
+      "api": {
+        "cpu": "131.47%",
+        "memoria": "79.64MiB"
+      },
+      "web": {
+        "cpu": "5.32%",
+        "memoria": "16.51MiB"
+      },
+      "db": {
+        "cpu": "18.20%",
+        "memoria": "245.6MiB"
+      }
+    },
+    {
+      "t_s": 225,
+      "api": {
+        "cpu": "125.40%",
+        "memoria": "81.6MiB"
+      },
+      "web": {
+        "cpu": "5.17%",
+        "memoria": "17.83MiB"
+      },
+      "db": {
+        "cpu": "17.57%",
+        "memoria": "248.1MiB"
+      }
+    },
+    {
+      "t_s": 237,
+      "api": {
+        "cpu": "129.64%",
+        "memoria": "83.62MiB"
+      },
+      "web": {
+        "cpu": "5.11%",
+        "memoria": "17.77MiB"
+      },
+      "db": {
+        "cpu": "18.18%",
+        "memoria": "248.8MiB"
+      }
+    },
+    {
+      "t_s": 250,
+      "api": {
+        "cpu": "132.30%",
+        "memoria": "84.21MiB"
+      },
+      "web": {
+        "cpu": "4.96%",
+        "memoria": "18.56MiB"
+      },
+      "db": {
+        "cpu": "30.19%",
+        "memoria": "249.1MiB"
+      }
+    },
+    {
+      "t_s": 262,
+      "api": {
+        "cpu": "128.24%",
+        "memoria": "84.19MiB"
+      },
+      "web": {
+        "cpu": "4.21%",
+        "memoria": "18.58MiB"
+      },
+      "db": {
+        "cpu": "20.18%",
+        "memoria": "249.9MiB"
+      }
+    },
+    {
+      "t_s": 275,
+      "api": {
+        "cpu": "128.86%",
+        "memoria": "84.93MiB"
+      },
+      "web": {
+        "cpu": "6.00%",
+        "memoria": "18.17MiB"
+      },
+      "db": {
+        "cpu": "16.90%",
+        "memoria": "250.2MiB"
+      }
+    },
+    {
+      "t_s": 287,
+      "api": {
+        "cpu": "129.47%",
+        "memoria": "84.76MiB"
+      },
+      "web": {
+        "cpu": "5.39%",
+        "memoria": "18.8MiB"
+      },
+      "db": {
+        "cpu": "19.30%",
+        "memoria": "249.5MiB"
+      }
+    },
+    {
+      "t_s": 300,
+      "api": {
+        "cpu": "128.75%",
+        "memoria": "85.02MiB"
+      },
+      "web": {
+        "cpu": "5.79%",
+        "memoria": "18.44MiB"
+      },
+      "db": {
+        "cpu": "19.62%",
+        "memoria": "249.9MiB"
+      }
+    },
+    {
+      "t_s": 312,
+      "api": {
+        "cpu": "131.14%",
+        "memoria": "84.51MiB"
+      },
+      "web": {
+        "cpu": "5.37%",
+        "memoria": "18.62MiB"
+      },
+      "db": {
+        "cpu": "30.85%",
+        "memoria": "250.2MiB"
+      }
+    },
+    {
+      "t_s": 325,
+      "api": {
+        "cpu": "130.17%",
+        "memoria": "84.52MiB"
+      },
+      "web": {
+        "cpu": "5.42%",
+        "memoria": "18.11MiB"
+      },
+      "db": {
+        "cpu": "17.03%",
+        "memoria": "250.1MiB"
+      }
+    },
+    {
+      "t_s": 337,
+      "api": {
+        "cpu": "127.52%",
+        "memoria": "85.02MiB"
+      },
+      "web": {
+        "cpu": "4.95%",
+        "memoria": "18.31MiB"
+      },
+      "db": {
+        "cpu": "18.47%",
+        "memoria": "250.2MiB"
+      }
+    },
+    {
+      "t_s": 350,
+      "api": {
+        "cpu": "179.01%",
+        "memoria": "97.61MiB"
+      },
+      "web": {
+        "cpu": "4.96%",
+        "memoria": "18.2MiB"
+      },
+      "db": {
+        "cpu": "21.23%",
+        "memoria": "250.4MiB"
+      }
+    },
+    {
+      "t_s": 362,
+      "api": {
+        "cpu": "127.52%",
+        "memoria": "84.71MiB"
+      },
+      "web": {
+        "cpu": "5.03%",
+        "memoria": "18.6MiB"
+      },
+      "db": {
+        "cpu": "18.02%",
+        "memoria": "250.8MiB"
+      }
+    },
+    {
+      "t_s": 375,
+      "api": {
+        "cpu": "130.80%",
+        "memoria": "89.55MiB"
+      },
+      "web": {
+        "cpu": "4.22%",
+        "memoria": "20.55MiB"
+      },
+      "db": {
+        "cpu": "18.66%",
+        "memoria": "251.1MiB"
+      }
+    },
+    {
+      "t_s": 387,
+      "api": {
+        "cpu": "135.87%",
+        "memoria": "96.69MiB"
+      },
+      "web": {
+        "cpu": "6.80%",
+        "memoria": "21MiB"
+      },
+      "db": {
+        "cpu": "15.32%",
+        "memoria": "251.1MiB"
+      }
+    },
+    {
+      "t_s": 400,
+      "api": {
+        "cpu": "130.06%",
+        "memoria": "98.63MiB"
+      },
+      "web": {
+        "cpu": "2.70%",
+        "memoria": "22.95MiB"
+      },
+      "db": {
+        "cpu": "29.01%",
+        "memoria": "251.5MiB"
+      }
+    },
+    {
+      "t_s": 412,
+      "api": {
+        "cpu": "124.68%",
+        "memoria": "104.1MiB"
+      },
+      "web": {
+        "cpu": "7.53%",
+        "memoria": "25.35MiB"
+      },
+      "db": {
+        "cpu": "15.47%",
+        "memoria": "250.8MiB"
+      }
+    },
+    {
+      "t_s": 425,
+      "api": {
+        "cpu": "115.03%",
+        "memoria": "106.9MiB"
+      },
+      "web": {
+        "cpu": "8.77%",
+        "memoria": "24.98MiB"
+      },
+      "db": {
+        "cpu": "13.39%",
+        "memoria": "251.2MiB"
+      }
+    },
+    {
+      "t_s": 437,
+      "api": {
+        "cpu": "119.07%",
+        "memoria": "107.2MiB"
+      },
+      "web": {
+        "cpu": "8.63%",
+        "memoria": "24.61MiB"
+      },
+      "db": {
+        "cpu": "33.33%",
+        "memoria": "248.3MiB"
+      }
+    },
+    {
+      "t_s": 450,
+      "api": {
+        "cpu": "133.51%",
+        "memoria": "107.5MiB"
+      },
+      "web": {
+        "cpu": "0.03%",
+        "memoria": "25.22MiB"
+      },
+      "db": {
+        "cpu": "23.55%",
+        "memoria": "250.3MiB"
+      }
+    },
+    {
+      "t_s": 462,
+      "api": {
+        "cpu": "141.12%",
+        "memoria": "120.8MiB"
+      },
+      "web": {
+        "cpu": "8.93%",
+        "memoria": "24.32MiB"
+      },
+      "db": {
+        "cpu": "22.73%",
+        "memoria": "249.9MiB"
+      }
+    },
+    {
+      "t_s": 475,
+      "api": {
+        "cpu": "119.37%",
+        "memoria": "107.6MiB"
+      },
+      "web": {
+        "cpu": "9.02%",
+        "memoria": "24.97MiB"
+      },
+      "db": {
+        "cpu": "14.11%",
+        "memoria": "249.3MiB"
+      }
+    },
+    {
+      "t_s": 487,
+      "api": {
+        "cpu": "119.29%",
+        "memoria": "121.2MiB"
+      },
+      "web": {
+        "cpu": "0.04%",
+        "memoria": "25.21MiB"
+      },
+      "db": {
+        "cpu": "22.78%",
+        "memoria": "250.7MiB"
+      }
+    },
+    {
+      "t_s": 500,
+      "api": {
+        "cpu": "136.95%",
+        "memoria": "108.1MiB"
+      },
+      "web": {
+        "cpu": "0.56%",
+        "memoria": "25.49MiB"
+      },
+      "db": {
+        "cpu": "25.57%",
+        "memoria": "251.1MiB"
+      }
+    },
+    {
+      "t_s": 512,
+      "api": {
+        "cpu": "139.17%",
+        "memoria": "108MiB"
+      },
+      "web": {
+        "cpu": "0.03%",
+        "memoria": "25.25MiB"
+      },
+      "db": {
+        "cpu": "22.05%",
+        "memoria": "250.9MiB"
+      }
+    },
+    {
+      "t_s": 525,
+      "api": {
+        "cpu": "135.56%",
+        "memoria": "108.5MiB"
+      },
+      "web": {
+        "cpu": "7.75%",
+        "memoria": "25.55MiB"
+      },
+      "db": {
+        "cpu": "28.86%",
+        "memoria": "246.8MiB"
+      }
+    },
+    {
+      "t_s": 537,
+      "api": {
+        "cpu": "136.73%",
+        "memoria": "110.3MiB"
+      },
+      "web": {
+        "cpu": "0.66%",
+        "memoria": "25.18MiB"
+      },
+      "db": {
+        "cpu": "11.43%",
+        "memoria": "251.7MiB"
+      }
+    },
+    {
+      "t_s": 550,
+      "api": {
+        "cpu": "135.76%",
+        "memoria": "110.8MiB"
+      },
+      "web": {
+        "cpu": "0.52%",
+        "memoria": "26.96MiB"
+      },
+      "db": {
+        "cpu": "42.15%",
+        "memoria": "249.4MiB"
+      }
+    },
+    {
+      "t_s": 562,
+      "api": {
+        "cpu": "132.32%",
+        "memoria": "115.6MiB"
+      },
+      "web": {
+        "cpu": "1.03%",
+        "memoria": "29.15MiB"
+      },
+      "db": {
+        "cpu": "21.37%",
+        "memoria": "246.2MiB"
+      }
+    },
+    {
+      "t_s": 575,
+      "api": {
+        "cpu": "133.08%",
+        "memoria": "119.9MiB"
+      },
+      "web": {
+        "cpu": "2.93%",
+        "memoria": "31.05MiB"
+      },
+      "db": {
+        "cpu": "23.15%",
+        "memoria": "250.5MiB"
+      }
+    },
+    {
+      "t_s": 587,
+      "api": {
+        "cpu": "132.02%",
+        "memoria": "125.3MiB"
+      },
+      "web": {
+        "cpu": "2.24%",
+        "memoria": "33.44MiB"
+      },
+      "db": {
+        "cpu": "19.96%",
+        "memoria": "250.7MiB"
+      }
+    },
+    {
+      "t_s": 600,
+      "api": {
+        "cpu": "150.16%",
+        "memoria": "140MiB"
+      },
+      "web": {
+        "cpu": "0.90%",
+        "memoria": "35.73MiB"
+      },
+      "db": {
+        "cpu": "25.03%",
+        "memoria": "251.3MiB"
+      }
+    },
+    {
+      "t_s": 612,
+      "api": {
+        "cpu": "136.15%",
+        "memoria": "133.3MiB"
+      },
+      "web": {
+        "cpu": "1.42%",
+        "memoria": "35.54MiB"
+      },
+      "db": {
+        "cpu": "22.54%",
+        "memoria": "252.5MiB"
+      }
+    },
+    {
+      "t_s": 625,
+      "api": {
+        "cpu": "120.08%",
+        "memoria": "147MiB"
+      },
+      "web": {
+        "cpu": "2.05%",
+        "memoria": "35.45MiB"
+      },
+      "db": {
+        "cpu": "15.61%",
+        "memoria": "253MiB"
+      }
+    },
+    {
+      "t_s": 637,
+      "api": {
+        "cpu": "132.17%",
+        "memoria": "134.1MiB"
+      },
+      "web": {
+        "cpu": "3.30%",
+        "memoria": "35.84MiB"
+      },
+      "db": {
+        "cpu": "27.57%",
+        "memoria": "250MiB"
+      }
+    },
+    {
+      "t_s": 650,
+      "api": {
+        "cpu": "127.54%",
+        "memoria": "148.2MiB"
+      },
+      "web": {
+        "cpu": "7.02%",
+        "memoria": "35.63MiB"
+      },
+      "db": {
+        "cpu": "21.84%",
+        "memoria": "246.3MiB"
+      }
+    },
+    {
+      "t_s": 662,
+      "api": {
+        "cpu": "122.20%",
+        "memoria": "134.4MiB"
+      },
+      "web": {
+        "cpu": "0.66%",
+        "memoria": "35.62MiB"
+      },
+      "db": {
+        "cpu": "23.73%",
+        "memoria": "249.3MiB"
+      }
+    },
+    {
+      "t_s": 675,
+      "api": {
+        "cpu": "132.50%",
+        "memoria": "135.4MiB"
+      },
+      "web": {
+        "cpu": "0.29%",
+        "memoria": "35.65MiB"
+      },
+      "db": {
+        "cpu": "23.39%",
+        "memoria": "240.7MiB"
+      }
+    },
+    {
+      "t_s": 687,
+      "api": {
+        "cpu": "121.79%",
+        "memoria": "135MiB"
+      },
+      "web": {
+        "cpu": "12.39%",
+        "memoria": "35.77MiB"
+      },
+      "db": {
+        "cpu": "13.35%",
+        "memoria": "245.2MiB"
+      }
+    },
+    {
+      "t_s": 700,
+      "api": {
+        "cpu": "121.17%",
+        "memoria": "135MiB"
+      },
+      "web": {
+        "cpu": "8.20%",
+        "memoria": "35.05MiB"
+      },
+      "db": {
+        "cpu": "31.47%",
+        "memoria": "237.8MiB"
+      }
+    },
+    {
+      "t_s": 713,
+      "api": {
+        "cpu": "131.07%",
+        "memoria": "135.3MiB"
+      },
+      "web": {
+        "cpu": "0.65%",
+        "memoria": "35.66MiB"
+      },
+      "db": {
+        "cpu": "33.55%",
+        "memoria": "248.4MiB"
+      }
+    },
+    {
+      "t_s": 725,
+      "api": {
+        "cpu": "124.40%",
+        "memoria": "135.5MiB"
+      },
+      "web": {
+        "cpu": "9.24%",
+        "memoria": "38.23MiB"
+      },
+      "db": {
+        "cpu": "27.82%",
+        "memoria": "247.7MiB"
+      }
+    },
+    {
+      "t_s": 738,
+      "api": {
+        "cpu": "127.89%",
+        "memoria": "141.5MiB"
+      },
+      "web": {
+        "cpu": "1.56%",
+        "memoria": "41.56MiB"
+      },
+      "db": {
+        "cpu": "22.47%",
+        "memoria": "249.2MiB"
+      }
+    },
+    {
+      "t_s": 750,
+      "api": {
+        "cpu": "107.40%",
+        "memoria": "153.4MiB"
+      },
+      "web": {
+        "cpu": "13.76%",
+        "memoria": "46.12MiB"
+      },
+      "db": {
+        "cpu": "20.57%",
+        "memoria": "247.7MiB"
+      }
+    },
+    {
+      "t_s": 763,
+      "api": {
+        "cpu": "135.00%",
+        "memoria": "160.2MiB"
+      },
+      "web": {
+        "cpu": "1.19%",
+        "memoria": "50.11MiB"
+      },
+      "db": {
+        "cpu": "20.96%",
+        "memoria": "249.8MiB"
+      }
+    },
+    {
+      "t_s": 775,
+      "api": {
+        "cpu": "112.01%",
+        "memoria": "171.6MiB"
+      },
+      "web": {
+        "cpu": "15.35%",
+        "memoria": "55.32MiB"
+      },
+      "db": {
+        "cpu": "18.80%",
+        "memoria": "248.3MiB"
+      }
+    },
+    {
+      "t_s": 788,
+      "api": {
+        "cpu": "134.59%",
+        "memoria": "182MiB"
+      },
+      "web": {
+        "cpu": "3.00%",
+        "memoria": "55.96MiB"
+      },
+      "db": {
+        "cpu": "28.48%",
+        "memoria": "249.1MiB"
+      }
+    },
+    {
+      "t_s": 800,
+      "api": {
+        "cpu": "132.51%",
+        "memoria": "184.3MiB"
+      },
+      "web": {
+        "cpu": "0.81%",
+        "memoria": "55.99MiB"
+      },
+      "db": {
+        "cpu": "29.08%",
+        "memoria": "250MiB"
+      }
+    },
+    {
+      "t_s": 813,
+      "api": {
+        "cpu": "135.72%",
+        "memoria": "187.5MiB"
+      },
+      "web": {
+        "cpu": "0.09%",
+        "memoria": "56.01MiB"
+      },
+      "db": {
+        "cpu": "18.93%",
+        "memoria": "250.6MiB"
+      }
+    },
+    {
+      "t_s": 826,
+      "api": {
+        "cpu": "129.78%",
+        "memoria": "186.9MiB"
+      },
+      "web": {
+        "cpu": "0.55%",
+        "memoria": "56.25MiB"
+      },
+      "db": {
+        "cpu": "37.36%",
+        "memoria": "251.1MiB"
+      }
+    },
+    {
+      "t_s": 838,
+      "api": {
+        "cpu": "136.27%",
+        "memoria": "200MiB"
+      },
+      "web": {
+        "cpu": "1.54%",
+        "memoria": "57.11MiB"
+      },
+      "db": {
+        "cpu": "16.17%",
+        "memoria": "240.4MiB"
+      }
+    }
+  ]
+}

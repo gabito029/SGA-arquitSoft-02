@@ -12,6 +12,10 @@ export const options = {
   thresholds: {
     http_req_duration: ['p(95)<2000'],
     http_req_failed: ['rate<0.01'],
+    // Submétricas por operación: el resumen muestra el p95 de cada una (análisis de la caché).
+    'http_req_duration{nombre:bandeja}': ['p(95)<2000'],
+    'http_req_duration{nombre:detalle}': ['p(95)<2000'],
+    'http_req_duration{nombre:registro}': ['p(95)<2000'],
   },
 };
 
