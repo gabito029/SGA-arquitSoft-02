@@ -5,6 +5,8 @@ import { Campo } from './Formulario';
 interface Props {
   titulo: string;
   confirmar: string;
+  /** Explica las consecuencias, por ejemplo que el rechazo no se puede deshacer (T100). */
+  advertencia?: string;
   /** Mientras es verdadero, el diálogo queda desactivado. */
   enviando?: boolean;
   onConfirmar: (motivo: string) => void;
@@ -12,7 +14,14 @@ interface Props {
 }
 
 /** Diálogo que pide un motivo obligatorio antes de rechazar o anular (FR-015, FR-022). */
-export function DialogoMotivo({ titulo, confirmar, enviando = false, onConfirmar, onCancelar }: Props) {
+export function DialogoMotivo({
+  titulo,
+  confirmar,
+  advertencia,
+  enviando = false,
+  onConfirmar,
+  onCancelar,
+}: Props) {
   const [motivo, setMotivo] = useState('');
   const [error, setError] = useState<string | undefined>();
 
@@ -28,6 +37,7 @@ export function DialogoMotivo({ titulo, confirmar, enviando = false, onConfirmar
   return (
     <div className="dialogo" role="dialog" aria-modal="true" aria-labelledby="dialogo-titulo">
       <h3 id="dialogo-titulo">{titulo}</h3>
+      {advertencia ? <p className="dialogo__advertencia">{advertencia}</p> : null}
       <fieldset className="formulario__campos" disabled={enviando}>
         <Campo id="motivo" etiqueta="Motivo" error={error}>
           <textarea

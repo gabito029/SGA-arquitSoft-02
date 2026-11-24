@@ -1,5 +1,5 @@
 // T063: bandeja paginada con filtro por estado, carga y lista vacía.
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { fijarToken } from '../../src/api/cliente';
@@ -25,19 +25,44 @@ afterEach(() => {
 });
 
 describe('Bandeja', () => {
-  it('lista las solicitudes con su estado y lo pendiente', async () => {
+  it('muestra una tabla con encabezados, fecha y la acción pendiente (T101)', async () => {
     simularFetch(
       respuesta(200, {
-        items: [requerimiento({ estado: 'PENDIENTE_VB_UNIDAD', acciones_disponibles: ['FIRMAR', 'RECHAZAR'] })],
-        total: 1,
+        items: [
+          requerimiento({
+            estado: 'PENDIENTE_VB_UNIDAD',
+            acciones_disponibles: ['FIRMAR', 'RECHAZAR'],
+            creado_en: '2026-11-23T10:00:00',
+          }),
+          requerimiento({ id: 'otra', codigo: 'REQ-2026-000002', acciones_disponibles: [] }),
+        ],
+        total: 2,
         page: 1,
         size: 20,
       }),
     );
     renderizar();
-    expect(await screen.findByRole('link', { name: 'REQ-2026-000001' })).toBeInTheDocument();
-    expect(screen.getByText('En visto bueno de la unidad', { selector: '.estado' })).toBeInTheDocument();
-    expect(screen.getByText('Pendiente: Firmar, Rechazar')).toBeInTheDocument();
+    const tabla = await screen.findByRole('table');
+    const encabezados = within(tabla)
+      .getAllByRole('columnheader')
+      .map((c) => c.textContent);
+    expect(encabezados).toEqual([
+      'Código',
+      'Categoría',
+      'Unidad',
+      'Fecha',
+      'Estado',
+      'Acción pendiente',
+    ]);
+    const [, primera, segunda] = within(tabla).getAllByRole('row');
+    expect(within(primera).getByRole('link', { name: 'REQ-2026-000001' })).toBeInTheDocument();
+    expect(primera).toHaveTextContent('Intendencia');
+    expect(primera).toHaveTextContent('23/11/2026');
+    expect(primera).toHaveTextContent('En visto bueno de la unidad');
+    expect(within(primera).getByText('Por firmar')).toHaveClass('pendiente');
+    expect(segunda).toHaveTextContent('—');
+    // En celular cada celda lleva su etiqueta (se muestra con CSS).
+    expect(within(primera).getAllByRole('cell')[3]).toHaveAttribute('data-etiqueta', 'Fecha');
   });
 
   it('muestra el estado de lista vacía', async () => {

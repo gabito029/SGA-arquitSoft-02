@@ -8,6 +8,10 @@
   --color-borde: #c6ccc7;
   /* Borde de los campos: contraste ≥ 3:1 con el fondo (WCAG 1.4.11, EQ-05). */
   --color-borde-campo: #6b746d;
+  /* Botón deshabilitado (T106): texto 7,0:1 sobre su fondo (WCAG AA ≥ 4,5:1), sin opacidad. */
+  --color-deshabilitado-fondo: #e4e7e4;
+  --color-deshabilitado-texto: #454d48;
+  --color-deshabilitado-borde: #6b746d;
   --color-primario: #2f5d3a;
   --color-primario-oscuro: #224529;
   --color-foco: #1a5fb4;
@@ -74,8 +78,13 @@ button:hover:not(:disabled) {
   background: var(--color-primario-oscuro);
 }
 
-button:disabled {
-  opacity: 0.6;
+button:disabled,
+.boton:disabled,
+.boton--secundario:disabled {
+  border-color: var(--color-deshabilitado-borde);
+  border-style: dashed;
+  background: var(--color-deshabilitado-fondo);
+  color: var(--color-deshabilitado-texto);
   cursor: not-allowed;
 }
 
@@ -359,7 +368,131 @@ button:disabled {
   overflow-x: auto;
 }
 
+/* Solo para lectores de pantalla (p. ej., el título de la tabla de la bandeja). */
+.solo-lectores {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Cabecera con menú por rol (T102). */
+.encabezado__menu ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.encabezado__menu a {
+  display: inline-block;
+  padding: 10px 4px;
+  color: var(--color-primario);
+  font-weight: 600;
+}
+
+.encabezado__menu a[aria-current='page'] {
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 6px;
+}
+
+.encabezado__usuario {
+  display: flex;
+  flex-direction: column;
+}
+
+.encabezado__usuario small {
+  color: var(--color-texto-suave);
+}
+
+/* Paso de confirmación (T100). */
+.dialogo--confirmacion {
+  border: 2px solid var(--color-aviso);
+}
+
+.dialogo__advertencia {
+  padding: 8px 12px;
+  border-radius: var(--radio);
+  background: var(--color-aviso-fondo);
+  color: var(--color-aviso);
+  font-weight: 600;
+}
+
+/* Despacho con el stock disponible de cada ítem (T105). */
+.despacho__stock {
+  margin: -4px 0 8px;
+  color: var(--color-texto-suave);
+}
+
+.despacho__aviso {
+  margin: 0 0 8px;
+  font-weight: 600;
+  color: var(--color-error);
+}
+
+/* Bandeja (T101): en celular cada fila es una tarjeta con la etiqueta de cada dato. */
+.tabla--bandeja thead {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.tabla--bandeja tr {
+  display: block;
+  margin-bottom: 12px;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  background: var(--color-superficie);
+}
+
+.tabla--bandeja td {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 12px;
+  border-bottom: 0;
+  text-align: right;
+}
+
+.tabla--bandeja td::before {
+  content: attr(data-etiqueta);
+  font-weight: 600;
+  color: var(--color-texto-suave);
+  text-align: left;
+}
+
 @media (min-width: 768px) {
+  .tabla--bandeja thead {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+  }
+
+  .tabla--bandeja tr {
+    display: table-row;
+    margin: 0;
+    border: 0;
+  }
+
+  .tabla--bandeja td {
+    display: table-cell;
+    border-bottom: 1px solid var(--color-borde);
+    text-align: left;
+  }
+
+  .tabla--bandeja td::before {
+    content: none;
+  }
+
   .contenedor {
     padding: calc(var(--espacio) * 2);
   }

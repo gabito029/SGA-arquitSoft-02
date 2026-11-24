@@ -1,34 +1,16 @@
 // Raíz de la interfaz: sesión, rutas y encabezado. Cada ruta protegida exige sesión y, si
 // corresponde, el rol; el backend vuelve a validar rol y órgano en cada petición.
-import { BrowserRouter, Link, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import type { ReactNode } from 'react';
-import type { Rol } from './api/tipos';
 import { RUTA_INGRESO, RutaProtegida } from './auth/RutaProtegida';
-import { SesionProveedor, useSesion } from './auth/SesionContexto';
+import { SesionProveedor } from './auth/SesionContexto';
+import { Encabezado } from './componentes/Encabezado';
+import { ROLES_ALMACEN } from './logica/navegacion';
 import { Bandeja } from './paginas/Bandeja';
 import { DetalleSolicitud } from './paginas/DetalleSolicitud';
 import { InicioSesion, RUTA_BANDEJA } from './paginas/InicioSesion';
 import { NuevaSolicitud } from './paginas/NuevaSolicitud';
 import { Stock } from './paginas/Stock';
-
-function Encabezado() {
-  const { usuario, cerrarSesion } = useSesion();
-  if (!usuario) return null;
-  return (
-    <header className="encabezado">
-      <strong>SGA</strong>
-      <span>
-        {usuario.nombre_completo} · {usuario.organo.codigo}
-      </span>
-      {ROLES_ALMACEN.includes(usuario.rol) ? <Link to="/stock">Stock</Link> : null}
-      <button type="button" className="boton--secundario" onClick={cerrarSesion}>
-        Cerrar sesión
-      </button>
-    </header>
-  );
-}
-
-const ROLES_ALMACEN: Rol[] = ['JEFE_ALMACEN', 'ALMACENERO'];
 
 function Protegida({ children, soloOficial = false }: { children: ReactNode; soloOficial?: boolean }) {
   return (

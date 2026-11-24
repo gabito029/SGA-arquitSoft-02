@@ -5,6 +5,7 @@ import { api, ErrorApi } from '../api/cliente';
 import type { Stock as FilaStock } from '../api/tipos';
 import { Cargando } from '../componentes/Cargando';
 import { Mensaje } from '../componentes/Mensaje';
+import { cantidadConUnidad } from '../logica/formato';
 import { MENSAJE_GENERICO } from '../logica/mensajes';
 
 interface PaginaStock {
@@ -63,9 +64,7 @@ export function Stock() {
                 <tr key={s.item.id}>
                   <td>{s.item.codigo}</td>
                   <td>{s.item.nombre}</td>
-                  <td>
-                    {s.cantidad} {s.item.unidad_medida}
-                  </td>
+                  <td>{cantidadConUnidad(s.cantidad, s.item.unidad_medida)}</td>
                 </tr>
               ))}
             </tbody>

@@ -74,7 +74,7 @@ describe('Acta de recepción', () => {
     expect(screen.getByText('Lo recibido coincide con lo despachado.')).toBeInTheDocument();
 
     const usuario = userEvent.setup();
-    const campo = screen.getByLabelText('INT-001 — recibido (despachado: 10)');
+    const campo = screen.getByLabelText('INT-001 — recibido (despachado: 10 unidades)');
     await usuario.clear(campo);
     await usuario.type(campo, '8');
     const linea = screen.getByTestId('linea-INT-001');
@@ -97,6 +97,12 @@ describe('Acta de recepción', () => {
     const usuario = userEvent.setup();
     await usuario.type(screen.getByLabelText('INT-002 — observación'), 'Falta una unidad');
     await usuario.click(screen.getByRole('button', { name: 'Firmar acta' }));
+    // T100: confirmación dentro de la página antes de firmar.
+    const dialogo = screen.getByRole('alertdialog', { name: '¿Firmar el acta de recepción?' });
+    expect(dialogo).toHaveTextContent('no se puede deshacer');
+    expect(dialogo).toHaveTextContent('Lo recibido coincide con lo despachado.');
+    expect(fetchSimulado).toHaveBeenCalledTimes(2);
+    await usuario.click(screen.getByRole('button', { name: 'Sí, firmar el acta' }));
 
     expect(await screen.findByText(/Acta firmada con diferencias/)).toBeInTheDocument();
     const [url, opciones] = fetchSimulado.mock.calls[2];
@@ -109,12 +115,23 @@ describe('Acta de recepción', () => {
     });
   });
 
+  it('cancelar la confirmación del acta no firma', async () => {
+    const fetchSimulado = simularFetch(respuesta(200, EN_TRANSITO), respuesta(200, [FIRMA]));
+    renderizar();
+    await screen.findByRole('heading', { name: 'Firmar acta de recepción' });
+    const usuario = userEvent.setup();
+    await usuario.click(screen.getByRole('button', { name: 'Firmar acta' }));
+    await usuario.click(screen.getByRole('button', { name: 'Cancelar' }));
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(fetchSimulado).toHaveBeenCalledTimes(2);
+  });
+
   it('no firma con cantidades inválidas', async () => {
     const fetchSimulado = simularFetch(respuesta(200, EN_TRANSITO), respuesta(200, [FIRMA]));
     renderizar();
     await screen.findByRole('heading', { name: 'Firmar acta de recepción' });
     const usuario = userEvent.setup();
-    await usuario.clear(screen.getByLabelText('INT-001 — recibido (despachado: 10)'));
+    await usuario.clear(screen.getByLabelText('INT-001 — recibido (despachado: 10 unidades)'));
     await usuario.click(screen.getByRole('button', { name: 'Firmar acta' }));
     expect(screen.getByText('Indique un número entero mayor o igual a 0.')).toBeInTheDocument();
     expect(fetchSimulado).toHaveBeenCalledTimes(2);

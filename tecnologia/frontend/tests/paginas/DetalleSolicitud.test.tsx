@@ -37,6 +37,13 @@ function renderizar() {
   );
 }
 
+/** Pulsa Firmar y confirma en el diálogo propio de la página (T100). */
+async function firmarConfirmando() {
+  const usuario = userEvent.setup();
+  await usuario.click(await screen.findByRole('button', { name: 'Firmar' }));
+  await usuario.click(screen.getByRole('button', { name: 'Sí, firmar' }));
+}
+
 describe('DetalleSolicitud', () => {
   it('muestra Firmar y Rechazar solo si la API los permite', async () => {
     simularFetch(respuesta(200, PENDIENTE), respuesta(200, []));
@@ -69,7 +76,7 @@ describe('DetalleSolicitud', () => {
       respuesta(200, [FIRMA_VB]),
     );
     renderizar();
-    await userEvent.setup().click(await screen.findByRole('button', { name: 'Firmar' }));
+    await firmarConfirmando();
 
     expect(await screen.findByText(/Firmó la solicitud/)).toBeInTheDocument();
     const [url, opciones] = fetchSimulado.mock.calls[2];
@@ -81,6 +88,62 @@ describe('DetalleSolicitud', () => {
     expect(fetchSimulado.mock.calls[3][0]).toBe(`/api/v1/requerimientos/${ID}`);
     expect(await screen.findByText(/Aprobó: Comandante BIM-11/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Firmar' })).not.toBeInTheDocument();
+  });
+
+  it('firmar pide confirmación en la página y cancelar no envía nada (T100)', async () => {
+    const confirmar = jest.spyOn(window, 'confirm');
+    const fetchSimulado = simularFetch(respuesta(200, PENDIENTE), respuesta(200, []));
+    renderizar();
+    const usuario = userEvent.setup();
+    await usuario.click(await screen.findByRole('button', { name: 'Firmar' }));
+
+    const dialogo = screen.getByRole('alertdialog', { name: '¿Firmar la solicitud?' });
+    expect(dialogo).toHaveTextContent('no se puede deshacer');
+    expect(dialogo).toHaveTextContent('REQ-2026-000001');
+    expect(dialogo).toHaveFocus();
+    await usuario.click(screen.getByRole('button', { name: 'Cancelar' }));
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(fetchSimulado).toHaveBeenCalledTimes(2);
+    expect(confirmar).not.toHaveBeenCalled();
+    confirmar.mockRestore();
+  });
+
+  it('Escape cierra la confirmación de la firma', async () => {
+    simularFetch(respuesta(200, PENDIENTE), respuesta(200, []));
+    renderizar();
+    const usuario = userEvent.setup();
+    await usuario.click(await screen.findByRole('button', { name: 'Firmar' }));
+    await usuario.keyboard('{Escape}');
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
+  it('el diálogo de rechazo advierte que no se puede deshacer', async () => {
+    simularFetch(respuesta(200, PENDIENTE), respuesta(200, []));
+    renderizar();
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'Rechazar' }));
+    expect(screen.getByRole('dialog')).toHaveTextContent('no se puede deshacer');
+  });
+
+  it('muestra el mensaje que deja otra pantalla al llegar (T103)', async () => {
+    simularFetch(respuesta(200, PENDIENTE), respuesta(200, []));
+    render(
+      <MemoryRouter
+        initialEntries={[{ pathname: `/solicitudes/${ID}`, state: { exito: 'Solicitud enviada.' } }]}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <Routes>
+          <Route path="/solicitudes/:id" element={<DetalleSolicitud />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    expect(await screen.findByText('Solicitud enviada.')).toBeInTheDocument();
+  });
+
+  it('muestra el monto en soles y las unidades en plural (T104)', async () => {
+    simularFetch(respuesta(200, { ...PENDIENTE, monto_total: '1255.00' }), respuesta(200, []));
+    renderizar();
+    expect(await screen.findByText(/Monto: S\/ 1 255,00/)).toBeInTheDocument();
+    expect(screen.getByText('2 unidades')).toBeInTheDocument();
   });
 
   it('rechazar sin motivo no envía nada', async () => {
@@ -129,7 +192,7 @@ describe('DetalleSolicitud', () => {
       respuesta(200, [FIRMA_VB]),
     );
     renderizar();
-    await userEvent.setup().click(await screen.findByRole('button', { name: 'Firmar' }));
+    await firmarConfirmando();
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Otra persona actuó sobre esta solicitud al mismo tiempo',
@@ -146,7 +209,7 @@ describe('DetalleSolicitud', () => {
       respuesta(200, []),
     );
     renderizar();
-    await userEvent.setup().click(await screen.findByRole('button', { name: 'Firmar' }));
+    await firmarConfirmando();
     expect(await screen.findByText('Este nivel ya firmó la solicitud.')).toBeInTheDocument();
   });
 

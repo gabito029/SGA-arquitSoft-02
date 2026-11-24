@@ -1,13 +1,15 @@
-// Pantalla de inicio de sesión (HU01, RF01). Tras entrar, vuelve a la página pedida o a la bandeja.
+// Pantalla de inicio de sesión (HU01, RF01). Tras entrar va a la bandeja, salvo que la sesión del
+// mismo usuario haya vencido en esta pestaña: entonces retoma donde estaba (T099).
 import { useState } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { api, ErrorApi } from '../api/cliente';
 import type { Token } from '../api/tipos';
 import { useSesion } from '../auth/SesionContexto';
 import { Campo, Formulario } from '../componentes/Formulario';
 import { MENSAJE_GENERICO } from '../logica/mensajes';
+import { destinoTrasIngreso, RUTA_BANDEJA } from '../logica/retorno';
 
-export const RUTA_BANDEJA = '/bandeja';
+export { RUTA_BANDEJA };
 
 interface Errores {
   usuario?: string;
@@ -16,9 +18,8 @@ interface Errores {
 
 export function InicioSesion() {
   const { autenticado, guardarSesion } = useSesion();
-  const navegar = useNavigate();
-  const ubicacion = useLocation();
-  const destino = (ubicacion.state as { desde?: string } | null)?.desde ?? RUTA_BANDEJA;
+  // Destino decidido al ingresar; el <Navigate> de abajo lo usa en cuanto hay sesión.
+  const [destino, setDestino] = useState<string | null>(null);
 
   const [usuario, setUsuario] = useState('');
   const [contrasena, setContrasena] = useState('');
@@ -27,7 +28,7 @@ export function InicioSesion() {
   const [enviando, setEnviando] = useState(false);
 
   if (autenticado) {
-    return <Navigate to={destino} replace />;
+    return <Navigate to={destino ?? RUTA_BANDEJA} replace />;
   }
 
   async function ingresar() {
@@ -44,8 +45,8 @@ export function InicioSesion() {
         usuario: usuario.trim(),
         contrasena,
       });
+      setDestino(destinoTrasIngreso(respuesta.usuario.id));
       guardarSesion(respuesta);
-      navegar(destino, { replace: true });
     } catch (e) {
       setError(e instanceof ErrorApi ? e.message : MENSAJE_GENERICO);
       setEnviando(false);

@@ -61,3 +61,27 @@ export function decisionAprobar(): DecisionFirma {
 export function decisionRechazar(motivo: string): DecisionFirma {
   return { decision: 'RECHAZAR', motivo: motivo.trim() };
 }
+
+// --- Paso de confirmación (T100): lo que no se puede deshacer ---
+export const ADVERTENCIA_FIRMA =
+  'La firma digital queda registrada con su nombre, su órgano y la fecha, y no se puede deshacer.';
+export const ADVERTENCIA_RECHAZO =
+  'El rechazo se firma digitalmente y no se puede deshacer: la solicitud queda Rechazada y nadie ' +
+  'más podrá actuar sobre ella.';
+export const ADVERTENCIA_DESPACHO =
+  'El despacho descuenta el stock en este momento y no se puede deshacer.';
+export const ADVERTENCIA_ACTA =
+  'El acta se firma digitalmente y no se puede deshacer: lo recibido y las diferencias quedan ' +
+  'registrados tal como los indicó.';
+
+// --- Texto de la acción pendiente en la bandeja (T101) ---
+
+/** "Por enviar", "Por firmar"…: lo que el usuario actual tiene que hacer con la solicitud. */
+export function accionPendiente(acciones: readonly AccionDisponible[]): string | null {
+  if (acciones.includes('FIRMAR') || acciones.includes('RECHAZAR')) return 'Por firmar';
+  if (acciones.includes('DESPACHAR')) return 'Por despachar';
+  if (acciones.includes('FIRMAR_ACTA')) return 'Por firmar el acta';
+  if (acciones.includes('ENVIAR') || acciones.includes('EDITAR')) return 'Por enviar';
+  if (acciones.includes('ANULAR')) return 'Por revisar';
+  return null;
+}

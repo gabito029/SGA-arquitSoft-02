@@ -1,7 +1,7 @@
 // T054: nueva solicitud con fetch simulado (bloqueo del COLOGE, errores 422 por campo y carga).
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import { NuevaSolicitud } from '../../src/paginas/NuevaSolicitud';
 import { ITEM_INT_1, ITEM_INT_2, requerimiento } from '../apoyo/catalogo';
 import { respuesta, simularFetch } from '../apoyo/respuestas';
@@ -12,6 +12,31 @@ function renderizar() {
   return render(
     <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <NuevaSolicitud />
+    </MemoryRouter>,
+  );
+}
+
+/** Detalle simulado: muestra el id de la ruta y el mensaje recibido en el estado de navegación. */
+function DetalleSimulado() {
+  const { id } = useParams();
+  const { state } = useLocation();
+  return (
+    <p data-testid="detalle">
+      {id} {(state as { exito?: string } | null)?.exito}
+    </p>
+  );
+}
+
+function renderizarConDetalle() {
+  return render(
+    <MemoryRouter
+      initialEntries={['/solicitudes/nueva']}
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
+      <Routes>
+        <Route path="/solicitudes/nueva" element={<NuevaSolicitud />} />
+        <Route path="/solicitudes/:id" element={<DetalleSimulado />} />
+      </Routes>
     </MemoryRouter>,
   );
 }
@@ -35,6 +60,17 @@ describe('NuevaSolicitud', () => {
     const { container } = renderizar();
     await listo();
     expect(container.querySelectorAll('input, select, textarea').length).toBeLessThanOrEqual(5);
+  });
+
+  it('muestra la cantidad con la unidad en plural (T104)', async () => {
+    simularFetch(respuesta(200, CATALOGO));
+    renderizar();
+    await listo();
+    const usuario = userEvent.setup();
+    await agregarItem(usuario, ITEM_INT_1.id, '1');
+    expect(screen.getByText('1 unidad')).toBeInTheDocument();
+    await agregarItem(usuario, ITEM_INT_2.id, '3');
+    expect(screen.getByText('3 unidades')).toBeInTheDocument();
   });
 
   it('pide el catálogo de la categoría elegida', async () => {
@@ -62,20 +98,23 @@ describe('NuevaSolicitud', () => {
     expect(screen.getByText('Ítems (0)')).toBeInTheDocument();
   });
 
-  it('guarda en Registrada y luego envía', async () => {
+  it('al enviar va al detalle de la solicitud con el mensaje de éxito (T103)', async () => {
     const fetchSimulado = simularFetch(
       respuesta(200, CATALOGO),
       respuesta(201, requerimiento()),
       respuesta(200, requerimiento({ estado: 'PENDIENTE_VB_UNIDAD', acciones_disponibles: [] })),
     );
-    renderizar();
+    renderizarConDetalle();
     await listo();
     const usuario = userEvent.setup();
     await agregarItem(usuario, ITEM_INT_1.id, '2');
     await usuario.click(screen.getByRole('button', { name: 'Enviar' }));
 
-    expect(await screen.findByText(/Solicitud REQ-2026-000001 enviada/)).toBeInTheDocument();
-    expect(screen.getByText('En visto bueno de la unidad')).toBeInTheDocument();
+    const detalle = await screen.findByTestId('detalle');
+    expect(detalle).toHaveTextContent('cccccccc-0000-0000-0000-000000000001');
+    expect(detalle).toHaveTextContent(
+      'Solicitud REQ-2026-000001 enviada por el conducto regular.',
+    );
     const [urlCrear, crear] = fetchSimulado.mock.calls[1];
     expect(urlCrear).toBe('/api/v1/requerimientos');
     expect(JSON.parse(crear.body)).toEqual({ items: [{ item_id: ITEM_INT_1.id, cantidad: 2 }] });

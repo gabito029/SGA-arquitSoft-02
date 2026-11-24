@@ -3,13 +3,14 @@
 // la guarda y la envía por el conducto regular. Si requiere al COLOGE, se muestra el aviso y la
 // solicitud queda Registrada (FR-012).
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { api, ErrorApi } from '../api/cliente';
 import type { Categoria, Item, Requerimiento } from '../api/tipos';
 import { Cargando } from '../componentes/Cargando';
 import { EstadoEtiqueta } from '../componentes/EstadoEtiqueta';
 import { Campo, Formulario } from '../componentes/Formulario';
 import { Mensaje } from '../componentes/Mensaje';
+import { cantidadConUnidad } from '../logica/formato';
 import { MENSAJE_GENERICO } from '../logica/mensajes';
 import {
   aEntrada,
@@ -29,6 +30,7 @@ const CATEGORIAS: { valor: Categoria; etiqueta: string }[] = [
 type Resultado = { tipo: 'exito' | 'aviso'; texto: string } | null;
 
 export function NuevaSolicitud() {
+  const navegar = useNavigate();
   const [categoria, setCategoria] = useState<Categoria>('INTENDENCIA');
   const [catalogo, setCatalogo] = useState<Item[]>([]);
   const [cargandoCatalogo, setCargandoCatalogo] = useState(true);
@@ -123,8 +125,10 @@ export function NuevaSolicitud() {
       const req = await guardarBorrador();
       if (!req) return;
       const enviada = await api.post<Requerimiento>(`/requerimientos/${req.id}/enviar`);
-      setGuardada(enviada);
-      setResultado({ tipo: 'exito', texto: `Solicitud ${enviada.codigo} enviada.` });
+      // T103: se continúa en el detalle de la solicitud, con el mensaje de éxito.
+      navegar(`/solicitudes/${enviada.id}`, {
+        state: { exito: `Solicitud ${enviada.codigo} enviada por el conducto regular.` },
+      });
     });
 
   const errorDeLinea = (indice: number) =>
@@ -195,8 +199,8 @@ export function NuevaSolicitud() {
             {lineas.map((l, indice) => (
               <li key={l.item.id} className="lineas__fila">
                 <span>
-                  {l.item.codigo} — {l.item.nombre}: <strong>{l.cantidad}</strong>{' '}
-                  {l.item.unidad_medida}
+                  {l.item.codigo} — {l.item.nombre}:{' '}
+                  <strong>{cantidadConUnidad(l.cantidad, l.item.unidad_medida)}</strong>
                 </span>
                 <button
                   type="button"

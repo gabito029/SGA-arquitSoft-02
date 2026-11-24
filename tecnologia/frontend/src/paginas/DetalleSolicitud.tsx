@@ -1,11 +1,14 @@
 // Detalle de la solicitud: datos, ítems, firmas registradas y las acciones que la API permite al
 // usuario (FR-029): Firmar y Rechazar (US2), Despachar (US3), Firmar acta y Verificar (US4), la
-// línea de tiempo (US5) y Anular (US6).
+// línea de tiempo (US5) y Anular (US6). Firmar, Rechazar, Despachar y Firmar acta piden una
+// confirmación dentro de la página, porque no se pueden deshacer (T100).
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { api, ErrorApi } from '../api/cliente';
+import { stockPorItem } from '../api/inventario';
 import type { EntradaHistorial, Firma, Requerimiento, Verificacion } from '../api/tipos';
 import { Cargando } from '../componentes/Cargando';
+import { DialogoConfirmacion } from '../componentes/DialogoConfirmacion';
 import { DialogoMotivo } from '../componentes/DialogoMotivo';
 import { EstadoEtiqueta } from '../componentes/EstadoEtiqueta';
 import { FormularioActa } from '../componentes/FormularioActa';
@@ -13,8 +16,15 @@ import { FormularioDespacho } from '../componentes/FormularioDespacho';
 import { LineaTiempo } from '../componentes/LineaTiempo';
 import { Mensaje } from '../componentes/Mensaje';
 import { ResultadoVerificacion } from '../componentes/ResultadoVerificacion';
-import { decisionAprobar, decisionRechazar, puede } from '../logica/acciones';
+import {
+  ADVERTENCIA_FIRMA,
+  ADVERTENCIA_RECHAZO,
+  decisionAprobar,
+  decisionRechazar,
+  puede,
+} from '../logica/acciones';
 import { ETIQUETAS_NIVEL, etiquetaEstado } from '../logica/estados';
+import { cantidadConUnidad, formatoSoles } from '../logica/formato';
 import { MENSAJE_GENERICO } from '../logica/mensajes';
 
 function textoError(e: unknown): string {
@@ -50,16 +60,20 @@ type CuerpoActa = { items: { item_id: string; cantidad_recibida: number; observa
 
 export function DetalleSolicitud() {
   const { id } = useParams<{ id: string }>();
+  // Mensaje que deja otra pantalla al llegar aquí (por ejemplo, "Solicitud enviada", T103).
+  const exitoInicial = (useLocation().state as { exito?: string } | null)?.exito ?? null;
   const [req, setReq] = useState<Requerimiento | null>(null);
   const [firmas, setFirmas] = useState<Firma[]>([]);
   const [verificacion, setVerificacion] = useState<Verificacion | null>(null);
   const [historial, setHistorial] = useState<EntradaHistorial[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [errorAccion, setErrorAccion] = useState<string | null>(null);
-  const [exito, setExito] = useState<string | null>(null);
+  const [exito, setExito] = useState<string | null>(exitoInicial);
   const [enviando, setEnviando] = useState(false);
   const [rechazando, setRechazando] = useState(false);
   const [anulando, setAnulando] = useState(false);
+  const [confirmandoFirma, setConfirmandoFirma] = useState(false);
+  const [stock, setStock] = useState<Record<string, number> | null>(null);
 
   const cargar = useCallback(async () => {
     const [detalle, registradas] = await Promise.all([
@@ -80,6 +94,23 @@ export function DetalleSolicitud() {
     };
   }, [cargar]);
 
+  // El almacenero ve el stock disponible de cada ítem antes de despachar (T105).
+  const puedeDespachar = puede(req, 'DESPACHAR');
+  useEffect(() => {
+    if (!puedeDespachar) return;
+    let vigente = true;
+    stockPorItem()
+      .then((disponible) => {
+        if (vigente) setStock(disponible);
+      })
+      .catch(() => {
+        if (vigente) setStock({});
+      });
+    return () => {
+      vigente = false;
+    };
+  }, [puedeDespachar]);
+
   /** Ejecuta una acción, muestra el resultado y recarga el detalle. */
   async function ejecutar<T>(accion: () => Promise<T>, mensaje: (r: T) => string) {
     setEnviando(true);
@@ -99,6 +130,7 @@ export function DetalleSolicitud() {
       if (e instanceof ErrorApi && e.estado === 409) await cargar().catch(() => undefined);
     } finally {
       setEnviando(false);
+      setConfirmandoFirma(false);
     }
   }
 
@@ -181,7 +213,7 @@ export function DetalleSolicitud() {
           <p>
             Unidad: {req.unidad.nombre} ({req.unidad.codigo})
             {req.almacen ? ` · Almacén: ${req.almacen.nombre}` : ''}
-            {req.monto_total ? ` · Monto: S/ ${req.monto_total}` : ''}
+            {req.monto_total ? ` · Monto: ${formatoSoles(req.monto_total)}` : ''}
           </p>
           <ul className="lista">
             {req.items.map((i) => (
@@ -189,11 +221,17 @@ export function DetalleSolicitud() {
                 <span>
                   {i.item.codigo} — {i.item.nombre}
                 </span>
-                <strong>
-                  {i.cantidad_solicitada} {i.item.unidad_medida}
-                </strong>
-                {i.cantidad_despachada != null ? <span>Despachado: {i.cantidad_despachada}</span> : null}
-                {i.cantidad_recibida != null ? <span>Recibido: {i.cantidad_recibida}</span> : null}
+                <strong>{cantidadConUnidad(i.cantidad_solicitada, i.item.unidad_medida)}</strong>
+                {i.cantidad_despachada != null ? (
+                  <span>
+                    Despachado: {cantidadConUnidad(i.cantidad_despachada, i.item.unidad_medida)}
+                  </span>
+                ) : null}
+                {i.cantidad_recibida != null ? (
+                  <span>
+                    Recibido: {cantidadConUnidad(i.cantidad_recibida, i.item.unidad_medida)}
+                  </span>
+                ) : null}
                 {i.observacion ? <span>Observación: {i.observacion}</span> : null}
               </li>
             ))}
@@ -205,7 +243,12 @@ export function DetalleSolicitud() {
 
           <div className="formulario__acciones">
             {puede(req, 'FIRMAR') ? (
-              <button type="button" className="boton" disabled={enviando} onClick={firmar}>
+              <button
+                type="button"
+                className="boton"
+                disabled={enviando}
+                onClick={() => setConfirmandoFirma(true)}
+              >
                 Firmar
               </button>
             ) : null}
@@ -240,9 +283,25 @@ export function DetalleSolicitud() {
               </button>
             ) : null}
           </div>
+          {confirmandoFirma ? (
+            <DialogoConfirmacion
+              titulo="¿Firmar la solicitud?"
+              advertencia={ADVERTENCIA_FIRMA}
+              confirmar="Sí, firmar"
+              enviando={enviando}
+              onConfirmar={firmar}
+              onCancelar={() => setConfirmandoFirma(false)}
+            >
+              <p>
+                Va a aprobar con su firma digital la solicitud {req.codigo}, que está en "
+                {etiquetaEstado(req.estado)}".
+              </p>
+            </DialogoConfirmacion>
+          ) : null}
           {rechazando ? (
             <DialogoMotivo
               titulo="Rechazar la solicitud"
+              advertencia={ADVERTENCIA_RECHAZO}
               confirmar="Confirmar rechazo"
               enviando={enviando}
               onConfirmar={rechazar}
@@ -261,7 +320,12 @@ export function DetalleSolicitud() {
           ) : null}
 
           {puede(req, 'DESPACHAR') ? (
-            <FormularioDespacho items={req.items} enviando={enviando} onDespachar={despachar} />
+            <FormularioDespacho
+              items={req.items}
+              stock={stock}
+              enviando={enviando}
+              onDespachar={despachar}
+            />
           ) : null}
           {puede(req, 'FIRMAR_ACTA') ? (
             <FormularioActa items={req.items} enviando={enviando} onFirmar={firmarActa} />

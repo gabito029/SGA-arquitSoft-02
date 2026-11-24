@@ -1,9 +1,10 @@
 // Contexto de sesión: token y usuario en memoria y en sessionStorage (se borra al cerrar la
 // pestaña). La API no guarda sesión en el servidor (ADR-006).
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { EVENTO_SESION_EXPIRADA, fijarToken } from '../api/cliente';
 import type { Token, Usuario } from '../api/tipos';
+import { borrarRetorno, guardarRetorno } from '../logica/retorno';
 
 export const CLAVE_ALMACENAMIENTO = 'sga.sesion';
 
@@ -59,16 +60,30 @@ export function SesionProveedor({ children }: { children: ReactNode }) {
     setDatos(nuevos);
   }, []);
 
-  const cerrarSesion = useCallback(() => {
+  const limpiar = useCallback(() => {
     fijarToken(null);
     escribirAlmacenada(null);
     setDatos(null);
   }, []);
 
+  /** Cierre explícito: no queda ninguna ruta de retorno para el próximo usuario (T099). */
+  const cerrarSesion = useCallback(() => {
+    borrarRetorno();
+    limpiar();
+  }, [limpiar]);
+
+  // Si la sesión vence (401), se guarda dónde estaba este usuario para retomar al volver a entrar.
+  const usuarioActual = useRef<Usuario | null>(datos?.usuario ?? null);
+  usuarioActual.current = datos?.usuario ?? null;
   useEffect(() => {
-    window.addEventListener(EVENTO_SESION_EXPIRADA, cerrarSesion);
-    return () => window.removeEventListener(EVENTO_SESION_EXPIRADA, cerrarSesion);
-  }, [cerrarSesion]);
+    function alVencer() {
+      const usuario = usuarioActual.current;
+      if (usuario) guardarRetorno(window.location.pathname + window.location.search, usuario.id);
+      limpiar();
+    }
+    window.addEventListener(EVENTO_SESION_EXPIRADA, alVencer);
+    return () => window.removeEventListener(EVENTO_SESION_EXPIRADA, alVencer);
+  }, [limpiar]);
 
   const valor = useMemo<ValorSesion>(
     () => ({

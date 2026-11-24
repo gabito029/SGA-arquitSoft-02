@@ -4,7 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { CLAVE_ALMACENAMIENTO, SesionProveedor } from '../../src/auth/SesionContexto';
 import { InicioSesion } from '../../src/paginas/InicioSesion';
-import { respuesta, simularFetch, token } from '../apoyo/respuestas';
+import { CLAVE_RETORNO } from '../../src/logica/retorno';
+import { respuesta, simularFetch, token, USUARIO_OFICIAL } from '../apoyo/respuestas';
 
 function renderizar() {
   return render(
@@ -13,6 +14,7 @@ function renderizar() {
         <Routes>
           <Route path="/ingresar" element={<InicioSesion />} />
           <Route path="/bandeja" element={<p>Bandeja de solicitudes</p>} />
+          <Route path="/solicitudes/:id" element={<p>Detalle de la solicitud</p>} />
         </Routes>
       </MemoryRouter>
     </SesionProveedor>,
@@ -29,6 +31,29 @@ async function ingresar(usuario: string, contrasena: string) {
 afterEach(() => sessionStorage.clear());
 
 describe('InicioSesion', () => {
+  it('retoma la página si la sesión venció en esta pestaña para el mismo usuario (T099)', async () => {
+    sessionStorage.setItem(
+      CLAVE_RETORNO,
+      JSON.stringify({ ruta: '/solicitudes/abc', usuarioId: USUARIO_OFICIAL.id }),
+    );
+    simularFetch(respuesta(200, token()));
+    renderizar();
+    await ingresar('oficial.bim11', 'secreta');
+    expect(await screen.findByText('Detalle de la solicitud')).toBeInTheDocument();
+    expect(sessionStorage.getItem(CLAVE_RETORNO)).toBeNull();
+  });
+
+  it('otro usuario va siempre a la bandeja aunque haya una ruta de retorno (T099)', async () => {
+    sessionStorage.setItem(
+      CLAVE_RETORNO,
+      JSON.stringify({ ruta: '/solicitudes/abc', usuarioId: 'otro-usuario' }),
+    );
+    simularFetch(respuesta(200, token()));
+    renderizar();
+    await ingresar('oficial.bim11', 'secreta');
+    expect(await screen.findByText('Bandeja de solicitudes')).toBeInTheDocument();
+  });
+
   it('con credenciales correctas guarda la sesión y va a la bandeja', async () => {
     const fetchSimulado = simularFetch(respuesta(200, token()));
     renderizar();

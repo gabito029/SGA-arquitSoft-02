@@ -3,7 +3,8 @@ import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { api, EVENTO_SESION_EXPIRADA } from '../../src/api/cliente';
 import { CLAVE_ALMACENAMIENTO, SesionProveedor, useSesion } from '../../src/auth/SesionContexto';
-import { respuesta, simularFetch, token } from '../apoyo/respuestas';
+import { CLAVE_RETORNO } from '../../src/logica/retorno';
+import { respuesta, simularFetch, token, USUARIO_OFICIAL } from '../apoyo/respuestas';
 
 function Sonda() {
   const { autenticado, usuario, guardarSesion, cerrarSesion } = useSesion();
@@ -71,6 +72,28 @@ describe('SesionContexto', () => {
       window.dispatchEvent(new Event(EVENTO_SESION_EXPIRADA));
     });
     expect(screen.getByText('Sin sesión')).toBeInTheDocument();
+  });
+
+  it('si la sesión vence, guarda la ruta actual para el mismo usuario (T099)', async () => {
+    window.history.pushState({}, '', '/solicitudes/abc');
+    renderizar();
+    await userEvent.click(screen.getByRole('button', { name: 'Entrar' }));
+    act(() => {
+      window.dispatchEvent(new Event(EVENTO_SESION_EXPIRADA));
+    });
+    expect(JSON.parse(sessionStorage.getItem(CLAVE_RETORNO) ?? '{}')).toEqual({
+      ruta: '/solicitudes/abc',
+      usuarioId: USUARIO_OFICIAL.id,
+    });
+    window.history.pushState({}, '', '/');
+  });
+
+  it('cerrar sesión no deja ninguna ruta de retorno (T099)', async () => {
+    renderizar();
+    await userEvent.click(screen.getByRole('button', { name: 'Entrar' }));
+    sessionStorage.setItem(CLAVE_RETORNO, JSON.stringify({ ruta: '/stock', usuarioId: 'x' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Salir' }));
+    expect(sessionStorage.getItem(CLAVE_RETORNO)).toBeNull();
   });
 
   it('useSesion fuera del proveedor lanza un error claro', () => {

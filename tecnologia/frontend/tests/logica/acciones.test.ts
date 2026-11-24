@@ -1,6 +1,7 @@
 // T065: solo aparecen las acciones permitidas y el motivo es obligatorio.
 import {
   accionesVisibles,
+  accionPendiente,
   decisionAprobar,
   decisionRechazar,
   ETIQUETAS_ACCION,
@@ -29,6 +30,19 @@ describe('acciones disponibles', () => {
   it('tiene una etiqueta en español para cada acción', () => {
     expect(ETIQUETAS_ACCION.FIRMAR_ACTA).toBe('Firmar acta');
     expect(ETIQUETAS_NIVEL.CONFORMIDAD_GU).toBe('Conformidad de la División/Brigada');
+  });
+});
+
+describe('accionPendiente (T101)', () => {
+  it.each([
+    [['FIRMAR', 'RECHAZAR'], 'Por firmar'],
+    [['DESPACHAR'], 'Por despachar'],
+    [['FIRMAR_ACTA'], 'Por firmar el acta'],
+    [['EDITAR', 'ENVIAR', 'ANULAR'], 'Por enviar'],
+    [['ANULAR'], 'Por revisar'],
+    [[], null],
+  ] as const)('%j → %s', (acciones, esperado) => {
+    expect(accionPendiente(acciones)).toBe(esperado);
   });
 });
 

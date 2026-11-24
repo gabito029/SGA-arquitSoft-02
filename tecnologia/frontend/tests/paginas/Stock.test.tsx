@@ -22,7 +22,7 @@ describe('Stock', () => {
       respuesta(200, { items: [fila], total: 25, page: 2, size: 20 }),
     );
     renderizar();
-    expect(await screen.findByRole('cell', { name: '494 unidad' })).toBeInTheDocument();
+    expect(await screen.findByRole('cell', { name: '494 unidades' })).toBeInTheDocument();
     expect(fetchSimulado.mock.calls[0][0]).toBe('/api/v1/inventario/stock?page=1&size=20');
     await userEvent.setup().click(screen.getByRole('button', { name: 'Siguiente' }));
     expect(await screen.findByText('Página 2 de 2')).toBeInTheDocument();

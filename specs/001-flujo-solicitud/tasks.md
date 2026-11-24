@@ -391,6 +391,19 @@ del plan de 4 días, y al final está el [calendario por día](#calendario-por-d
 - [X] T096 Ensayar de principio a fin la demo de `specs/001-flujo-solicitud/quickstart.md` (pasos 1 a 10), con la ruta de respaldo por Swagger (`/docs`) y Postman, y corregir lo que falle. Cronometrar el trabajo acumulado del flujo completo, del registro al acta firmada (SC-009: menos de 10 min), y guardar el tiempo de cada paso en `evidencias/SC-009/`
 - [X] T097 [P] Actualizar la sección "Estado del proyecto" y agregar "Cómo ejecutar" en `README.md`, con un enlace a `quickstart.md`. `docs/` no se modifica
 
+### Correcciones de experiencia de usuario (revisión de la interfaz con todos los roles)
+
+Las tareas empiezan en T099 porque T098 ya existe (ampliación de EQ-01, US4).
+
+- [X] T099 [UX] Ruta de retorno por sesión en `tecnologia/frontend/src/logica/retorno.ts`, `src/auth/SesionContexto.tsx`, `src/auth/RutaProtegida.tsx` y `src/paginas/InicioSesion.tsx`: al cerrar sesión se borra cualquier ruta de retorno guardada; al iniciar sesión se va siempre a `/bandeja`, salvo que la ruta de retorno sea de la misma sesión (sesión vencida por un 401 en la misma pestaña y el mismo usuario). Pruebas Jest en `tests/logica/retorno.test.ts`, `tests/auth/SesionContexto.test.tsx` y `tests/paginas/InicioSesion.test.tsx`
+- [X] T100 [UX] Paso de confirmación dentro de la página (`src/componentes/DialogoConfirmacion.tsx`, nunca `window.confirm` ni `alert`) antes de Firmar, Rechazar, Confirmar despacho y Firmar acta, que explique que la firma o el despacho no se pueden deshacer. Pruebas Jest en `tests/componentes/DialogoConfirmacion.test.tsx`, `tests/paginas/DetalleSolicitud.test.tsx`, `Despacho.test.tsx` y `Acta.test.tsx`
+- [X] T101 [UX] Bandeja como tabla con encabezados (Código, Categoría, Unidad, Fecha, Estado, Acción pendiente), la fecha de registro y un texto de acción claro ("Por enviar", "Por firmar"…) en `src/paginas/Bandeja.tsx` y `src/logica/acciones.ts`. En celular cada fila se muestra como tarjeta con sus etiquetas. Pruebas Jest en `tests/paginas/Bandeja.test.tsx` y `tests/logica/acciones.test.ts`
+- [X] T102 [UX] Cabecera sin la unidad repetida y con un menú según el rol (Bandeja para todos, Nueva solicitud para OFICIAL_LOGISTICA y Stock para JEFE_ALMACEN y ALMACENERO) en `src/componentes/Encabezado.tsx` y `src/logica/navegacion.ts`. Pruebas Jest en `tests/componentes/Encabezado.test.tsx`
+- [X] T103 [UX] Después de enviar una solicitud nueva, ir a su detalle con el mensaje de éxito (`src/paginas/NuevaSolicitud.tsx` y `src/paginas/DetalleSolicitud.tsx`). Prueba Jest en `tests/paginas/NuevaSolicitud.test.tsx`
+- [X] T104 [UX] Formatos en `src/logica/formato.ts`: montos en soles con formato es-PE (`S/ 1 255,00`) y unidades de medida en plural cuando la cantidad no es 1, aplicados al detalle, la nueva solicitud, el despacho, el acta y el stock. Pruebas Jest en `tests/logica/formato.test.ts`
+- [X] T105 [UX] Pantalla de despacho con el stock disponible de cada ítem (de `GET /api/v1/inventario/stock`) y un aviso cuando lo propuesto supera el stock, en `src/componentes/FormularioDespacho.tsx`. Prueba Jest en `tests/paginas/Despacho.test.tsx`
+- [X] T106 [UX] Botón deshabilitado con colores propios que cumplen WCAG AA (contraste ≥ 4,5:1), en lugar de bajar la opacidad, en `src/estilos.css`. Prueba Jest en `tests/logica/contraste.test.ts`, que calcula el contraste de los colores declarados
+
 ---
 
 ## Dependencies & Execution Order
