@@ -15,6 +15,7 @@ from app.modules.requests.aplicacion.consultar_requerimientos import TAMANO_MAXI
 from app.modules.requests.aplicacion.politica_acceso import Actor
 from app.modules.requests.dominio.estado import EstadoRequerimiento
 from app.modules.requests.infraestructura.dependencias import (
+    construir_anular,
     construir_confirmar_recepcion,
     construir_consultar,
     construir_consultar_acta,
@@ -33,6 +34,7 @@ from app.modules.requests.presentacion.esquemas import (
     DespachoEntrada,
     EntradaHistorialSalida,
     FirmaSalida,
+    MotivoEntrada,
     PaginaRequerimientosSalida,
     RequerimientoEntrada,
     RequerimientoSalida,
@@ -324,3 +326,27 @@ def historial(
     with fabrica_uow() as uow:
         vistas = construir_consultar_historial(uow.sesion).ejecutar(_actor(usuario), id)
     return [EntradaHistorialSalida.desde_vista(v) for v in vistas]
+
+
+# --- Anulación (US6) ---
+
+
+@router.post(
+    "/{id}/anular",
+    response_model=RequerimientoSalida,
+    summary="Anular con motivo, solo desde BORRADOR (FR-022)",
+    description="Solo OFICIAL_LOGISTICA de la unidad. La solicitud no se borra: queda ANULADA con "
+    "el motivo en el historial. Desde cualquier otro estado responde 409.",
+    responses={**_R401, **_R403, **_R404, **_R409, **_R422},
+)
+def anular(
+    id: uuid.UUID,
+    entrada: MotivoEntrada,
+    usuario: UsuarioActual = Depends(solo_oficial),
+    fabrica_uow: FabricaUnidadTrabajo = Depends(obtener_fabrica_uow),
+) -> RequerimientoSalida:
+    actor = _actor(usuario)
+    with fabrica_uow() as uow:
+        construir_anular(uow.sesion).ejecutar(actor, id, entrada.motivo)
+        vista = construir_consultar(uow.sesion).detalle(actor, id)
+    return RequerimientoSalida.desde_vista(vista)

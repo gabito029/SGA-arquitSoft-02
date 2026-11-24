@@ -1,6 +1,6 @@
 // Detalle de la solicitud: datos, ítems, firmas registradas y las acciones que la API permite al
-// usuario (FR-029): Firmar y Rechazar (US2), Despachar (US3), Firmar acta y Verificar (US4) y la
-// línea de tiempo (US5).
+// usuario (FR-029): Firmar y Rechazar (US2), Despachar (US3), Firmar acta y Verificar (US4), la
+// línea de tiempo (US5) y Anular (US6).
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api, ErrorApi } from '../api/cliente';
@@ -59,6 +59,7 @@ export function DetalleSolicitud() {
   const [exito, setExito] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [rechazando, setRechazando] = useState(false);
+  const [anulando, setAnulando] = useState(false);
 
   const cargar = useCallback(async () => {
     const [detalle, registradas] = await Promise.all([
@@ -89,6 +90,7 @@ export function DetalleSolicitud() {
     try {
       const resultado = await accion();
       setRechazando(false);
+      setAnulando(false);
       setExito(mensaje(resultado));
       await cargar();
     } catch (e: unknown) {
@@ -111,6 +113,13 @@ export function DetalleSolicitud() {
     void ejecutar(
       () => api.post<Requerimiento>(`/requerimientos/${id}/firmas`, decisionRechazar(motivo)),
       () => 'Rechazó la solicitud.',
+    );
+  }
+
+  function anular(motivo: string) {
+    void ejecutar(
+      () => api.post<Requerimiento>(`/requerimientos/${id}/anular`, { motivo }),
+      () => 'Anuló la solicitud. Queda registrada con su motivo en la línea de tiempo.',
     );
   }
 
@@ -210,6 +219,16 @@ export function DetalleSolicitud() {
                 Rechazar
               </button>
             ) : null}
+            {puede(req, 'ANULAR') ? (
+              <button
+                type="button"
+                className="boton--secundario"
+                disabled={enviando}
+                onClick={() => setAnulando(true)}
+              >
+                Anular
+              </button>
+            ) : null}
             {firmas.length > 0 ? (
               <button
                 type="button"
@@ -228,6 +247,16 @@ export function DetalleSolicitud() {
               enviando={enviando}
               onConfirmar={rechazar}
               onCancelar={() => setRechazando(false)}
+            />
+          ) : null}
+
+          {anulando ? (
+            <DialogoMotivo
+              titulo="Anular la solicitud"
+              confirmar="Confirmar anulación"
+              enviando={enviando}
+              onConfirmar={anular}
+              onCancelar={() => setAnulando(false)}
             />
           ) : null}
 

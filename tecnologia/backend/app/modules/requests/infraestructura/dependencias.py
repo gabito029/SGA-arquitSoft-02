@@ -17,6 +17,7 @@ from app.modules.catalog.dominio.tipos import Categoria
 from app.modules.catalog.infraestructura.dependencias import construir_consulta_catalogo
 from app.modules.identity.infraestructura.dependencias import construir_consulta_usuarios
 from app.modules.inventory.infraestructura.dependencias import construir_servicio_despacho
+from app.modules.requests.aplicacion.anular_requerimiento import AnularRequerimiento
 from app.modules.requests.aplicacion.confirmar_recepcion import ConfirmarRecepcion
 from app.modules.requests.aplicacion.consultar_acta import ConsultarActa, VerificarIntegridad
 from app.modules.requests.aplicacion.consultar_firmas import ConsultarFirmas
@@ -113,6 +114,13 @@ def construir_despachar(sesion: Session) -> DespacharRequerimiento:
     return DespacharRequerimiento(
         repositorio=RepositorioRequerimientosPostgres(sesion),
         inventario=construir_servicio_despacho(sesion),
+        auditoria=construir_registro_auditoria(sesion),
+    )
+
+
+def construir_anular(sesion: Session) -> AnularRequerimiento:
+    return AnularRequerimiento(
+        repositorio=RepositorioRequerimientosPostgres(sesion),
         auditoria=construir_registro_auditoria(sesion),
     )
 

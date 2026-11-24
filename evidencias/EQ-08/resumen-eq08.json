@@ -1,6 +1,6 @@
 {
   "escenario": "EQ-08 trazabilidad del flujo completo (incremento 001)",
-  "generado_en": "2026-11-24T13:03:33+00:00",
+  "generado_en": "2026-11-24T13:13:34+00:00",
   "pasos": [
     {
       "accion": "ENVIAR",
@@ -9,7 +9,7 @@
       "usuario": "Oficial de logística BIM-11",
       "rol": "OFICIAL_LOGISTICA",
       "organo": "BIM-11",
-      "ocurrido_en": "2026-11-24T13:03:33.240688Z"
+      "ocurrido_en": "2026-11-24T13:13:33.936162Z"
     },
     {
       "accion": "FIRMAR",
@@ -18,7 +18,7 @@
       "usuario": "Comandante BIM-11",
       "rol": "COMANDANTE_UNIDAD",
       "organo": "BIM-11",
-      "ocurrido_en": "2026-11-24T13:03:33.322124Z"
+      "ocurrido_en": "2026-11-24T13:13:34.014119Z"
     },
     {
       "accion": "FIRMAR",
@@ -27,7 +27,7 @@
       "usuario": "Jefe de logística 1.ª DE",
       "rol": "JEFE_LOGISTICA_GU",
       "organo": "1DE",
-      "ocurrido_en": "2026-11-24T13:03:33.417057Z"
+      "ocurrido_en": "2026-11-24T13:13:34.101901Z"
     },
     {
       "accion": "FIRMAR",
@@ -36,7 +36,7 @@
       "usuario": "Jefe del almacén de Intendencia",
       "rol": "JEFE_ALMACEN",
       "organo": "SINTE",
-      "ocurrido_en": "2026-11-24T13:03:33.506134Z"
+      "ocurrido_en": "2026-11-24T13:13:34.193299Z"
     },
     {
       "accion": "DESPACHAR",
@@ -45,7 +45,7 @@
       "usuario": "Almacenero de Intendencia",
       "rol": "ALMACENERO",
       "organo": "SINTE",
-      "ocurrido_en": "2026-11-24T13:03:33.648663Z"
+      "ocurrido_en": "2026-11-24T13:13:34.335656Z"
     },
     {
       "accion": "FIRMAR_ACTA",
@@ -54,7 +54,7 @@
       "usuario": "Oficial de logística BIM-11",
       "rol": "OFICIAL_LOGISTICA",
       "organo": "BIM-11",
-      "ocurrido_en": "2026-11-24T13:03:33.746851Z"
+      "ocurrido_en": "2026-11-24T13:13:34.434948Z"
     }
   ],
   "pasos_confirmados_por_sql": "6/6",

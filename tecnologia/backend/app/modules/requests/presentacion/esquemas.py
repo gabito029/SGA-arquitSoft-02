@@ -140,6 +140,10 @@ class DecisionFirmaEntrada(BaseModel):
     )
 
 
+class MotivoEntrada(BaseModel):
+    motivo: str = Field(min_length=5, max_length=500, description="Motivo obligatorio")
+
+
 class LineaDespachoEntrada(BaseModel):
     item_id: uuid.UUID
     cantidad: int = Field(ge=0, description="Cantidad entera ≥ 0, sin superar lo solicitado")

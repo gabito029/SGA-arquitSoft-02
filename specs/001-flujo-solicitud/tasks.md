@@ -356,13 +356,13 @@ del plan de 4 días, y al final está el [calendario por día](#calendario-por-d
 
 ### Tests for User Story 6
 
-- [ ] T085 [P] [US6] Prueba de integración en `tecnologia/backend/tests/integracion/test_anulacion.py` con los escenarios 1 a 4 de la US6: anular desde BORRADOR con motivo; sin motivo → 422; desde los demás estados → 409; otra unidad u otro rol → 403 o 404
-- [ ] T086 [P] [US6] Prueba Jest en `tecnologia/frontend/tests/paginas/Anular.test.tsx`: el botón solo aparece en BORRADOR y el motivo es obligatorio
+- [X] T085 [P] [US6] Prueba de integración en `tecnologia/backend/tests/integracion/test_anulacion.py` con los escenarios 1 a 4 de la US6: anular desde BORRADOR con motivo; sin motivo → 422; desde los demás estados → 409; otra unidad u otro rol → 403 o 404
+- [X] T086 [P] [US6] Prueba Jest en `tecnologia/frontend/tests/paginas/Anular.test.tsx`: el botón solo aparece en BORRADOR y el motivo es obligatorio
 
 ### Implementation for User Story 6
 
-- [ ] T087 [US6] Implementar `tecnologia/backend/app/modules/requests/aplicacion/anular_requerimiento.py` y `POST /api/v1/requerimientos/{id}/anular` en `.../requests/presentacion/router.py`, con la transición BORRADOR → ANULADA y `data-model.md historial_requerimiento.motivo` obligatorio
-- [ ] T088 [US6] Agregar el botón **Anular**, con un diálogo para el motivo, en `tecnologia/frontend/src/paginas/DetalleSolicitud.tsx`
+- [X] T087 [US6] Implementar `tecnologia/backend/app/modules/requests/aplicacion/anular_requerimiento.py` y `POST /api/v1/requerimientos/{id}/anular` en `.../requests/presentacion/router.py`, con la transición BORRADOR → ANULADA y `data-model.md historial_requerimiento.motivo` obligatorio
+- [X] T088 [US6] Agregar el botón **Anular**, con un diálogo para el motivo, en `tecnologia/frontend/src/paginas/DetalleSolicitud.tsx`
 
 **Checkpoint**: las 6 historias funcionan.
 
