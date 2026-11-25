@@ -1,6 +1,7 @@
 # SGA: entorno local con Docker Compose (C4 nivel 2, ADR-012 y ADR-013).
 # Uso: cp .env.example .env  →  docker compose up --build -d
-# En 002 se suman uptime-kuma y el escalamiento con --scale api=2.
+# Desde 002 la api guarda los PDF emitidos en el volumen "documentos" (ADR-010), sin sobrescribir.
+# Pendiente (EQ-06, EQ-09): uptime-kuma y el escalamiento con --scale api=2.
 
 services:
   db:

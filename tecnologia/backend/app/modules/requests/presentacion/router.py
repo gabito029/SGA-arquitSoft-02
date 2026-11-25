@@ -296,8 +296,8 @@ def consultar_acta(
     summary="Verificar la integridad de cada firma y del acta (FR-024, FR-025, EQ-02)",
     description="Reconstruye el contenido canónico de cada firma con los datos actuales y los "
     "campos fijos de su nivel (research §3; nunca estado ni version) y responde INTEGRA o "
-    "ALTERADA. En el incremento 001 es el único medio de verificación; el PDF verificable llega "
-    "en 002 (desviación temporal DT-01 de la constitución v1.2.0).",
+    "ALTERADA. Desde el incremento 002 el PDF emitido también se verifica con "
+    "POST /api/v1/documentos/verificacion (AUTENTICO o ALTERADO; DT-01 cerrada en v1.3.0).",
     responses={**_R401, **_R404},
 )
 def verificar(

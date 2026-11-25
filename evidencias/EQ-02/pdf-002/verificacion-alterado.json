@@ -1,0 +1,28 @@
+{
+  "resultado": "ALTERADO",
+  "motivo": "El archivo no coincide con el documento emitido: fue modificado después de su emisión.",
+  "documento": {
+    "codigo_verificacion": "SGA-5KJT-6C4N-MLES",
+    "tipo": "REQUERIMIENTO",
+    "requerimiento_id": "f6c9f864-763b-4e38-9aa4-c4f7ec930050",
+    "requerimiento_codigo": "REQ-2026-009475",
+    "emitido_en": "2026-11-25T16:23:40.066970Z",
+    "sellos": [
+      {
+        "firma_id": "7b5643de-3ab2-4611-af74-cc246de4229b",
+        "nivel": "VB_UNIDAD",
+        "decision": "APROBAR",
+        "firmante": "Comandante BIM-11",
+        "rol": "COMANDANTE_UNIDAD",
+        "organo": {
+          "codigo": "BIM-11",
+          "nombre": "Batallón de Infantería Motorizado N.° 11"
+        },
+        "firmado_en": "2026-11-25T16:23:39.978235Z",
+        "metodo": "ed25519-sha256-v1",
+        "huella_sha256": "87ee4021fc25aeaaf13acd86a517ffbb4410cd8cff63ec988f426b21ef3afd8a",
+        "motivo": null
+      }
+    ]
+  }
+}

@@ -129,11 +129,11 @@ Rutas: `B/` = `tecnologia/backend/`, `F/` = `tecnologia/frontend/`.
 
 ## Phase 8: Polish & Cross-Cutting
 
-- [ ] T042 [P] Agregar a `tecnologia/pruebas/postman/sga-001.postman_collection.json` los casos de documento, descarga del PDF, verificación (AUTENTICO) y 404 ajeno, y ejecutarla con Newman
-- [ ] T043 [P] Actualizar la descripción de `GET /{id}/verificacion` en `B/app/modules/requests/presentacion/router.py` (ya no menciona DT-01) y las cabeceras de `tecnologia/nginx/default.conf` y `tecnologia/docker-compose.yml` que citan el PDF pendiente
-- [ ] T044 Generar la evidencia EQ-02 con el PDF en `evidencias/EQ-02/`: un PDF auténtico, el mismo con un byte cambiado, y el JSON de ambas verificaciones (AUTENTICO y ALTERADO); agregarla a `evidencias/README.md`
-- [ ] T045 Ejecutar `specs/002-documento-firmado/quickstart.md` de punta a punta contra `docker compose up --build -d`, medir con `curl -w %{time_total}` que la descarga del PDF y la verificación tarden < 3 s (SC-006) y corregir lo que falle
-- [ ] T046 Revisión final: Ruff, pytest con cobertura ≥ 60 % en los módulos críticos, ESLint, `tsc`, Jest con cobertura, sin secretos en el repositorio
+- [ ] T042 [P] Agregar a `tecnologia/pruebas/postman/sga-001.postman_collection.json` los casos de documento, descarga del PDF, verificación (AUTENTICO) y 404 ajeno, y ejecutarla con Newman. **Estado (2026-11-25):** la carpeta "4. Documento y PDF verificable (002)" ya está en la colección; falta ejecutarla con Newman, que necesita la contraseña de demostración (`--env-var contrasena=…`), y esa contraseña no se pasa por la línea de comandos del agente.
+- [X] T043 [P] Actualizar la descripción de `GET /{id}/verificacion` en `B/app/modules/requests/presentacion/router.py` (ya no menciona DT-01) y las cabeceras de `tecnologia/nginx/default.conf` y `tecnologia/docker-compose.yml` que citan el PDF pendiente
+- [X] T044 Generar la evidencia EQ-02 con el PDF en `evidencias/EQ-02/`: un PDF auténtico, el mismo con un byte cambiado, y el JSON de ambas verificaciones (AUTENTICO y ALTERADO); agregarla a `evidencias/README.md`
+- [X] T045 Ejecutar `specs/002-documento-firmado/quickstart.md` de punta a punta contra `docker compose up --build -d`, medir con `curl -w %{time_total}` que la descarga del PDF y la verificación tarden < 3 s (SC-006) y corregir lo que falle
+- [X] T046 Revisión final: Ruff, pytest con cobertura ≥ 60 % en los módulos críticos, ESLint, `tsc`, Jest con cobertura, sin secretos en el repositorio
 
 ---
 

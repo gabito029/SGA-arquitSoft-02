@@ -13,7 +13,7 @@ y conservan el estímulo y las medidas de `docs/`.
 | Escenario | Cómo se probó | Herramienta | Métrica objetivo | Resultado obtenido | ¿Cumple? | Evidencia |
 |---|---|---|---|---|---|---|
 | **EQ-01** Seguridad | Matriz de cada usuario (12, de la jurisdicción y de fuera de ella) × cada acción (enviar, firmar, rechazar, despachar, acta) × cada estado. También sin token, consultas ajenas, borradores y usuarios sin jurisdicción. Además, la colección de Postman | pytest + httpx; Newman | 100 % de los intentos no autorizados rechazados | 536 de 536 casos (100 %): 351 acciones denegadas (403/404/409), 9 permitidas, 108 consultas ajenas con 404, 9 sin token con 401. Newman: 67 de 67 aserciones | ✅ Sí | [resumen-eq01.json](EQ-01/resumen-eq01.json) · [newman-001.html](EQ-01/newman-001.html) |
-| **EQ-02** Integridad | Con el disparador de inmutabilidad desactivado dentro de la prueba, se alteran 11 datos firmados (recibido, solicitado, despachado, observación, firmante, fecha, decisión, bytes de la firma, huella) y se llama a `/verificacion`. También se descartan falsos positivos después del despacho y del acta | pytest + cryptography (Ed25519) | 100 % de las alteraciones detectadas | 14 de 14 casos: 11 alteraciones dan ALTERADA en el nivel exacto y 3 etapas sin alteración dan INTEGRA. El PDF firmado se valida en 002 (DT-01) | ✅ Sí | [resumen-eq02.json](EQ-02/resumen-eq02.json) |
+| **EQ-02** Integridad | Con el disparador de inmutabilidad desactivado dentro de la prueba, se alteran 11 datos firmados (recibido, solicitado, despachado, observación, firmante, fecha, decisión, bytes de la firma, huella) y se llama a `/verificacion`. También se descartan falsos positivos después del despacho y del acta | pytest + cryptography (Ed25519) | 100 % de las alteraciones detectadas | 14 de 14 casos: 11 alteraciones dan ALTERADA en el nivel exacto y 3 etapas sin alteración dan INTEGRA. En 002, el PDF firmado: auténtico → AUTENTICO; un byte o una cantidad cambiada → ALTERADO ([ver abajo](#incremento-002-eq-02-con-el-pdf-verificable)) | ✅ Sí | [resumen-eq02.json](EQ-02/resumen-eq02.json) |
 | **EQ-03** Consistencia del inventario | Dos hilos con conexiones propias despachan 7 + 7 de un ítem con stock 10, mientras se retiene el bloqueo para forzar el choque. Se repite 3 veces y una consulta SQL compara el stock con Σ movimientos | pytest + PostgreSQL | 0 diferencias entre stock y movimientos; stock nunca negativo | 3 de 3 corridas: un 201 y un 409 `STOCK_INSUFICIENTE`, stock final 3, 0 diferencias | ✅ Sí | [resumen-eq03.json](EQ-03/resumen-eq03.json) |
 | **EQ-04** Rendimiento | 20 VU durante 5 min con 1 s de pausa: 60 % bandeja, 30 % detalle y 10 % registro. Una corrida con la caché del catálogo activa y otra con `CATALOGO_CACHE_ACTIVA=false` | k6 | p95 < 2 s con 20 usuarios; errores < 1 % | Con caché: p95 **40,8 ms**, 19,5 req/s, 0 % de errores. Sin caché: p95 **1 010 ms**, 14,8 req/s, 0 % de errores. La mezcla aún no incluye "firmar" (el estímulo de `docs/` sí): queda para la corrida formal de 002 | ✅ Sí (en ambas corridas) | [k6-resumen-001.json](EQ-04/k6-resumen-001.json) · [sin caché](EQ-04/k6-resumen-001-sin-cache.json) · [análisis](EQ-04/analisis-bd-cache-001.json) |
 | **EQ-05** Usabilidad | Pruebas Jest del formulario (máximo 5 campos), etiquetas en todos los campos, foco visible, contraste calculado (texto ≥ 5,8:1; bordes de campo 4,8:1) y vista a 360 px | Jest; revisión manual | Máximo 5 campos; Lighthouse ≥ 80 en accesibilidad y buenas prácticas (modo celular) | Formulario con 5 campos o menos (Jest). **Lighthouse no se ejecutó**: la medición formal queda para 002 | ⏳ Parcial | [jest-cobertura-001.txt](EQ-07/jest-cobertura-001.txt) |
@@ -81,6 +81,25 @@ es casi estático; si cambiara a menudo, habría que invalidarla o usar una cach
 empezó con más solicitudes que la anterior (de 640 a 8 319). Eso favorece un poco a la corrida con
 caché, que se hizo antes que la sin caché, pero no explica una diferencia de 25 veces. Las
 solicitudes creadas por k6 quedan en esa base.
+
+## Incremento 002: EQ-02 con el PDF verificable
+
+Medido el 2026-11-25 en la rama `002-documento-firmado`, en el mismo entorno (Docker Compose, una
+instancia de la API). Con esto se cierra la parte de EQ-02 que en 001 quedaba pendiente por DT-01.
+
+| Caso | Cómo se probó | Resultado | Evidencia |
+|---|---|---|---|
+| PDF descargado tal cual | `GET /requerimientos/{id}/documento.pdf` y luego `POST /documentos/verificacion` con los mismos bytes | **AUTENTICO**, con el código, el requerimiento, la fecha de emisión y los sellos | [requerimiento-autentico.pdf](EQ-02/pdf-002/requerimiento-autentico.pdf) · [verificacion-autentico.json](EQ-02/pdf-002/verificacion-autentico.json) |
+| El mismo PDF con un byte cambiado | Se invierte un bit del byte central (posición 1729; `cmp -l` muestra una sola diferencia) | **ALTERADO**: "fue modificado después de su emisión" | [requerimiento-un-byte-cambiado.pdf](EQ-02/pdf-002/requerimiento-un-byte-cambiado.pdf) · [verificacion-alterado.json](EQ-02/pdf-002/verificacion-alterado.json) |
+| Cantidad firmada cambiada en la BD | Se cambia `cantidad_solicitada` de un ítem firmado (con el disparador desactivado en la prueba) y se sube el PDF original | **ALTERADO**: "los datos firmados fueron alterados" | `tests/integracion/test_eq02_pdf.py` (8 de 8) |
+| Sin código, no-PDF, vacío, > 5 MB, ajeno, sin sesión | Pruebas de integración y unitarias (`test_verificar_pdf.py`, 9 de 9, con Ed25519 real) | ALTERADO sin código; 422; 404; 401 | `tests/integracion/test_eq02_pdf.py` |
+
+**Tiempos (SC-006, < 3 s):** la descarga del PDF tardó 0,07 s (primera emisión) y la verificación
+0,03 s, medidos por la API a través de Nginx. Dos descargas sin firmas nuevas devolvieron los mismos
+bytes (SHA-256 `fb7b7abf…7d57`) y el mismo código de verificación.
+
+Los datos del PDF son ficticios (seeds de demostración). El PDF está firmado con la clave del entorno
+local; la clave privada no se versiona.
 
 ## Otras evidencias
 

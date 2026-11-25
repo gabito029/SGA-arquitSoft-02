@@ -1394,6 +1394,253 @@
           ]
         }
       ]
+    },
+    {
+      "name": "4. Documento y PDF verificable (002)",
+      "item": [
+        {
+          "name": "Documento oficial (oficial.bim11)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_oficial}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_id}}/documento",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_id}}/documento"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json();",
+                  "pm.test('es el requerimiento con sus tres sellos', () => {",
+                  "  pm.expect(d.tipo).to.eql('REQUERIMIENTO');",
+                  "  pm.expect(d.sellos.map((s) => s.nivel)).to.eql(['VB_UNIDAD', 'CONFORMIDAD_GU', 'APROBACION_ALMACEN']);",
+                  "  pm.expect(d.pdf_disponible).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Descargar el PDF y verificarlo (auditor)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_oficial}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/pdf"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_id}}/documento.pdf",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_id}}/documento.pdf"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200 con un PDF', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.headers.get('Content-Type')).to.include('application/pdf');",
+                  "});",
+                  "const codigo = pm.response.headers.get('X-Codigo-Verificacion');",
+                  "pm.test('trae el código de verificación', () => pm.expect(codigo).to.match(/^SGA-/));",
+                  "pm.collectionVariables.set('codigo_pdf', codigo);",
+                  "// Se sube el mismo archivo, byte por byte, a la verificación (US5, EQ-02).",
+                  "pm.sendRequest({",
+                  "  url: pm.variables.replaceIn('{{base_url}}/api/v1/documentos/verificacion'),",
+                  "  method: 'POST',",
+                  "  header: { 'Content-Type': 'application/pdf', Authorization: 'Bearer ' + pm.variables.get('t_auditor') },",
+                  "  body: { mode: 'file', file: { content: pm.response.stream } },",
+                  "}, (err, res) => {",
+                  "  pm.test('la verificación del PDF descargado es AUTENTICO', () => {",
+                  "    pm.expect(err).to.eql(null);",
+                  "    pm.expect(res.code).to.eql(200);",
+                  "    pm.expect(res.json().resultado).to.eql('AUTENTICO');",
+                  "    pm.expect(res.json().documento.codigo_verificacion).to.eql(codigo);",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "La segunda descarga devuelve el mismo PDF",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_cmdte}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/pdf"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_id}}/documento.pdf",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_id}}/documento.pdf"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('mismo código de verificación', () => pm.expect(pm.response.headers.get('X-Codigo-Verificacion')).to.eql(pm.collectionVariables.get('codigo_pdf')));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Documento del acta (oficial.bim11)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_oficial}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_id}}/acta/documento",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_id}}/acta/documento"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('es el acta con la diferencia', () => {",
+                  "  pm.expect(pm.response.json().tipo).to.eql('ACTA');",
+                  "  pm.expect(pm.response.json().tiene_diferencias).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PDF del acta con su propio código",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_oficial}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/pdf"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_id}}/acta/documento.pdf",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_id}}/acta/documento.pdf"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('código distinto del PDF del requerimiento', () => pm.expect(pm.response.headers.get('X-Codigo-Verificacion')).to.not.eql(pm.collectionVariables.get('codigo_pdf')));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "404 PDF de otra unidad (oficial.bim21)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_oficial21}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_id}}/documento.pdf",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_id}}/documento.pdf"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "401 PDF sin token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_id}}/documento.pdf",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_id}}/documento.pdf"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
     }
   ],
   "variable": [
@@ -1455,6 +1702,10 @@
     },
     {
       "key": "req_ponchos",
+      "value": ""
+    },
+    {
+      "key": "codigo_pdf",
       "value": ""
     }
   ]
