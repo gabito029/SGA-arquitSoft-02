@@ -24,6 +24,7 @@ from app.modules.requests.aplicacion.consultar_documento import ArmadorDocumento
 from app.modules.requests.aplicacion.consultar_firmas import ConsultarFirmas
 from app.modules.requests.aplicacion.consultar_historial import ConsultarHistorial
 from app.modules.requests.aplicacion.consultar_requerimientos import ConsultarRequerimientos
+from app.modules.requests.aplicacion.descargar_pdf import DescargarPdf
 from app.modules.requests.aplicacion.despachar_requerimiento import DespacharRequerimiento
 from app.modules.requests.aplicacion.enviar_requerimiento import EnviarRequerimiento
 from app.modules.requests.aplicacion.firmar_requerimiento import FirmarRequerimiento
@@ -34,6 +35,7 @@ from app.modules.requests.infraestructura.repositorio_postgres import (
 )
 from app.modules.rules.dominio.regla_aprobacion import ReglaCologePorCategoriaOMonto
 from app.modules.signing.infraestructura.dependencias import (
+    construir_emitir_documento,
     construir_servicio_firma,
     construir_verificador,
 )
@@ -191,4 +193,12 @@ def construir_consultar_documento(sesion: Session) -> ConsultarDocumento:
     return ConsultarDocumento(
         repositorio=RepositorioRequerimientosPostgres(sesion),
         armador=construir_armador_documento(sesion),
+    )
+
+
+def construir_descargar_pdf(sesion: Session) -> DescargarPdf:
+    return DescargarPdf(
+        repositorio=RepositorioRequerimientosPostgres(sesion),
+        armador=construir_armador_documento(sesion),
+        emisor=construir_emitir_documento(sesion),
     )

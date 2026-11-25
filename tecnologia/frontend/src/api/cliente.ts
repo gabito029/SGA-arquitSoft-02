@@ -102,6 +102,55 @@ export async function solicitar<T>(ruta: string, opciones: OpcionesSolicitud = {
   );
 }
 
+export interface OpcionesBinario {
+  metodo?: Metodo;
+  /** Cuerpo binario (por ejemplo, el PDF a verificar). */
+  cuerpo?: Blob;
+  /** Content-Type del cuerpo. */
+  tipo?: string;
+  /** Lo que se acepta como respuesta (por defecto, JSON). */
+  aceptar?: string;
+}
+
+/**
+ * Petición con cuerpo o respuesta binarios (incremento 002: PDF). Devuelve la `Response` para
+ * leerla como `blob()` o `json()`; los errores se convierten igual que en `solicitar`.
+ */
+export async function solicitarBinario(
+  ruta: string,
+  opciones: OpcionesBinario = {},
+): Promise<Response> {
+  const cabeceras: Record<string, string> = { Accept: opciones.aceptar ?? 'application/json' };
+  if (opciones.cuerpo !== undefined) {
+    cabeceras['Content-Type'] = opciones.tipo ?? 'application/octet-stream';
+  }
+  if (tokenActual) {
+    cabeceras.Authorization = `Bearer ${tokenActual}`;
+  }
+  let respuesta: Response;
+  try {
+    respuesta = await fetch(construirUrl(ruta), {
+      method: opciones.metodo ?? 'GET',
+      headers: cabeceras,
+      body: opciones.cuerpo,
+    });
+  } catch {
+    throw new ErrorApi(0, 'ERROR_RED', mensajeDeError(0));
+  }
+  if (respuesta.ok) return respuesta;
+  if (respuesta.status === 401 && tokenActual) {
+    window.dispatchEvent(new Event(EVENTO_SESION_EXPIRADA));
+  }
+  const cuerpo = await leerJson(respuesta);
+  const error = esErrorRespuesta(cuerpo) ? cuerpo : undefined;
+  throw new ErrorApi(
+    respuesta.status,
+    error?.codigo ?? `HTTP_${respuesta.status}`,
+    mensajeDeError(respuesta.status, error?.codigo, error?.mensaje),
+    error?.detalles ?? [],
+  );
+}
+
 export const api = {
   get: <T>(ruta: string, parametros?: OpcionesSolicitud['parametros']) =>
     solicitar<T>(ruta, { parametros }),

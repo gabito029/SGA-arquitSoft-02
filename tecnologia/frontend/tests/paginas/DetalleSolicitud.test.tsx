@@ -361,4 +361,41 @@ describe('DetalleSolicitud', () => {
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Sí, firmar' })).toBeDisabled();
   });
+
+  it('descarga el PDF firmado del requerimiento (002, T031)', async () => {
+    const fetchSimulado = simularFetch(
+      respuesta(200, requerimiento({ estado: 'PENDIENTE_CONFORMIDAD', acciones_disponibles: [] })),
+      respuesta(200, [FIRMA_VB]),
+      {
+        ok: true,
+        status: 200,
+        blob: async () => new Blob(['%PDF-1.4'], { type: 'application/pdf' }),
+      } as unknown as Response,
+    );
+    Object.assign(URL, { createObjectURL: jest.fn(() => 'blob:x'), revokeObjectURL: jest.fn() });
+    const clic = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    renderizar();
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'Descargar PDF' }));
+    await waitFor(() => expect(clic).toHaveBeenCalledTimes(1));
+    expect(fetchSimulado.mock.calls[2][0]).toBe(`/api/v1/requerimientos/${ID}/documento.pdf`);
+    clic.mockRestore();
+  });
+
+  it('sin firmas no ofrece la descarga del PDF', async () => {
+    simularFetch(respuesta(200, PENDIENTE), respuesta(200, []));
+    renderizar();
+    expect(await screen.findByRole('button', { name: 'Ver documento' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Descargar PDF' })).not.toBeInTheDocument();
+  });
+
+  it('un error al descargar el PDF se muestra en la página', async () => {
+    simularFetch(
+      respuesta(200, requerimiento({ estado: 'PENDIENTE_CONFORMIDAD', acciones_disponibles: [] })),
+      respuesta(200, [FIRMA_VB]),
+      respuesta(409, { codigo: 'DOCUMENTO_INCONSISTENTE', mensaje: 'No coincide con su huella.' }),
+    );
+    renderizar();
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'Descargar PDF' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('No coincide con su huella.');
+  });
 });

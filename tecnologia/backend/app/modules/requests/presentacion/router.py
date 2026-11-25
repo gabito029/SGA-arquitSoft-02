@@ -6,7 +6,7 @@ o no se guarda nada (ADR-003).
 
 import uuid
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, Response, status
 
 from app.core.seguridad import UsuarioActual, requiere_rol, usuario_actual
 from app.core.unidad_trabajo import FabricaUnidadTrabajo, obtener_fabrica_uow
@@ -22,6 +22,7 @@ from app.modules.requests.infraestructura.dependencias import (
     construir_consultar_documento,
     construir_consultar_firmas,
     construir_consultar_historial,
+    construir_descargar_pdf,
     construir_despachar,
     construir_enviar,
     construir_firmar,
@@ -328,6 +329,52 @@ def documento(
     with fabrica_uow() as uow:
         vista = construir_consultar_documento(uow.sesion).ejecutar(_actor(usuario), id)
     return DocumentoSalida.desde_vista(vista)
+
+
+_R409_PDF = {
+    409: {
+        "description": "SIN_FIRMAS (todavía no hay un documento firmado) o "
+        "DOCUMENTO_INCONSISTENTE (el archivo guardado no coincide con su huella; no se entrega)"
+    }
+}
+_RESPUESTA_PDF = {
+    200: {
+        "content": {"application/pdf": {}},
+        "description": "El PDF emitido, con la cabecera X-Codigo-Verificacion",
+    }
+}
+
+
+def _respuesta_pdf(pdf) -> Response:
+    return Response(
+        content=pdf.contenido,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{pdf.nombre_archivo}"',
+            "X-Codigo-Verificacion": pdf.codigo_verificacion,
+            "Cache-Control": "no-store",
+        },
+    )
+
+
+@router.get(
+    "/{id}/documento.pdf",
+    response_class=Response,
+    tags=["Documentos"],
+    summary="Descargar el PDF firmado del requerimiento (002, FR-008 a FR-013)",
+    description="Se emite en la primera descarga después de una firma nueva: huella SHA-256 de "
+    "los bytes firmada con Ed25519 y archivo guardado sin cambios (ADR-004, ADR-010). Mientras "
+    "no haya firmas nuevas devuelve el mismo PDF.",
+    responses={**_RESPUESTA_PDF, **_R401, **_R404, **_R409_PDF},
+)
+def documento_pdf(
+    id: uuid.UUID,
+    usuario: UsuarioActual = Depends(usuario_actual),
+    fabrica_uow: FabricaUnidadTrabajo = Depends(obtener_fabrica_uow),
+) -> Response:
+    with fabrica_uow() as uow:
+        pdf = construir_descargar_pdf(uow.sesion).ejecutar(_actor(usuario), id)
+    return _respuesta_pdf(pdf)
 
 
 # --- Línea de tiempo (US5) ---

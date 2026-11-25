@@ -3,6 +3,8 @@
 La verificación de un PDF subido (US5, EQ-02) está en ``test_eq02_pdf.py``.
 """
 
+from pathlib import Path
+
 import pytest
 from sqlalchemy import text
 
@@ -101,3 +103,91 @@ def test_firmar_con_el_documento_revisado(cliente, login):
         headers=login("cmdte.bim11"),
     )
     assert respuesta.status_code == 201, respuesta.text
+
+
+# --- US3: descargar el PDF con código de verificación (T028) ---
+
+
+def _pdf(cliente, cabeceras, rid, ruta="documento.pdf"):
+    return cliente.get(f"{URL}/{rid}/{ruta}", headers=cabeceras)
+
+
+def test_descargar_pdf_dos_veces_devuelve_los_mismos_bytes(cliente, login):
+    rid = crear_enviada(cliente, login)
+    avanzar(cliente, login, rid, 1)
+    oficial = login("oficial.bim11")
+    primera = _pdf(cliente, oficial, rid)
+    assert primera.status_code == 200, primera.text
+    assert primera.headers["content-type"] == "application/pdf"
+    assert primera.content.startswith(b"%PDF-")
+    assert "attachment" in primera.headers["content-disposition"]
+    codigo = primera.headers["x-codigo-verificacion"]
+    assert codigo.startswith("SGA-") and codigo.encode() in primera.content
+    # Otro usuario autorizado (el comandante) recibe el mismo PDF ya emitido.
+    segunda = _pdf(cliente, login("cmdte.bim11"), rid)
+    assert segunda.content == primera.content
+    assert segunda.headers["x-codigo-verificacion"] == codigo
+
+
+def test_una_firma_nueva_emite_otro_pdf_y_conserva_el_anterior(cliente, login, motor):
+    from app.core.config import obtener_configuracion
+    from app.modules.signing.infraestructura.almacen_documentos_disco import (
+        AlmacenDocumentosDisco,
+    )
+
+    rid = crear_enviada(cliente, login)
+    avanzar(cliente, login, rid, 1)
+    oficial = login("oficial.bim11")
+    primero = _pdf(cliente, oficial, rid)
+    avanzar_desde = firmar(cliente, login, rid, "jlog.1de")
+    assert avanzar_desde.status_code == 201
+    segundo = _pdf(cliente, oficial, rid)
+    assert segundo.headers["x-codigo-verificacion"] != primero.headers["x-codigo-verificacion"]
+    with motor.connect() as conexion:
+        filas = conexion.execute(
+            text(
+                "SELECT codigo_verificacion, clave_almacen, huella_sha256 FROM documento_emitido "
+                "WHERE requerimiento_id = :r ORDER BY emitido_en"
+            ),
+            {"r": rid},
+        ).all()
+    assert [f.codigo_verificacion for f in filas] == [
+        primero.headers["x-codigo-verificacion"],
+        segundo.headers["x-codigo-verificacion"],
+    ]
+    # El PDF anterior sigue en el almacenamiento, sin cambios.
+    almacen = AlmacenDocumentosDisco(obtener_configuracion().documentos_dir)
+    assert almacen.leer(filas[0].clave_almacen) == primero.content
+
+
+def test_pdf_sin_firmas_es_409(cliente, login):
+    rid = crear_enviada(cliente, login)
+    respuesta = _pdf(cliente, login("oficial.bim11"), rid)
+    assert respuesta.status_code == 409
+    assert respuesta.json()["codigo"] == "SIN_FIRMAS"
+
+
+def test_pdf_ajeno_404_y_sin_sesion_401(cliente, login):
+    rid = crear_enviada(cliente, login)
+    avanzar(cliente, login, rid, 1)
+    assert _pdf(cliente, login("oficial.bim21"), rid).status_code == 404
+    assert cliente.get(f"{URL}/{rid}/documento.pdf").status_code == 401
+
+
+def test_pdf_guardado_que_no_coincide_con_su_huella_no_se_entrega(cliente, login, motor):
+    from app.core.config import obtener_configuracion
+
+    rid = crear_enviada(cliente, login)
+    avanzar(cliente, login, rid, 1)
+    oficial = login("oficial.bim11")
+    assert _pdf(cliente, oficial, rid).status_code == 200
+    with motor.connect() as conexion:
+        clave = conexion.scalar(
+            text("SELECT clave_almacen FROM documento_emitido WHERE requerimiento_id = :r"),
+            {"r": rid},
+        )
+    ruta = Path(obtener_configuracion().documentos_dir) / clave
+    ruta.write_bytes(ruta.read_bytes() + b"%alterado")
+    respuesta = _pdf(cliente, oficial, rid)
+    assert respuesta.status_code == 409
+    assert respuesta.json()["codigo"] == "DOCUMENTO_INCONSISTENTE"

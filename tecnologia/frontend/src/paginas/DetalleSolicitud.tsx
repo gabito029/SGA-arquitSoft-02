@@ -12,6 +12,7 @@ import {
   Clock,
   Coins,
   Feather,
+  FileDown,
   FileText,
   Package,
   ShieldCheck,
@@ -23,6 +24,8 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 import { api, ErrorApi } from '../api/cliente';
 import { obtenerDocumento } from '../api/documentos';
 import { stockPorItem } from '../api/inventario';
+import { descargarPdf } from '../api/pdf';
+import type { DestinoPdf } from '../api/pdf';
 import type {
   Documento,
   EntradaHistorial,
@@ -117,6 +120,7 @@ export function DetalleSolicitud() {
   const [verificacion, setVerificacion] = useState<Verificacion | null>(null);
   const [historial, setHistorial] = useState<EntradaHistorial[] | null>(null);
   const [documento, setDocumento] = useState<Documento | null>(null);
+  const [descargando, setDescargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorAccion, setErrorAccion] = useState<string | null>(null);
   const [exito, setExito] = useState<string | null>(exitoInicial);
@@ -249,6 +253,21 @@ export function DetalleSolicitud() {
       setHistorial(await api.get<EntradaHistorial[]>(`/requerimientos/${id}/historial`));
     } catch (e: unknown) {
       setErrorAccion(textoError(e));
+    }
+  }
+
+  /** Descarga el PDF firmado (002, US3 y US4): se emite en la primera descarga tras una firma. */
+  async function descargar(destino: DestinoPdf) {
+    if (!req) return;
+    setErrorAccion(null);
+    setDescargando(true);
+    try {
+      const sufijo = destino === 'acta' ? '-acta' : '';
+      await descargarPdf(req.id, destino, `${req.codigo}${sufijo}.pdf`);
+    } catch (e: unknown) {
+      setErrorAccion(textoError(e));
+    } finally {
+      setDescargando(false);
     }
   }
 
@@ -471,6 +490,17 @@ export function DetalleSolicitud() {
                 <FileText size={18} />
                 {documento ? 'Ocultar documento' : 'Ver documento'}
               </button>
+              {firmas.some((f) => f.nivel !== 'ACTA_RECEPCION') ? (
+                <button
+                  type="button"
+                  className="boton--secundario"
+                  disabled={descargando}
+                  onClick={() => void descargar('requerimiento')}
+                >
+                  <FileDown size={18} />
+                  {descargando ? 'Descargando…' : 'Descargar PDF'}
+                </button>
+              ) : null}
             </div>
             {documento ? <DocumentoOficial documento={documento} /> : null}
           </section>
