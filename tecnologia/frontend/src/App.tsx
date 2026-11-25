@@ -12,6 +12,7 @@ import { DetalleSolicitud } from './paginas/DetalleSolicitud';
 import { InicioSesion, RUTA_BANDEJA } from './paginas/InicioSesion';
 import { NuevaSolicitud } from './paginas/NuevaSolicitud';
 import { Stock } from './paginas/Stock';
+import { VerificarDocumento } from './paginas/VerificarDocumento';
 
 function Protegida({ children, soloOficial = false }: { children: ReactNode; soloOficial?: boolean }) {
   return (
@@ -55,6 +56,14 @@ export function Rutas() {
             <RutaProtegida roles={ROLES_ALMACEN}>
               <Stock />
             </RutaProtegida>
+          }
+        />
+        <Route
+          path="/verificar"
+          element={
+            <Protegida>
+              <VerificarDocumento />
+            </Protegida>
           }
         />
         <Route path="*" element={<Navigate to={RUTA_BANDEJA} replace />} />

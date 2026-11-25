@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.core.config import obtener_configuracion
 from app.modules.signing.aplicacion.emitir_documento import EmitirDocumento
 from app.modules.signing.aplicacion.servicio_firma import ServicioFirma
+from app.modules.signing.aplicacion.verificar_pdf import VerificarPdf
 from app.modules.signing.aplicacion.verificar_requerimiento import VerificarRequerimiento
 from app.modules.signing.infraestructura.almacen_documentos_disco import AlmacenDocumentosDisco
 from app.modules.signing.infraestructura.firmador_ed25519 import FirmadorEd25519
@@ -53,3 +54,8 @@ def construir_emitir_documento(sesion: Session) -> EmitirDocumento:
         obtener_generador_pdf(),
         obtener_firmador(),
     )
+
+
+def construir_verificar_pdf(sesion: Session) -> VerificarPdf:
+    """Verificación de un PDF subido (002, US5; EQ-02): registro de emitidos y Ed25519."""
+    return VerificarPdf(RepositorioDocumentosPostgres(sesion), obtener_firmador())

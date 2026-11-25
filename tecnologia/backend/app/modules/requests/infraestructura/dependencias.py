@@ -29,6 +29,7 @@ from app.modules.requests.aplicacion.despachar_requerimiento import DespacharReq
 from app.modules.requests.aplicacion.enviar_requerimiento import EnviarRequerimiento
 from app.modules.requests.aplicacion.firmar_requerimiento import FirmarRequerimiento
 from app.modules.requests.aplicacion.registrar_requerimiento import RegistrarRequerimiento
+from app.modules.requests.aplicacion.verificar_pdf_subido import VerificarPdfSubido
 from app.modules.requests.dominio.puertos import AlmacenResumen, ItemCatalogo, OrganoCatalogo
 from app.modules.requests.infraestructura.repositorio_postgres import (
     RepositorioRequerimientosPostgres,
@@ -38,6 +39,7 @@ from app.modules.signing.infraestructura.dependencias import (
     construir_emitir_documento,
     construir_servicio_firma,
     construir_verificador,
+    construir_verificar_pdf,
 )
 
 
@@ -201,4 +203,15 @@ def construir_descargar_pdf(sesion: Session) -> DescargarPdf:
         repositorio=RepositorioRequerimientosPostgres(sesion),
         armador=construir_armador_documento(sesion),
         emisor=construir_emitir_documento(sesion),
+    )
+
+
+def construir_verificar_pdf_subido(sesion: Session) -> VerificarPdfSubido:
+    """Verificación de un PDF subido (002, US5): pasos 1 y 4 aquí, 2, 3, 5 y 6 en signing."""
+    return VerificarPdfSubido(
+        repositorio=RepositorioRequerimientosPostgres(sesion),
+        verificador_pdf=construir_verificar_pdf(sesion),
+        verificador_firmas=construir_verificador(sesion),
+        armador=construir_armador_documento(sesion),
+        tamano_maximo=obtener_configuracion().pdf_tamano_maximo,
     )

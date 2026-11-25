@@ -22,6 +22,7 @@ from app.modules.requests.aplicacion.consultar_requerimientos import (
 from app.modules.requests.aplicacion.despachar_requerimiento import CantidadDespacho
 from app.modules.requests.aplicacion.politica_acceso import Accion
 from app.modules.requests.aplicacion.registrar_requerimiento import LineaEntrada
+from app.modules.requests.aplicacion.verificar_pdf_subido import VistaVerificacionPdf
 from app.modules.requests.dominio.estado import AccionHistorial, EstadoRequerimiento
 from app.modules.signing.dominio.documento import Referencia, SelloDocumento, TipoDocumento
 from app.modules.signing.dominio.tipos import DecisionFirma, NivelFirma, ResultadoVerificacion
@@ -418,3 +419,37 @@ class DocumentoSalida(BaseModel):
             huella_contenido=v.huella_contenido,
             pdf_disponible=v.pdf_disponible,
         )
+
+
+# --- Verificación de un PDF subido (incremento 002, US5) ---
+
+
+class DocumentoVerificadoSalida(BaseModel):
+    codigo_verificacion: str
+    tipo: TipoDocumento
+    requerimiento_id: uuid.UUID
+    requerimiento_codigo: str
+    emitido_en: datetime
+    sellos: list[SelloSalida] = Field(description="Los sellos que contiene el documento emitido")
+
+
+class VerificacionPdfSalida(BaseModel):
+    resultado: str = Field(description="AUTENTICO o ALTERADO (EQ-02)")
+    motivo: str
+    documento: DocumentoVerificadoSalida | None = Field(
+        default=None, description="null si el archivo no corresponde a un documento emitido"
+    )
+
+    @classmethod
+    def desde_vista(cls, v: VistaVerificacionPdf) -> "VerificacionPdfSalida":
+        documento = None
+        if v.emitido is not None and v.requerimiento_codigo is not None:
+            documento = DocumentoVerificadoSalida(
+                codigo_verificacion=v.emitido.codigo_verificacion,
+                tipo=v.emitido.tipo,
+                requerimiento_id=v.emitido.requerimiento_id,
+                requerimiento_codigo=v.requerimiento_codigo,
+                emitido_en=v.emitido.emitido_en,
+                sellos=[SelloSalida.desde(s) for s in v.documento.sellos] if v.documento else [],
+            )
+        return cls(resultado=v.resultado, motivo=v.motivo, documento=documento)

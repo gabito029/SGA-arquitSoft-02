@@ -16,6 +16,8 @@ export function menuPorRol(rol: Rol): OpcionMenu[] {
   if (ROLES_ALMACEN.includes(rol)) {
     opciones.push({ ruta: '/stock', etiqueta: 'Stock' });
   }
+  // Todos los roles pueden verificar un PDF del SGA (002, US5); la API aplica la visibilidad.
+  opciones.push({ ruta: '/verificar', etiqueta: 'Verificar PDF' });
   return opciones;
 }
 
