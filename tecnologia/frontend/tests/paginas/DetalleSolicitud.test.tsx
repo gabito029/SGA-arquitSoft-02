@@ -5,6 +5,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import type { Firma } from '../../src/api/tipos';
 import { DetalleSolicitud } from '../../src/paginas/DetalleSolicitud';
 import { requerimiento } from '../apoyo/catalogo';
+import { documento } from '../apoyo/documento';
 import { respuesta, simularFetch } from '../apoyo/respuestas';
 
 const ID = 'cccccccc-0000-0000-0000-000000000001';
@@ -37,10 +38,11 @@ function renderizar() {
   );
 }
 
-/** Pulsa Firmar y confirma en el diálogo propio de la página (T100). */
+/** Pulsa Firmar, revisa el documento y confirma en el diálogo de la página (T100, 002-US2). */
 async function firmarConfirmando() {
   const usuario = userEvent.setup();
   await usuario.click(await screen.findByRole('button', { name: 'Firmar' }));
+  await usuario.click(await screen.findByRole('checkbox', { name: 'He revisado el documento' }));
   await usuario.click(screen.getByRole('button', { name: 'Sí, firmar' }));
 }
 
@@ -86,6 +88,7 @@ describe('DetalleSolicitud', () => {
     const fetchSimulado = simularFetch(
       respuesta(200, PENDIENTE),
       respuesta(200, []),
+      respuesta(200, documento({ sellos: [] })),
       respuesta(201, siguiente),
       respuesta(200, siguiente),
       respuesta(200, [FIRMA_VB]),
@@ -94,37 +97,44 @@ describe('DetalleSolicitud', () => {
     await firmarConfirmando();
 
     expect(await screen.findByText(/Firmó la solicitud/)).toBeInTheDocument();
-    const [url, opciones] = fetchSimulado.mock.calls[2];
+    expect(fetchSimulado.mock.calls[2][0]).toBe(`/api/v1/requerimientos/${ID}/documento`);
+    const [url, opciones] = fetchSimulado.mock.calls[3];
     expect(url).toBe(`/api/v1/requerimientos/${ID}/firmas`);
     expect(opciones.method).toBe('POST');
-    expect(JSON.parse(opciones.body)).toEqual({ decision: 'APROBAR' });
+    expect(JSON.parse(opciones.body)).toEqual({ decision: 'APROBAR', documento_revisado: true });
     // Recarga: detalle y firmas otra vez.
-    await waitFor(() => expect(fetchSimulado).toHaveBeenCalledTimes(5));
-    expect(fetchSimulado.mock.calls[3][0]).toBe(`/api/v1/requerimientos/${ID}`);
+    await waitFor(() => expect(fetchSimulado).toHaveBeenCalledTimes(6));
+    expect(fetchSimulado.mock.calls[4][0]).toBe(`/api/v1/requerimientos/${ID}`);
     expect(await screen.findByText(/Aprobó: Comandante BIM-11/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Firmar' })).not.toBeInTheDocument();
   });
 
   it('firmar pide confirmación en la página y cancelar no envía nada (T100)', async () => {
     const confirmar = jest.spyOn(window, 'confirm');
-    const fetchSimulado = simularFetch(respuesta(200, PENDIENTE), respuesta(200, []));
+    const fetchSimulado = simularFetch(
+      respuesta(200, PENDIENTE),
+      respuesta(200, []),
+      respuesta(200, documento()),
+    );
     renderizar();
     const usuario = userEvent.setup();
     await usuario.click(await screen.findByRole('button', { name: 'Firmar' }));
 
     const dialogo = screen.getByRole('alertdialog', { name: '¿Firmar la solicitud?' });
+    expect(await screen.findByRole('checkbox', { name: 'He revisado el documento' })).toBeInTheDocument();
     expect(dialogo).toHaveTextContent('no se puede deshacer');
     expect(dialogo).toHaveTextContent('REQ-2026-000001');
     expect(dialogo).toHaveFocus();
     await usuario.click(screen.getByRole('button', { name: 'Cancelar' }));
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
-    expect(fetchSimulado).toHaveBeenCalledTimes(2);
+    // Solo se cargó el documento a revisar: no se envió ninguna firma.
+    expect(fetchSimulado).toHaveBeenCalledTimes(3);
     expect(confirmar).not.toHaveBeenCalled();
     confirmar.mockRestore();
   });
 
   it('Escape cierra la confirmación de la firma', async () => {
-    simularFetch(respuesta(200, PENDIENTE), respuesta(200, []));
+    simularFetch(respuesta(200, PENDIENTE), respuesta(200, []), respuesta(200, documento()));
     renderizar();
     const usuario = userEvent.setup();
     await usuario.click(await screen.findByRole('button', { name: 'Firmar' }));
@@ -133,7 +143,7 @@ describe('DetalleSolicitud', () => {
   });
 
   it('el diálogo de rechazo advierte que no se puede deshacer', async () => {
-    simularFetch(respuesta(200, PENDIENTE), respuesta(200, []));
+    simularFetch(respuesta(200, PENDIENTE), respuesta(200, []), respuesta(200, documento()));
     renderizar();
     await userEvent.setup().click(await screen.findByRole('button', { name: 'Rechazar' }));
     expect(screen.getByRole('dialog')).toHaveTextContent('no se puede deshacer');
@@ -162,15 +172,20 @@ describe('DetalleSolicitud', () => {
   });
 
   it('rechazar sin motivo no envía nada', async () => {
-    const fetchSimulado = simularFetch(respuesta(200, PENDIENTE), respuesta(200, []));
+    const fetchSimulado = simularFetch(
+      respuesta(200, PENDIENTE),
+      respuesta(200, []),
+      respuesta(200, documento()),
+    );
     renderizar();
     const usuario = userEvent.setup();
     await usuario.click(await screen.findByRole('button', { name: 'Rechazar' }));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
+    await usuario.click(await screen.findByRole('checkbox', { name: 'He revisado el documento' }));
     await usuario.click(screen.getByRole('button', { name: 'Confirmar rechazo' }));
 
     expect(screen.getByText('Indique el motivo.')).toBeInTheDocument();
-    expect(fetchSimulado).toHaveBeenCalledTimes(2);
+    expect(fetchSimulado).toHaveBeenCalledTimes(3);
   });
 
   it('rechaza con motivo y cierra el diálogo', async () => {
@@ -178,6 +193,7 @@ describe('DetalleSolicitud', () => {
     const fetchSimulado = simularFetch(
       respuesta(200, PENDIENTE),
       respuesta(200, []),
+      respuesta(200, documento()),
       respuesta(201, rechazada),
       respuesta(200, rechazada),
       respuesta(200, [{ ...FIRMA_VB, decision: 'RECHAZAR' }]),
@@ -186,12 +202,14 @@ describe('DetalleSolicitud', () => {
     const usuario = userEvent.setup();
     await usuario.click(await screen.findByRole('button', { name: 'Rechazar' }));
     await usuario.type(screen.getByLabelText('Motivo'), 'No corresponde a la dotación');
+    await usuario.click(await screen.findByRole('checkbox', { name: 'He revisado el documento' }));
     await usuario.click(screen.getByRole('button', { name: 'Confirmar rechazo' }));
 
     expect(await screen.findByText('Rechazó la solicitud.')).toBeInTheDocument();
-    expect(JSON.parse(fetchSimulado.mock.calls[2][1].body)).toEqual({
+    expect(JSON.parse(fetchSimulado.mock.calls[3][1].body)).toEqual({
       decision: 'RECHAZAR',
       motivo: 'No corresponde a la dotación',
+      documento_revisado: true,
     });
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(await screen.findByText(/Rechazó: Comandante BIM-11/)).toBeInTheDocument();
@@ -202,6 +220,7 @@ describe('DetalleSolicitud', () => {
     simularFetch(
       respuesta(200, PENDIENTE),
       respuesta(200, []),
+      respuesta(200, documento()),
       respuesta(409, { codigo: 'ESTADO_CAMBIADO', mensaje: 'Otro usuario cambió el requerimiento.' }),
       respuesta(200, cambiada),
       respuesta(200, [FIRMA_VB]),
@@ -219,6 +238,7 @@ describe('DetalleSolicitud', () => {
     simularFetch(
       respuesta(200, PENDIENTE),
       respuesta(200, []),
+      respuesta(200, documento()),
       respuesta(409, { codigo: 'NIVEL_YA_FIRMADO', mensaje: 'x' }),
       respuesta(200, PENDIENTE),
       respuesta(200, []),
@@ -270,5 +290,112 @@ describe('DetalleSolicitud', () => {
     );
     renderizar();
     expect(await screen.findByRole('alert')).toHaveTextContent('no pertenece a su jurisdicción');
+  });
+  it('muestra el documento oficial a pedido y lo oculta (T020)', async () => {
+    const fetchSimulado = simularFetch(
+      respuesta(200, requerimiento({ estado: 'PENDIENTE_CONFORMIDAD', acciones_disponibles: [] })),
+      respuesta(200, []),
+      respuesta(200, documento()),
+    );
+    renderizar();
+    const usuario = userEvent.setup();
+    await usuario.click(await screen.findByRole('button', { name: 'Ver documento' }));
+    expect(
+      await screen.findByRole('article', { name: /Documento oficial: Requerimiento/ }),
+    ).toBeInTheDocument();
+    expect(fetchSimulado.mock.calls[2][0]).toMatch(/\/documento$/);
+    await usuario.click(screen.getByRole('button', { name: 'Ocultar documento' }));
+    expect(screen.queryByRole('article', { name: /Documento oficial/ })).not.toBeInTheDocument();
+  });
+
+  it('muestra el error si el documento no se puede cargar', async () => {
+    simularFetch(
+      respuesta(200, requerimiento({ estado: 'PENDIENTE_CONFORMIDAD', acciones_disponibles: [] })),
+      respuesta(200, []),
+      respuesta(404, { codigo: 'NO_ENCONTRADO', mensaje: 'No existe' }),
+    );
+    renderizar();
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'Ver documento' }));
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+  });
+
+  it('no se puede firmar ni rechazar sin marcar "He revisado el documento" (002, T024)', async () => {
+    const fetchSimulado = simularFetch(
+      respuesta(200, PENDIENTE),
+      respuesta(200, []),
+      respuesta(200, documento()),
+      respuesta(200, documento()),
+    );
+    renderizar();
+    const usuario = userEvent.setup();
+    await usuario.click(await screen.findByRole('button', { name: 'Firmar' }));
+    // El documento completo se ve dentro del diálogo antes de firmar.
+    expect(
+      await screen.findByRole('article', { name: /Documento oficial: Requerimiento/ }),
+    ).toBeInTheDocument();
+    const casilla = screen.getByRole('checkbox', { name: 'He revisado el documento' });
+    expect(casilla).not.toBeChecked();
+    expect(screen.getByRole('button', { name: 'Sí, firmar' })).toBeDisabled();
+    await usuario.click(casilla);
+    expect(screen.getByRole('button', { name: 'Sí, firmar' })).toBeEnabled();
+    await usuario.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+    // Al volver a abrir (ahora Rechazar), la casilla empieza desmarcada otra vez.
+    await usuario.click(screen.getByRole('button', { name: 'Rechazar' }));
+    expect(
+      await screen.findByRole('checkbox', { name: 'He revisado el documento' }),
+    ).not.toBeChecked();
+    expect(screen.getByRole('button', { name: 'Confirmar rechazo' })).toBeDisabled();
+    expect(fetchSimulado).toHaveBeenCalledTimes(4);
+  });
+
+  it('si el documento a revisar no carga, no se ofrece la casilla', async () => {
+    simularFetch(
+      respuesta(200, PENDIENTE),
+      respuesta(200, []),
+      respuesta(500, { codigo: 'ERROR', mensaje: 'x' }),
+    );
+    renderizar();
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'Firmar' }));
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sí, firmar' })).toBeDisabled();
+  });
+
+  it('descarga el PDF firmado del requerimiento (002, T031)', async () => {
+    const fetchSimulado = simularFetch(
+      respuesta(200, requerimiento({ estado: 'PENDIENTE_CONFORMIDAD', acciones_disponibles: [] })),
+      respuesta(200, [FIRMA_VB]),
+      {
+        ok: true,
+        status: 200,
+        blob: async () => new Blob(['%PDF-1.4'], { type: 'application/pdf' }),
+      } as unknown as Response,
+    );
+    Object.assign(URL, { createObjectURL: jest.fn(() => 'blob:x'), revokeObjectURL: jest.fn() });
+    const clic = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    renderizar();
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'Descargar PDF' }));
+    await waitFor(() => expect(clic).toHaveBeenCalledTimes(1));
+    expect(fetchSimulado.mock.calls[2][0]).toBe(`/api/v1/requerimientos/${ID}/documento.pdf`);
+    clic.mockRestore();
+  });
+
+  it('sin firmas no ofrece la descarga del PDF', async () => {
+    simularFetch(respuesta(200, PENDIENTE), respuesta(200, []));
+    renderizar();
+    expect(await screen.findByRole('button', { name: 'Ver documento' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Descargar PDF' })).not.toBeInTheDocument();
+  });
+
+  it('un error al descargar el PDF se muestra en la página', async () => {
+    simularFetch(
+      respuesta(200, requerimiento({ estado: 'PENDIENTE_CONFORMIDAD', acciones_disponibles: [] })),
+      respuesta(200, [FIRMA_VB]),
+      respuesta(409, { codigo: 'DOCUMENTO_INCONSISTENTE', mensaje: 'No coincide con su huella.' }),
+    );
+    renderizar();
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'Descargar PDF' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('No coincide con su huella.');
   });
 });

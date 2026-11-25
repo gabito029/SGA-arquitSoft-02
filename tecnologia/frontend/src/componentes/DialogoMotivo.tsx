@@ -1,5 +1,6 @@
 import { FileText } from 'lucide-react';
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { MOTIVO_MAXIMO, validarMotivo } from '../logica/acciones';
 import { Campo } from './Formulario';
 
@@ -10,6 +11,10 @@ interface Props {
   advertencia?: string;
   /** Mientras es verdadero, el diálogo queda desactivado. */
   enviando?: boolean;
+  /** Contenido previo al motivo, por ejemplo el documento a revisar (002, US2). */
+  children?: ReactNode;
+  /** Mientras es verdadero, el botón de confirmar queda desactivado (p. ej., falta la revisión). */
+  bloqueado?: boolean;
   onConfirmar: (motivo: string) => void;
   onCancelar: () => void;
 }
@@ -20,6 +25,8 @@ export function DialogoMotivo({
   confirmar,
   advertencia,
   enviando = false,
+  children,
+  bloqueado = false,
   onConfirmar,
   onCancelar,
 }: Props) {
@@ -42,6 +49,7 @@ export function DialogoMotivo({
         {titulo}
       </h3>
       {advertencia ? <p className="dialogo__advertencia">{advertencia}</p> : null}
+      {children}
       <fieldset className="formulario__campos" disabled={enviando}>
         <Campo id="motivo" etiqueta="Motivo" error={error}>
           <textarea
@@ -58,7 +66,7 @@ export function DialogoMotivo({
           />
         </Campo>
         <div className="formulario__acciones">
-          <button type="button" className="boton" onClick={aceptar}>
+          <button type="button" className="boton" disabled={bloqueado} onClick={aceptar}>
             {enviando ? 'Enviando…' : confirmar}
           </button>
           <button type="button" className="boton--secundario" onClick={onCancelar}>

@@ -17,5 +17,14 @@ class DecisionFirma(StrEnum):
 
 
 class ResultadoVerificacion(StrEnum):
+    """Resultado de verificar las firmas de un requerimiento ("la firma", 001)."""
+
     INTEGRA = "INTEGRA"
     ALTERADA = "ALTERADA"
+
+
+class ResultadoPdf(StrEnum):
+    """Resultado de verificar un PDF subido ("el documento", literal a EQ-02; 002)."""
+
+    AUTENTICO = "AUTENTICO"
+    ALTERADO = "ALTERADO"

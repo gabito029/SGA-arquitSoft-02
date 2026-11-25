@@ -12,6 +12,8 @@ import {
   Clock,
   Coins,
   Feather,
+  FileDown,
+  FileText,
   Package,
   ShieldCheck,
   Stamp,
@@ -20,11 +22,22 @@ import {
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { api, ErrorApi } from '../api/cliente';
+import { obtenerDocumento, obtenerDocumentoActa } from '../api/documentos';
 import { stockPorItem } from '../api/inventario';
-import type { EntradaHistorial, Firma, Requerimiento, Verificacion } from '../api/tipos';
+import { descargarPdf } from '../api/pdf';
+import type { DestinoPdf } from '../api/pdf';
+import type {
+  Documento,
+  EntradaHistorial,
+  Firma,
+  Requerimiento,
+  Verificacion,
+} from '../api/tipos';
 import { Cargando } from '../componentes/Cargando';
 import { DialogoConfirmacion } from '../componentes/DialogoConfirmacion';
+import { RevisionDocumento } from '../componentes/CasillaRevision';
 import { DialogoMotivo } from '../componentes/DialogoMotivo';
+import { DocumentoOficial } from '../componentes/DocumentoOficial';
 import { EstadoEtiqueta } from '../componentes/EstadoEtiqueta';
 import { FormularioActa } from '../componentes/FormularioActa';
 import { FormularioDespacho } from '../componentes/FormularioDespacho';
@@ -106,6 +119,9 @@ export function DetalleSolicitud() {
   const [firmas, setFirmas] = useState<Firma[]>([]);
   const [verificacion, setVerificacion] = useState<Verificacion | null>(null);
   const [historial, setHistorial] = useState<EntradaHistorial[] | null>(null);
+  const [documento, setDocumento] = useState<Documento | null>(null);
+  const [documentoActa, setDocumentoActa] = useState<Documento | null>(null);
+  const [descargando, setDescargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorAccion, setErrorAccion] = useState<string | null>(null);
   const [exito, setExito] = useState<string | null>(exitoInicial);
@@ -113,6 +129,8 @@ export function DetalleSolicitud() {
   const [rechazando, setRechazando] = useState(false);
   const [anulando, setAnulando] = useState(false);
   const [confirmandoFirma, setConfirmandoFirma] = useState(false);
+  // "He revisado el documento" (002, US2): se reinicia cada vez que se abre un diálogo.
+  const [revisado, setRevisado] = useState(false);
   const [stock, setStock] = useState<Record<string, number> | null>(null);
 
   const cargar = useCallback(async () => {
@@ -158,6 +176,7 @@ export function DetalleSolicitud() {
     setExito(null);
     setVerificacion(null);
     setHistorial(null);
+    setDocumento(null);
     try {
       const resultado = await accion();
       setRechazando(false);
@@ -237,6 +256,50 @@ export function DetalleSolicitud() {
       setErrorAccion(textoError(e));
     }
   }
+
+  /** Descarga el PDF firmado (002, US3 y US4): se emite en la primera descarga tras una firma. */
+  async function descargar(destino: DestinoPdf) {
+    if (!req) return;
+    setErrorAccion(null);
+    setDescargando(true);
+    try {
+      const sufijo = destino === 'acta' ? '-acta' : '';
+      await descargarPdf(req.id, destino, `${req.codigo}${sufijo}.pdf`);
+    } catch (e: unknown) {
+      setErrorAccion(textoError(e));
+    } finally {
+      setDescargando(false);
+    }
+  }
+
+  async function verDocumento() {
+    if (documento) {
+      setDocumento(null);
+      return;
+    }
+    setErrorAccion(null);
+    try {
+      setDocumento(await obtenerDocumento(id ?? ''));
+    } catch (e: unknown) {
+      setErrorAccion(textoError(e));
+    }
+  }
+
+  /** Documento del acta de recepción (002, US4): lo despachado, lo recibido y las observaciones. */
+  async function verDocumentoActa() {
+    if (documentoActa) {
+      setDocumentoActa(null);
+      return;
+    }
+    setErrorAccion(null);
+    try {
+      setDocumentoActa(await obtenerDocumentoActa(id ?? ''));
+    } catch (e: unknown) {
+      setErrorAccion(textoError(e));
+    }
+  }
+
+  const tieneActa = firmas.some((f) => f.nivel === 'ACTA_RECEPCION');
 
   return (
     <main className="contenedor">
@@ -318,7 +381,10 @@ export function DetalleSolicitud() {
                 type="button"
                 className="boton"
                 disabled={enviando}
-                onClick={() => setConfirmandoFirma(true)}
+                onClick={() => {
+                  setRevisado(false);
+                  setConfirmandoFirma(true);
+                }}
               >
                 <Feather size={18} />
                 Firmar
@@ -329,7 +395,10 @@ export function DetalleSolicitud() {
                 type="button"
                 className="boton--secundario"
                 disabled={enviando}
-                onClick={() => setRechazando(true)}
+                onClick={() => {
+                  setRevisado(false);
+                  setRechazando(true);
+                }}
               >
                 <CircleX size={18} />
                 Rechazar
@@ -364,13 +433,19 @@ export function DetalleSolicitud() {
               advertencia={ADVERTENCIA_FIRMA}
               confirmar="Sí, firmar"
               enviando={enviando}
+              bloqueado={!revisado}
               onConfirmar={firmar}
               onCancelar={() => setConfirmandoFirma(false)}
             >
               <p>
                 Va a aprobar con su firma digital la solicitud {req.codigo}, que está en "
-                {etiquetaEstado(req.estado)}".
+                {etiquetaEstado(req.estado)}". Revise el documento completo antes de firmar.
               </p>
+              <RevisionDocumento
+                requerimientoId={req.id}
+                revisado={revisado}
+                onCambiar={setRevisado}
+              />
             </DialogoConfirmacion>
           ) : null}
           {rechazando ? (
@@ -379,9 +454,16 @@ export function DetalleSolicitud() {
               advertencia={ADVERTENCIA_RECHAZO}
               confirmar="Confirmar rechazo"
               enviando={enviando}
+              bloqueado={!revisado}
               onConfirmar={rechazar}
               onCancelar={() => setRechazando(false)}
-            />
+            >
+              <RevisionDocumento
+                requerimientoId={req.id}
+                revisado={revisado}
+                onCambiar={setRevisado}
+              />
+            </DialogoMotivo>
           ) : null}
 
           {anulando ? (
@@ -408,6 +490,60 @@ export function DetalleSolicitud() {
 
           {verificacion ? <ResultadoVerificacion verificacion={verificacion} /> : null}
           <ListaFirmas firmas={firmas} />
+
+          <section className="seccion" aria-labelledby="titulo-documento">
+            <p className="antetitulo">Documento oficial</p>
+            <h3 id="titulo-documento">
+              <FileText />
+              Documento
+            </h3>
+            <div className="acciones">
+              <button
+                type="button"
+                className="boton--secundario"
+                aria-expanded={documento !== null}
+                onClick={() => void verDocumento()}
+              >
+                <FileText size={18} />
+                {documento ? 'Ocultar documento' : 'Ver documento'}
+              </button>
+              {firmas.some((f) => f.nivel !== 'ACTA_RECEPCION') ? (
+                <button
+                  type="button"
+                  className="boton--secundario"
+                  disabled={descargando}
+                  onClick={() => void descargar('requerimiento')}
+                >
+                  <FileDown size={18} />
+                  {descargando ? 'Descargando…' : 'Descargar PDF'}
+                </button>
+              ) : null}
+            </div>
+            {documento ? <DocumentoOficial documento={documento} /> : null}
+            {tieneActa ? (
+              <div className="acciones">
+                <button
+                  type="button"
+                  className="boton--secundario"
+                  aria-expanded={documentoActa !== null}
+                  onClick={() => void verDocumentoActa()}
+                >
+                  <FileText size={18} />
+                  {documentoActa ? 'Ocultar documento del acta' : 'Ver documento del acta'}
+                </button>
+                <button
+                  type="button"
+                  className="boton--secundario"
+                  disabled={descargando}
+                  onClick={() => void descargar('acta')}
+                >
+                  <FileDown size={18} />
+                  {descargando ? 'Descargando…' : 'Descargar PDF del acta'}
+                </button>
+              </div>
+            ) : null}
+            {documentoActa ? <DocumentoOficial documento={documentoActa} /> : null}
+          </section>
 
           <section className="seccion" aria-labelledby="titulo-historial">
             <p className="antetitulo">Conducto regular</p>

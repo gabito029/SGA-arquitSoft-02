@@ -1,4 +1,12 @@
-import { FilePlus, Inbox, LogOut, Shield, Warehouse, type LucideIcon } from 'lucide-react';
+import {
+  FilePlus,
+  Inbox,
+  LogOut,
+  Shield,
+  ShieldCheck,
+  Warehouse,
+  type LucideIcon,
+} from 'lucide-react';
 import { Link, NavLink } from 'react-router-dom';
 import { useSesion } from '../auth/SesionContexto';
 import { ETIQUETAS_ROL } from '../logica/historial';
@@ -8,12 +16,13 @@ const ICONOS_MENU: Record<string, LucideIcon> = {
   '/bandeja': Inbox,
   '/solicitudes/nueva': FilePlus,
   '/stock': Warehouse,
+  '/verificar': ShieldCheck,
 };
 
 /**
  * Cabecera (T102, T109): marca del sistema, quién está conectado (sin repetir la unidad), su rol,
  * el menú según el rol (Bandeja para todos, Nueva solicitud para el oficial de logística y Stock
- * para el almacén) y cerrar sesión.
+ * para el almacén, Verificar PDF para todos) y cerrar sesión.
  */
 export function Encabezado() {
   const { usuario, cerrarSesion } = useSesion();

@@ -10,6 +10,8 @@ interface Props {
   advertencia: string;
   confirmar: string;
   enviando?: boolean;
+  /** Mientras es verdadero, el botón de confirmar queda desactivado (p. ej., falta la revisión). */
+  bloqueado?: boolean;
   onConfirmar: () => void;
   onCancelar: () => void;
 }
@@ -25,6 +27,7 @@ export function DialogoConfirmacion({
   advertencia,
   confirmar,
   enviando = false,
+  bloqueado = false,
   onConfirmar,
   onCancelar,
 }: Props) {
@@ -56,7 +59,12 @@ export function DialogoConfirmacion({
         {advertencia}
       </p>
       <div className="formulario__acciones">
-        <button type="button" className="boton" disabled={enviando} onClick={onConfirmar}>
+        <button
+          type="button"
+          className="boton"
+          disabled={enviando || bloqueado}
+          onClick={onConfirmar}
+        >
           {enviando ? 'Procesando…' : confirmar}
         </button>
         <button

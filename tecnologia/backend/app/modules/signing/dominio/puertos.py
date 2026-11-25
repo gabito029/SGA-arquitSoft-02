@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Protocol
 
+from app.modules.signing.dominio.documento import DocumentoEmitido, DocumentoPdf, TipoDocumento
 from app.modules.signing.dominio.tipos import DecisionFirma, NivelFirma, ResultadoVerificacion
 
 
@@ -79,3 +80,38 @@ class RepositorioFirmas(Protocol):
         ...
 
     def acta(self, requerimiento_id: uuid.UUID) -> ActaRegistrada | None: ...
+
+
+# --- Documentos PDF (incremento 002; ADR-010) ---
+
+
+class AlmacenDocumentos(Protocol):
+    """Dónde se guardan los PDF firmados. Cambiar el disco por otro almacenamiento es otro
+    adaptador de este puerto; los casos de uso no cambian (ADR-010, abierto/cerrado)."""
+
+    def guardar(self, clave: str, contenido: bytes) -> None:
+        """Guarda ``contenido``; si ``clave`` ya existe lanza ``DocumentoExistente`` (nunca
+        sobrescribe). No hay método para borrar."""
+        ...
+
+    def leer(self, clave: str) -> bytes:
+        """Devuelve los bytes guardados; si no existen lanza ``DocumentoNoEncontrado``."""
+        ...
+
+
+class GeneradorPdf(Protocol):
+    def generar(self, documento: DocumentoPdf, codigo: str, huella_contenido: str) -> bytes:
+        """Los bytes del PDF del documento, con el código en cada página y en los metadatos."""
+        ...
+
+
+class RepositorioDocumentos(Protocol):
+    def buscar(
+        self, requerimiento_id: uuid.UUID, tipo: TipoDocumento, ultima_firma_id: uuid.UUID
+    ) -> DocumentoEmitido | None: ...
+
+    def por_codigo(self, codigo: str) -> DocumentoEmitido | None: ...
+
+    def guardar(self, documento: DocumentoEmitido) -> None:
+        """Inserta la fila; si el estado firmado ya tiene documento lanza ``DocumentoExistente``."""
+        ...

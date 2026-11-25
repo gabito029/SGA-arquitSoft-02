@@ -1,6 +1,7 @@
 # SGA: entorno local con Docker Compose (C4 nivel 2, ADR-012 y ADR-013).
 # Uso: cp .env.example .env  →  docker compose up --build -d
-# En 002 se suman uptime-kuma y el escalamiento con --scale api=2.
+# Desde 002 la api guarda los PDF emitidos en el volumen "documentos" (ADR-010), sin sobrescribir.
+# Pendiente (EQ-06, EQ-09): uptime-kuma y el escalamiento con --scale api=2.
 
 services:
   db:
@@ -29,6 +30,10 @@ services:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-sga}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-sga}
       # Al arrancar se aplican las migraciones y, si es true, los seeds ficticios (idempotentes).
       CARGAR_SEEDS: ${CARGAR_SEEDS:-true}
+      # Los PDF firmados se guardan en el volumen "documentos" (ADR-010, C4 nivel 2).
+      DOCUMENTOS_DIR: /datos/documentos
+    volumes:
+      - documentos:/datos/documentos
     depends_on:
       db:
         condition: service_healthy
@@ -58,3 +63,5 @@ services:
 
 volumes:
   datos_db:
+  # Almacenamiento de documentos (ADR-010): los PDF firmados, que no se modifican.
+  documentos:

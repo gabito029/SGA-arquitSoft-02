@@ -54,12 +54,13 @@ export function validarMotivo(motivo: string): string | null {
   return null;
 }
 
+// La interfaz solo las envía después de marcar "He revisado el documento" (002, FR-006).
 export function decisionAprobar(): DecisionFirma {
-  return { decision: 'APROBAR' };
+  return { decision: 'APROBAR', documento_revisado: true };
 }
 
 export function decisionRechazar(motivo: string): DecisionFirma {
-  return { decision: 'RECHAZAR', motivo: motivo.trim() };
+  return { decision: 'RECHAZAR', motivo: motivo.trim(), documento_revisado: true };
 }
 
 // --- Paso de confirmación (T100): lo que no se puede deshacer ---

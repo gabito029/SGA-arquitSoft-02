@@ -40,12 +40,12 @@ afterEach(() => {
 
 describe('menuPorRol', () => {
   it.each<[Rol, string[]]>([
-    ['OFICIAL_LOGISTICA', ['Bandeja', 'Nueva solicitud']],
-    ['JEFE_ALMACEN', ['Bandeja', 'Stock']],
-    ['ALMACENERO', ['Bandeja', 'Stock']],
-    ['COMANDANTE_UNIDAD', ['Bandeja']],
-    ['JEFE_LOGISTICA_GU', ['Bandeja']],
-    ['AUDITOR', ['Bandeja']],
+    ['OFICIAL_LOGISTICA', ['Bandeja', 'Nueva solicitud', 'Verificar PDF']],
+    ['JEFE_ALMACEN', ['Bandeja', 'Stock', 'Verificar PDF']],
+    ['ALMACENERO', ['Bandeja', 'Stock', 'Verificar PDF']],
+    ['COMANDANTE_UNIDAD', ['Bandeja', 'Verificar PDF']],
+    ['JEFE_LOGISTICA_GU', ['Bandeja', 'Verificar PDF']],
+    ['AUDITOR', ['Bandeja', 'Verificar PDF']],
   ])('%s → %j', (rol, esperado) => {
     expect(menuPorRol(rol).map((o) => o.etiqueta)).toEqual(esperado);
   });
@@ -69,6 +69,7 @@ describe('Encabezado', () => {
     expect(within(menu).getAllByRole('link').map((a) => a.textContent)).toEqual([
       'Bandeja',
       'Nueva solicitud',
+      'Verificar PDF',
     ]);
     expect(within(menu).getByRole('link', { name: 'Bandeja' })).toHaveAttribute(
       'aria-current',
@@ -77,6 +78,13 @@ describe('Encabezado', () => {
     expect(screen.getByText('Oficial de logística BIM-11')).toBeInTheDocument();
     expect(screen.queryByText(/BIM-11 · BIM-11/)).not.toBeInTheDocument();
     expect(screen.getByText('Oficial de logística')).toBeInTheDocument(); // el rol
+  });
+
+  it('el enlace "Verificar PDF" lleva a /verificar (002, US5)', () => {
+    renderizar(usuario('AUDITOR', 'Auditor de la Inspectoría', 'IGE'), '/verificar');
+    const enlace = screen.getByRole('link', { name: 'Verificar PDF' });
+    expect(enlace).toHaveAttribute('href', '/verificar');
+    expect(enlace).toHaveAttribute('aria-current', 'page');
   });
 
   it('el almacenero ve Stock y no Nueva solicitud', () => {

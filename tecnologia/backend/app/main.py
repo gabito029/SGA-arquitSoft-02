@@ -12,6 +12,7 @@ from app.modules.catalog.presentacion.router import router as router_catalogo
 from app.modules.identity.presentacion.router import router as router_identidad
 from app.modules.inventory.presentacion.router import router as router_inventario
 from app.modules.requests.presentacion.router import router as router_requerimientos
+from app.modules.requests.presentacion.router_documentos import router as router_documentos
 
 DESCRIPCION = (
     "API REST del flujo principal de abastecimiento (incremento 001). Todos los endpoints, "
@@ -32,6 +33,7 @@ def crear_app() -> FastAPI:
     app.include_router(router_identidad)
     app.include_router(router_catalogo)
     app.include_router(router_requerimientos)
+    app.include_router(router_documentos)
     app.include_router(router_inventario)
     return app
 

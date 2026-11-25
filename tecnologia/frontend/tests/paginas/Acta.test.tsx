@@ -1,10 +1,11 @@
 // T080: las diferencias se resaltan; ALTERADA se muestra como alerta e INTEGRA como éxito.
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import type { Firma, Verificacion } from '../../src/api/tipos';
 import { DetalleSolicitud } from '../../src/paginas/DetalleSolicitud';
 import { ITEM_INT_1, ITEM_INT_2, requerimiento } from '../apoyo/catalogo';
+import { documento } from '../apoyo/documento';
 import { respuesta, simularFetch } from '../apoyo/respuestas';
 
 const ID = 'cccccccc-0000-0000-0000-000000000001';
@@ -176,5 +177,86 @@ describe('Acta de recepción', () => {
     renderizar();
     await userEvent.setup().click(await screen.findByRole('button', { name: 'Verificar' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('No existe.');
+  });
+
+  // --- 002, US4 (T034): documento y PDF del acta ---
+
+  const RECIBIDA = { ...EN_TRANSITO, estado: 'CONFIRMADA' as const, acciones_disponibles: [] };
+  const FIRMA_ACTA: Firma = {
+    ...FIRMA,
+    id: 'f4',
+    nivel: 'ACTA_RECEPCION',
+    firmante: 'Oficial de logística BIM-11',
+    rol: 'OFICIAL_LOGISTICA',
+  };
+  const DOCUMENTO_ACTA = documento({
+    tipo: 'ACTA',
+    tiene_diferencias: true,
+    items: [
+      {
+        codigo: 'INT-002',
+        descripcion: 'Frazada',
+        categoria: 'INTENDENCIA',
+        unidad_medida: 'UND',
+        cantidad_solicitada: 5,
+        cantidad_despachada: 4,
+        cantidad_recibida: 3,
+        observacion: 'Falta una unidad',
+      },
+    ],
+  });
+
+  function pdfSimulado(): Response {
+    return {
+      ok: true,
+      status: 200,
+      blob: async () => new Blob(['%PDF-1.4'], { type: 'application/pdf' }),
+    } as unknown as Response;
+  }
+
+  it('muestra el documento del acta con sus columnas', async () => {
+    const fetchSimulado = simularFetch(
+      respuesta(200, RECIBIDA),
+      respuesta(200, [FIRMA, FIRMA_ACTA]),
+      respuesta(200, DOCUMENTO_ACTA),
+    );
+    renderizar();
+    const boton = await screen.findByRole('button', { name: 'Ver documento del acta' });
+    await userEvent.setup().click(boton);
+    const doc = await screen.findByRole('article', { name: /Acta de recepción/ });
+    expect(fetchSimulado.mock.calls[2][0]).toBe(`/api/v1/requerimientos/${ID}/acta/documento`);
+    const tabla = within(doc).getByRole('table', { name: 'Ítems' });
+    expect(within(tabla).getByRole('columnheader', { name: 'Despachado' })).toBeInTheDocument();
+    expect(within(tabla).getByRole('columnheader', { name: 'Recibido' })).toBeInTheDocument();
+    expect(within(tabla).getAllByRole('row')[1]).toHaveTextContent('Falta una unidad');
+    expect(doc).toHaveTextContent('Se registraron diferencias');
+  });
+
+  it('descarga el PDF del acta con la ruta del acta', async () => {
+    const fetchSimulado = simularFetch(
+      respuesta(200, RECIBIDA),
+      respuesta(200, [FIRMA, FIRMA_ACTA]),
+      pdfSimulado(),
+    );
+    Object.assign(URL, { createObjectURL: jest.fn(() => 'blob:x'), revokeObjectURL: jest.fn() });
+    const clic = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    renderizar();
+    const boton = await screen.findByRole('button', { name: 'Descargar PDF del acta' });
+    await userEvent.setup().click(boton);
+    await waitFor(() => expect(clic).toHaveBeenCalledTimes(1));
+    expect(fetchSimulado.mock.calls[2][0]).toBe(
+      `/api/v1/requerimientos/${ID}/acta/documento.pdf`,
+    );
+    clic.mockRestore();
+  });
+
+  it('sin acta no se ofrece su documento ni su PDF', async () => {
+    simularFetch(respuesta(200, EN_TRANSITO), respuesta(200, [FIRMA]));
+    renderizar();
+    await screen.findByRole('heading', { name: 'Firmar acta de recepción' });
+    const ver = screen.queryByRole('button', { name: 'Ver documento del acta' });
+    expect(ver).not.toBeInTheDocument();
+    const pdf = screen.queryByRole('button', { name: 'Descargar PDF del acta' });
+    expect(pdf).not.toBeInTheDocument();
   });
 });
