@@ -8,7 +8,14 @@ from pathlib import Path
 import pytest
 from sqlalchemy import text
 
-from tests.integracion.apoyo import URL, avanzar, crear_enviada, firmar
+from tests.integracion.apoyo import (
+    URL,
+    avanzar,
+    crear_en_transito,
+    crear_enviada,
+    firmar,
+    firmar_acta,
+)
 
 # --- US1: documento oficial (T015) ---
 
@@ -191,3 +198,67 @@ def test_pdf_guardado_que_no_coincide_con_su_huella_no_se_entrega(cliente, login
     respuesta = _pdf(cliente, oficial, rid)
     assert respuesta.status_code == 409
     assert respuesta.json()["codigo"] == "DOCUMENTO_INCONSISTENTE"
+
+
+# --- US4: documento y PDF del acta de recepción (T032) ---
+
+
+def _recibida_con_diferencia(cliente, login) -> str:
+    rid = crear_en_transito(cliente, login)
+    respuesta = firmar_acta(
+        cliente,
+        login,
+        rid,
+        {"INT-001": 8, "INT-002": 5},
+        observaciones={"INT-001": "Llegaron 2 raciones dañadas"},
+    )
+    assert respuesta.status_code == 201, respuesta.text
+    return rid
+
+
+def test_documento_del_acta_con_lineas_diferencias_y_sello(cliente, login):
+    rid = _recibida_con_diferencia(cliente, login)
+    respuesta = cliente.get(f"{URL}/{rid}/acta/documento", headers=login("oficial.bim11"))
+    assert respuesta.status_code == 200, respuesta.text
+    doc = respuesta.json()
+    assert doc["tipo"] == "ACTA"
+    assert doc["tiene_diferencias"] is True
+    lineas = {i["codigo"]: i for i in doc["items"]}
+    assert (lineas["INT-001"]["cantidad_despachada"], lineas["INT-001"]["cantidad_recibida"]) == (
+        10,
+        8,
+    )
+    assert lineas["INT-001"]["observacion"] == "Llegaron 2 raciones dañadas"
+    assert lineas["INT-002"]["cantidad_recibida"] == 5
+    assert [s["nivel"] for s in doc["sellos"]] == ["ACTA_RECEPCION"]
+    assert doc["pdf_disponible"] is True
+
+
+def test_pdf_del_acta_tiene_su_propio_codigo_y_no_cambia_el_del_requerimiento(cliente, login):
+    rid = crear_en_transito(cliente, login)
+    oficial = login("oficial.bim11")
+    pdf_req = _pdf(cliente, oficial, rid)
+    assert pdf_req.status_code == 200
+    assert firmar_acta(cliente, login, rid, {"INT-001": 10, "INT-002": 5}).status_code == 201
+    pdf_acta = _pdf(cliente, oficial, rid, "acta/documento.pdf")
+    assert pdf_acta.status_code == 200, pdf_acta.text
+    assert pdf_acta.headers["content-type"] == "application/pdf"
+    assert "-acta.pdf" in pdf_acta.headers["content-disposition"]
+    codigo_acta = pdf_acta.headers["x-codigo-verificacion"]
+    assert codigo_acta != pdf_req.headers["x-codigo-verificacion"]
+    # Firmar el acta no cambia el PDF del requerimiento.
+    de_nuevo = _pdf(cliente, oficial, rid)
+    assert de_nuevo.content == pdf_req.content
+    assert _pdf(cliente, oficial, rid, "acta/documento.pdf").content == pdf_acta.content
+
+
+def test_acta_inexistente_404_y_ajena_404(cliente, login):
+    rid = crear_en_transito(cliente, login)
+    oficial = login("oficial.bim11")
+    assert cliente.get(f"{URL}/{rid}/acta/documento", headers=oficial).status_code == 404
+    assert _pdf(cliente, oficial, rid, "acta/documento.pdf").status_code == 404
+    rid2 = _recibida_con_diferencia(cliente, login)
+    ajeno = login("oficial.bim21")
+    assert cliente.get(f"{URL}/{rid2}/acta/documento", headers=ajeno).status_code == 404
+    assert _pdf(cliente, ajeno, rid2, "acta/documento.pdf").status_code == 404
+    assert cliente.get(f"{URL}/{rid2}/acta/documento.pdf").status_code == 401

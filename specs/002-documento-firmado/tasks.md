@@ -101,10 +101,10 @@ Rutas: `B/` = `tecnologia/backend/`, `F/` = `tecnologia/frontend/`.
 
 **Independent Test**: una solicitud "Recibida" con una diferencia muestra el acta y descarga su PDF con un código distinto del PDF del requerimiento.
 
-- [ ] T032 [P] [US4] Prueba de integración en `B/tests/integracion/test_documentos.py`: `GET /{id}/acta/documento` → líneas con despachado, recibido y observación, `tiene_diferencias` y el sello del acta; `GET /{id}/acta/documento.pdf` → PDF con un código propio (distinto del requerimiento), y firmar el acta no cambia el PDF del requerimiento; sin acta → 404
-- [ ] T033 [US4] Soporte del tipo ACTA en `ConsultarDocumento` y `DescargarPdf` (líneas con despachado, recibido y observación, `tiene_diferencias`, sello `ACTA_RECEPCION`) y las rutas `GET /{id}/acta/documento` (JSON, contrato `Documento` con `tipo` ACTA) y `GET /{id}/acta/documento.pdf` en `B/app/modules/requests/presentacion/router.py`; el generador imprime las columnas del acta en `B/app/modules/signing/infraestructura/generador_pdf_reportlab.py`
-- [ ] T034 [P] [US4] Prueba Jest en `F/tests/paginas/Acta.test.tsx`: la sección del acta muestra su documento (`DocumentoOficial` con las columnas del acta) y el botón "Descargar PDF del acta" y lo llama con la ruta del acta
-- [ ] T035 [US4] Agregar `obtenerDocumentoActa(id)` a `F/src/api/cliente.ts`, soportar las columnas del acta en `F/src/componentes/DocumentoOficial.tsx` y mostrar el documento del acta con el botón "Descargar PDF del acta" en `F/src/paginas/DetalleSolicitud.tsx`
+- [X] T032 [P] [US4] Prueba de integración en `B/tests/integracion/test_documentos.py`: `GET /{id}/acta/documento` → líneas con despachado, recibido y observación, `tiene_diferencias` y el sello del acta; `GET /{id}/acta/documento.pdf` → PDF con un código propio (distinto del requerimiento), y firmar el acta no cambia el PDF del requerimiento; sin acta → 404
+- [X] T033 [US4] Soporte del tipo ACTA en `ConsultarDocumento` y `DescargarPdf` (líneas con despachado, recibido y observación, `tiene_diferencias`, sello `ACTA_RECEPCION`) y las rutas `GET /{id}/acta/documento` (JSON, contrato `Documento` con `tipo` ACTA) y `GET /{id}/acta/documento.pdf` en `B/app/modules/requests/presentacion/router.py`; el generador imprime las columnas del acta en `B/app/modules/signing/infraestructura/generador_pdf_reportlab.py`
+- [X] T034 [P] [US4] Prueba Jest en `F/tests/paginas/Acta.test.tsx`: la sección del acta muestra su documento (`DocumentoOficial` con las columnas del acta) y el botón "Descargar PDF del acta" y lo llama con la ruta del acta
+- [X] T035 [US4] Agregar `obtenerDocumentoActa(id)` a `F/src/api/cliente.ts`, soportar las columnas del acta en `F/src/componentes/DocumentoOficial.tsx` y mostrar el documento del acta con el botón "Descargar PDF del acta" en `F/src/paginas/DetalleSolicitud.tsx`
 
 **Checkpoint**: US1–US4 funcionan.
 

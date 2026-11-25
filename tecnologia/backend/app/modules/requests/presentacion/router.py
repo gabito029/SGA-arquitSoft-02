@@ -43,6 +43,7 @@ from app.modules.requests.presentacion.esquemas import (
     RequerimientoSalida,
     VerificacionSalida,
 )
+from app.modules.signing.dominio.documento import TipoDocumento
 
 router = APIRouter(prefix="/api/v1/requerimientos", tags=["Requerimientos"])
 
@@ -374,6 +375,47 @@ def documento_pdf(
 ) -> Response:
     with fabrica_uow() as uow:
         pdf = construir_descargar_pdf(uow.sesion).ejecutar(_actor(usuario), id)
+    return _respuesta_pdf(pdf)
+
+
+@router.get(
+    "/{id}/acta/documento",
+    response_model=DocumentoSalida,
+    tags=["Documentos"],
+    summary="Documento del acta de recepción: despachado, recibido y observaciones (002, US4)",
+    description="Mismo contrato Documento con tipo ACTA: cada línea trae lo despachado, lo "
+    "recibido y la observación, más tiene_diferencias y el sello ACTA_RECEPCION. Sin acta o "
+    "ajena responde 404.",
+    responses={**_R401, **_R404},
+)
+def documento_acta(
+    id: uuid.UUID,
+    usuario: UsuarioActual = Depends(usuario_actual),
+    fabrica_uow: FabricaUnidadTrabajo = Depends(obtener_fabrica_uow),
+) -> DocumentoSalida:
+    with fabrica_uow() as uow:
+        vista = construir_consultar_documento(uow.sesion).ejecutar(
+            _actor(usuario), id, TipoDocumento.ACTA
+        )
+    return DocumentoSalida.desde_vista(vista)
+
+
+@router.get(
+    "/{id}/acta/documento.pdf",
+    response_class=Response,
+    tags=["Documentos"],
+    summary="Descargar el PDF firmado del acta de recepción (002, US4)",
+    description="PDF propio del acta, con su código de verificación distinto del PDF del "
+    "requerimiento. Firmar el acta no cambia el PDF del requerimiento.",
+    responses={**_RESPUESTA_PDF, **_R401, **_R404, **_R409_PDF},
+)
+def documento_acta_pdf(
+    id: uuid.UUID,
+    usuario: UsuarioActual = Depends(usuario_actual),
+    fabrica_uow: FabricaUnidadTrabajo = Depends(obtener_fabrica_uow),
+) -> Response:
+    with fabrica_uow() as uow:
+        pdf = construir_descargar_pdf(uow.sesion).ejecutar(_actor(usuario), id, TipoDocumento.ACTA)
     return _respuesta_pdf(pdf)
 
 

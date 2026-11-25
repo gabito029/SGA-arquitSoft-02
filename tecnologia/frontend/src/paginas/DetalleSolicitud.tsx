@@ -22,7 +22,7 @@ import {
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { api, ErrorApi } from '../api/cliente';
-import { obtenerDocumento } from '../api/documentos';
+import { obtenerDocumento, obtenerDocumentoActa } from '../api/documentos';
 import { stockPorItem } from '../api/inventario';
 import { descargarPdf } from '../api/pdf';
 import type { DestinoPdf } from '../api/pdf';
@@ -120,6 +120,7 @@ export function DetalleSolicitud() {
   const [verificacion, setVerificacion] = useState<Verificacion | null>(null);
   const [historial, setHistorial] = useState<EntradaHistorial[] | null>(null);
   const [documento, setDocumento] = useState<Documento | null>(null);
+  const [documentoActa, setDocumentoActa] = useState<Documento | null>(null);
   const [descargando, setDescargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorAccion, setErrorAccion] = useState<string | null>(null);
@@ -283,6 +284,22 @@ export function DetalleSolicitud() {
       setErrorAccion(textoError(e));
     }
   }
+
+  /** Documento del acta de recepción (002, US4): lo despachado, lo recibido y las observaciones. */
+  async function verDocumentoActa() {
+    if (documentoActa) {
+      setDocumentoActa(null);
+      return;
+    }
+    setErrorAccion(null);
+    try {
+      setDocumentoActa(await obtenerDocumentoActa(id ?? ''));
+    } catch (e: unknown) {
+      setErrorAccion(textoError(e));
+    }
+  }
+
+  const tieneActa = firmas.some((f) => f.nivel === 'ACTA_RECEPCION');
 
   return (
     <main className="contenedor">
@@ -503,6 +520,29 @@ export function DetalleSolicitud() {
               ) : null}
             </div>
             {documento ? <DocumentoOficial documento={documento} /> : null}
+            {tieneActa ? (
+              <div className="acciones">
+                <button
+                  type="button"
+                  className="boton--secundario"
+                  aria-expanded={documentoActa !== null}
+                  onClick={() => void verDocumentoActa()}
+                >
+                  <FileText size={18} />
+                  {documentoActa ? 'Ocultar documento del acta' : 'Ver documento del acta'}
+                </button>
+                <button
+                  type="button"
+                  className="boton--secundario"
+                  disabled={descargando}
+                  onClick={() => void descargar('acta')}
+                >
+                  <FileDown size={18} />
+                  {descargando ? 'Descargando…' : 'Descargar PDF del acta'}
+                </button>
+              </div>
+            ) : null}
+            {documentoActa ? <DocumentoOficial documento={documentoActa} /> : null}
           </section>
 
           <section className="seccion" aria-labelledby="titulo-historial">
