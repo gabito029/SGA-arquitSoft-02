@@ -156,7 +156,12 @@ def test_roles_que_no_firman_reciben_403(cliente, login):
 
 def test_sin_sesion_responde_401(cliente, login):
     rid = crear_enviada(cliente, login)
-    assert cliente.post(f"{URL}/{rid}/firmas", json={"decision": "APROBAR"}).status_code == 401
+    assert (
+        cliente.post(
+            f"{URL}/{rid}/firmas", json={"decision": "APROBAR", "documento_revisado": True}
+        ).status_code
+        == 401
+    )
     assert cliente.get(f"{URL}/{rid}/firmas").status_code == 401
 
 
@@ -230,7 +235,11 @@ def test_firmas_concurrentes_registran_una_sola(cliente, login, motor):
 
     def firmar_en_hilo() -> None:
         respuestas.append(
-            cliente.post(f"{URL}/{rid}/firmas", json={"decision": "APROBAR"}, headers=cabeceras)
+            cliente.post(
+                f"{URL}/{rid}/firmas",
+                json={"decision": "APROBAR", "documento_revisado": True},
+                headers=cabeceras,
+            )
         )
 
     # Se retiene el bloqueo de la fila para que las dos peticiones lleguen a la vez a esperarlo.

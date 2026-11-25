@@ -68,11 +68,11 @@ Rutas: `B/` = `tecnologia/backend/`, `F/` = `tecnologia/frontend/`.
 
 **Independent Test**: el botón de firmar queda deshabilitado hasta marcar la casilla; la API rechaza con 422 una firma sin `documento_revisado`.
 
-- [ ] T021 [P] [US2] Prueba de integración en `B/tests/integracion/test_documentos.py`: `POST /{id}/firmas` sin `documento_revisado` o con `false` → 422 y ninguna firma registrada; con `true` → 201
-- [ ] T022 [US2] Agregar `documento_revisado: bool` obligatorio (validado como `true`) a `DecisionFirmaEntrada` en `B/app/modules/requests/presentacion/esquemas.py` (research §9) y actualizar los cuerpos de firma de las pruebas de 001 en `B/tests/integracion/apoyo.py` y donde se firme directamente
-- [ ] T023 [P] [US2] Actualizar `tecnologia/pruebas/postman/sga-001.postman_collection.json` para enviar `documento_revisado: true` en cada firma y agregar un caso 422 sin el campo
-- [ ] T024 [P] [US2] Prueba Jest `F/tests/paginas/DetalleSolicitud.test.tsx`: al abrir firmar y rechazar se ve el documento; "Sí, firmar" y "Confirmar rechazo" están deshabilitados hasta marcar "He revisado el documento"; el cuerpo enviado lleva `documento_revisado: true`
-- [ ] T025 [US2] Crear `F/src/componentes/CasillaRevision.tsx` y usarla junto a `DocumentoOficial` dentro de `DialogoConfirmacion` (firmar) y `DialogoMotivo` (rechazar) en `F/src/paginas/DetalleSolicitud.tsx`; agregar `documento_revisado` al cuerpo de firma en `F/src/api/cliente.ts` (sin `window.confirm` ni `alert`)
+- [X] T021 [P] [US2] Prueba de integración en `B/tests/integracion/test_documentos.py`: `POST /{id}/firmas` sin `documento_revisado` o con `false` → 422 y ninguna firma registrada; con `true` → 201
+- [X] T022 [US2] Agregar `documento_revisado: bool` obligatorio (validado como `true`) a `DecisionFirmaEntrada` en `B/app/modules/requests/presentacion/esquemas.py` (research §9) y actualizar los cuerpos de firma de las pruebas de 001 en `B/tests/integracion/apoyo.py` y donde se firme directamente
+- [X] T023 [P] [US2] Actualizar `tecnologia/pruebas/postman/sga-001.postman_collection.json` para enviar `documento_revisado: true` en cada firma y agregar un caso 422 sin el campo
+- [X] T024 [P] [US2] Prueba Jest `F/tests/paginas/DetalleSolicitud.test.tsx`: al abrir firmar y rechazar se ve el documento; "Sí, firmar" y "Confirmar rechazo" están deshabilitados hasta marcar "He revisado el documento"; el cuerpo enviado lleva `documento_revisado: true`
+- [X] T025 [US2] Crear `F/src/componentes/CasillaRevision.tsx` y usarla junto a `DocumentoOficial` dentro de `DialogoConfirmacion` (firmar) y `DialogoMotivo` (rechazar) en `F/src/paginas/DetalleSolicitud.tsx`; agregar `documento_revisado` al cuerpo de firma en `F/src/api/cliente.ts` (sin `window.confirm` ni `alert`)
 
 **Checkpoint**: US1 y US2 funcionan.
 

@@ -32,6 +32,7 @@ import type {
 } from '../api/tipos';
 import { Cargando } from '../componentes/Cargando';
 import { DialogoConfirmacion } from '../componentes/DialogoConfirmacion';
+import { RevisionDocumento } from '../componentes/CasillaRevision';
 import { DialogoMotivo } from '../componentes/DialogoMotivo';
 import { DocumentoOficial } from '../componentes/DocumentoOficial';
 import { EstadoEtiqueta } from '../componentes/EstadoEtiqueta';
@@ -123,6 +124,8 @@ export function DetalleSolicitud() {
   const [rechazando, setRechazando] = useState(false);
   const [anulando, setAnulando] = useState(false);
   const [confirmandoFirma, setConfirmandoFirma] = useState(false);
+  // "He revisado el documento" (002, US2): se reinicia cada vez que se abre un diálogo.
+  const [revisado, setRevisado] = useState(false);
   const [stock, setStock] = useState<Record<string, number> | null>(null);
 
   const cargar = useCallback(async () => {
@@ -342,7 +345,10 @@ export function DetalleSolicitud() {
                 type="button"
                 className="boton"
                 disabled={enviando}
-                onClick={() => setConfirmandoFirma(true)}
+                onClick={() => {
+                  setRevisado(false);
+                  setConfirmandoFirma(true);
+                }}
               >
                 <Feather size={18} />
                 Firmar
@@ -353,7 +359,10 @@ export function DetalleSolicitud() {
                 type="button"
                 className="boton--secundario"
                 disabled={enviando}
-                onClick={() => setRechazando(true)}
+                onClick={() => {
+                  setRevisado(false);
+                  setRechazando(true);
+                }}
               >
                 <CircleX size={18} />
                 Rechazar
@@ -388,13 +397,19 @@ export function DetalleSolicitud() {
               advertencia={ADVERTENCIA_FIRMA}
               confirmar="Sí, firmar"
               enviando={enviando}
+              bloqueado={!revisado}
               onConfirmar={firmar}
               onCancelar={() => setConfirmandoFirma(false)}
             >
               <p>
                 Va a aprobar con su firma digital la solicitud {req.codigo}, que está en "
-                {etiquetaEstado(req.estado)}".
+                {etiquetaEstado(req.estado)}". Revise el documento completo antes de firmar.
               </p>
+              <RevisionDocumento
+                requerimientoId={req.id}
+                revisado={revisado}
+                onCambiar={setRevisado}
+              />
             </DialogoConfirmacion>
           ) : null}
           {rechazando ? (
@@ -403,9 +418,16 @@ export function DetalleSolicitud() {
               advertencia={ADVERTENCIA_RECHAZO}
               confirmar="Confirmar rechazo"
               enviando={enviando}
+              bloqueado={!revisado}
               onConfirmar={rechazar}
               onCancelar={() => setRechazando(false)}
-            />
+            >
+              <RevisionDocumento
+                requerimientoId={req.id}
+                revisado={revisado}
+                onCambiar={setRevisado}
+              />
+            </DialogoMotivo>
           ) : null}
 
           {anulando ? (

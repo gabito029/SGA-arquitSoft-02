@@ -59,8 +59,12 @@ describe('validarMotivo', () => {
   });
 
   it('arma el cuerpo de la decisión sin espacios sobrantes', () => {
-    expect(decisionAprobar()).toEqual({ decision: 'APROBAR' });
-    expect(decisionRechazar('  Sin stock  ')).toEqual({ decision: 'RECHAZAR', motivo: 'Sin stock' });
+    expect(decisionAprobar()).toEqual({ decision: 'APROBAR', documento_revisado: true });
+    expect(decisionRechazar('  Sin stock  ')).toEqual({
+      decision: 'RECHAZAR',
+      motivo: 'Sin stock',
+      documento_revisado: true,
+    });
   });
 });
 

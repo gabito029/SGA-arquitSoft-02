@@ -140,6 +140,17 @@ class DecisionFirmaEntrada(BaseModel):
         max_length=500,
         description="Obligatorio cuando decision = RECHAZAR",
     )
+    documento_revisado: bool = Field(
+        description="'He revisado el documento' (002, FR-007): debe ser true para firmar o "
+        "rechazar.",
+    )
+
+    @field_validator("documento_revisado")
+    @classmethod
+    def _revisado(cls, valor: bool) -> bool:
+        if valor is not True:
+            raise ValueError("Debe confirmar que revisó el documento antes de firmar.")
+        return valor
 
 
 class MotivoEntrada(BaseModel):

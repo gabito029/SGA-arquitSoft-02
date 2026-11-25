@@ -34,7 +34,8 @@ def crear_enviada(cliente, login, datos: dict = INTENDENCIA, oficial: str = "ofi
 
 
 def firmar(cliente, login, rid: str, usuario: str, decision: str = "APROBAR", motivo=None):
-    cuerpo_firma = {"decision": decision}
+    # Desde 002 la API exige "He revisado el documento" (FR-007).
+    cuerpo_firma = {"decision": decision, "documento_revisado": True}
     if motivo is not None:
         cuerpo_firma["motivo"] = motivo
     return cliente.post(f"{URL}/{rid}/firmas", json=cuerpo_firma, headers=login(usuario))

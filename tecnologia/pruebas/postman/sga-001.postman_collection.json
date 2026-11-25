@@ -445,7 +445,7 @@
           ]
         },
         {
-          "name": "3. Visto bueno (cmdte.bim11)",
+          "name": "422 firma sin \"He revisado el documento\" (cmdte.bim11, 002)",
           "request": {
             "method": "POST",
             "header": [
@@ -467,6 +467,49 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"decision\": \"APROBAR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 422', () => pm.response.to.have.status(422));",
+                  "pm.test('indica el campo documento_revisado', () => pm.expect(JSON.stringify(pm.response.json())).to.include('documento_revisado'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3. Visto bueno (cmdte.bim11)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{t_cmdte}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/requerimientos/{{req_id}}/firmas",
+              "host": [
+                "{{base_url}}/api/v1/requerimientos/{{req_id}}/firmas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"APROBAR\",\n  \"documento_revisado\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -509,7 +552,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"decision\": \"APROBAR\"\n}",
+              "raw": "{\n  \"decision\": \"APROBAR\",\n  \"documento_revisado\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -552,7 +595,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"decision\": \"APROBAR\"\n}",
+              "raw": "{\n  \"decision\": \"APROBAR\",\n  \"documento_revisado\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -912,7 +955,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"decision\": \"APROBAR\"\n}",
+              "raw": "{\n  \"decision\": \"APROBAR\",\n  \"documento_revisado\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1173,7 +1216,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"decision\": \"APROBAR\"\n}",
+              "raw": "{\n  \"decision\": \"APROBAR\",\n  \"documento_revisado\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1215,7 +1258,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"decision\": \"APROBAR\"\n}",
+              "raw": "{\n  \"decision\": \"APROBAR\",\n  \"documento_revisado\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1257,7 +1300,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"decision\": \"APROBAR\"\n}",
+              "raw": "{\n  \"decision\": \"APROBAR\",\n  \"documento_revisado\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"

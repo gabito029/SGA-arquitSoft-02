@@ -68,3 +68,36 @@ def test_documento_emitido_es_inmutable(motor):
             text("SELECT count(*) FROM pg_trigger WHERE tgname = 'tg_documento_emitido_inmutable'")
         )
     assert disparadores == 1
+
+
+# --- US2: revisión antes de firmar (T021) ---
+
+
+@pytest.mark.parametrize(
+    "cuerpo",
+    [
+        {"decision": "APROBAR"},
+        {"decision": "APROBAR", "documento_revisado": False},
+        {"decision": "RECHAZAR", "motivo": "No corresponde"},
+    ],
+    ids=["sin-campo", "false", "rechazo-sin-campo"],
+)
+def test_firmar_sin_revisar_el_documento_es_422_y_no_registra_nada(cliente, login, cuerpo):
+    rid = crear_enviada(cliente, login)
+    cabeceras = login("cmdte.bim11")
+    respuesta = cliente.post(f"{URL}/{rid}/firmas", json=cuerpo, headers=cabeceras)
+    assert respuesta.status_code == 422, respuesta.text
+    assert "documento_revisado" in respuesta.text
+    assert cliente.get(f"{URL}/{rid}/firmas", headers=cabeceras).json() == []
+    detalle = cliente.get(f"{URL}/{rid}", headers=cabeceras).json()
+    assert detalle["estado"] == "PENDIENTE_VB_UNIDAD"
+
+
+def test_firmar_con_el_documento_revisado(cliente, login):
+    rid = crear_enviada(cliente, login)
+    respuesta = cliente.post(
+        f"{URL}/{rid}/firmas",
+        json={"decision": "APROBAR", "documento_revisado": True},
+        headers=login("cmdte.bim11"),
+    )
+    assert respuesta.status_code == 201, respuesta.text

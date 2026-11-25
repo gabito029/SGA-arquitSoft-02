@@ -118,6 +118,8 @@ export interface PaginaRequerimientos {
 export interface DecisionFirma {
   decision: 'APROBAR' | 'RECHAZAR';
   motivo?: string;
+  /** "He revisado el documento" (incremento 002, FR-007): la API lo exige en true. */
+  documento_revisado: true;
 }
 
 export interface Firma {

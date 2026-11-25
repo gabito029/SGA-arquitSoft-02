@@ -58,10 +58,12 @@ Accion = Callable[[object, str, dict], object]
 ACCIONES: dict[str, Accion] = {
     "ENVIAR": lambda c, rid, h: c.post(f"{URL}/{rid}/enviar", headers=h),
     "FIRMAR": lambda c, rid, h: c.post(
-        f"{URL}/{rid}/firmas", json={"decision": "APROBAR"}, headers=h
+        f"{URL}/{rid}/firmas", json={"decision": "APROBAR", "documento_revisado": True}, headers=h
     ),
     "RECHAZAR": lambda c, rid, h: c.post(
-        f"{URL}/{rid}/firmas", json={"decision": "RECHAZAR", "motivo": MOTIVO}, headers=h
+        f"{URL}/{rid}/firmas",
+        json={"decision": "RECHAZAR", "motivo": MOTIVO, "documento_revisado": True},
+        headers=h,
     ),
     "DESPACHAR": lambda c, rid, h: c.post(
         f"{URL}/{rid}/despacho",
