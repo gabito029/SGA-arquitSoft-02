@@ -26,9 +26,9 @@ proyecto.
 
 | Tema | Decisión | Documento |
 |---|---|---|
-| Estilo | Monolito modular con ocho módulos (ADR-001) | [Estilo arquitectónico](docs/02-arquitectura-software/estilo-arquitectonico.md) |
+| Estilo | Monolito modular con ocho módulos (ADR-001); siete implementados en el Sprint 2 (Reportes queda para un incremento posterior) | [Estilo arquitectónico](docs/02-arquitectura-software/estilo-arquitectonico.md) |
 | Enfoque | Clean Architecture dentro de cada módulo: dominio, aplicación, infraestructura y presentación (ADR-002) | [Enfoque arquitectónico](docs/02-arquitectura-software/enfoque-arquitectonico.md) |
-| Componentes | Identidad, Catálogo, Requerimientos, Reglas, Firma digital, Inventario, Auditoría y Reportes | [Componentes](docs/02-arquitectura-software/componentes-arquitectonicos.md) |
+| Componentes | Identidad, Catálogo, Requerimientos, Reglas, Firma digital, Inventario y Auditoría (en `tecnologia/backend/app/modules/`); Reportes, pendiente | [Componentes](docs/02-arquitectura-software/componentes-arquitectonicos.md) |
 | Decisiones | ADR-001 a ADR-013 | [Decisiones arquitectónicas](docs/01-analisis-de-sistema/07-decisiones-arquitectonicas.md) |
 | Diseño interno | Capas, clases, estados del requerimiento, SOLID | [Diseño interno](docs/03-diseno-de-software/diseno-interno/diseno-interno-de-modulos.md) · [Principios](docs/03-diseno-de-software/diseno-interno/principios-de-diseno.md) |
 | Modelo C4 | Contexto, contenedores, componentes y código | [N1](docs/04-modelo-c4/Nivel1-DiagramadeContextodelSistema.md) · [N2](docs/04-modelo-c4/Nivel2-DiagramadeContenedores.md) · [N3](docs/04-modelo-c4/Nivel3-DiagramadeComponentes.md) · [N4](docs/04-modelo-c4/Nivel4-DiagramadeCodigo.md) |
@@ -58,7 +58,7 @@ Requisitos: Docker Desktop con Docker Compose v2. Para correr las pruebas fuera 
 ```bash
 cd tecnologia
 cp .env.example .env                                      # completar los valores; nunca se versiona
-python backend/scripts/generar_clave_firma.py >> .env     # clave Ed25519 del sistema
+python backend/scripts/generar_clave_firma.py >> .env     # clave Ed25519 del sistema (requiere el entorno virtual del backend)
 docker compose up --build -d                              # db, api y web
 curl -s http://localhost:8080/health
 ```
@@ -129,13 +129,16 @@ El detalle, con el resultado y si cumple, está en [`evidencias/README.md`](evid
 | EQ-07 Mantenibilidad | pytest 934 pruebas (97 %), Jest 253 pruebas (100 % de líneas), Ruff y ESLint sin errores | ✅ |
 | EQ-08 Trazabilidad | 6 de 6 pasos con usuario, rol, órgano y fecha | ✅ |
 | EQ-09 Escalabilidad (k6, 2 instancias) | p95 de 48,2 ms con 40 usuarios | ✅ |
-| Estrés hasta 2 000 VU (k6) | Llegó a 2 000 VU; punto de quiebre en unos 80 a 100 VU | ⚠️ |
+| Estrés hasta 2 000 VU (k6) | Llegó a 2 000 VU con 0 errores; punto de quiebre en unos 80 a 100 VU (CPU de la API, no de la base de datos). Corrida interrumpida al 88 % por falta de memoria del equipo de pruebas | ⚠️ |
 
 ### Cómo correr las pruebas
 
 ```bash
 # Backend (requiere DATABASE_URL_TEST en tecnologia/.env y la base de docker compose)
-cd tecnologia/backend && ruff check . && pytest --cov
+cd tecnologia/backend
+python -m venv .venv && source .venv/Scripts/activate   # en Linux/macOS: source .venv/bin/activate
+pip install -e ".[dev]"
+ruff check . && pytest --cov
 
 # Frontend
 cd tecnologia/frontend && npm run lint && npx tsc --noEmit && npm run test:cov
@@ -143,11 +146,34 @@ cd tecnologia/frontend && npm run lint && npx tsc --noEmit && npm run test:cov
 # API desde fuera del proceso (Postman/Newman)
 cd tecnologia/pruebas && npx newman run postman/sga-001.postman_collection.json \
   -e postman/local.postman_environment.json --env-var contrasena=<CONTRASENA_DEMO>
+
+# Carga y escalabilidad (k6), desde tecnologia/pruebas
+k6 run -e CONTRASENA=<CONTRASENA_DEMO> k6/eq04_rendimiento.js     # EQ-04 rendimiento
+k6 run -e CONTRASENA=<CONTRASENA_DEMO> k6/eq09_escalabilidad.js   # EQ-09 (con docker compose up -d --scale api=2 api)
+k6 run -e CONTRASENA=<CONTRASENA_DEMO> k6/estres_2000.js          # estrés progresivo hasta 2 000 VU
 ```
 
+Las pruebas de k6 y Newman crean solicitudes; al terminar, `docker compose down -v && docker compose up -d`
+deja la base limpia.
+
 El backend se prueba con **pytest** porque es Python (ADR-011); **Jest** se usa en el frontend.
-GitHub Actions ([`ci.yml`](.github/workflows/ci.yml)) ejecuta todo en cada push y cada pull
-request y publica los reportes de cobertura.
+GitHub Actions ([`ci.yml`](.github/workflows/ci.yml)) ejecuta lint y pruebas en cada push y cada
+pull request y publica los reportes de cobertura. El despliegue automático (CD) se agregará junto
+con HTTPS y el despliegue (DT-02).
+
+## Demostración del flujo completo
+
+Con la base limpia y desde http://localhost:8080:
+
+1. `oficial.bim11` registra una solicitud de intendencia y la envía.
+2. `oficial.bim11` registra una de material de guerra: queda bloqueada porque requiere al COLOGE (RN03).
+3. `cmdte.bim11` revisa el documento oficial y firma el visto bueno.
+4. `jlog.2de` intenta abrirla: no la ve (aislamiento por órgano).
+5. `jlog.1de` firma la conformidad y `jalm.sinte` la aprobación del almacén.
+6. `almacenero.sinte` despacha; el stock se descuenta.
+7. `oficial.bim11` firma el acta de recepción con una diferencia.
+8. Se descarga el PDF y se verifica en `/verificar`: AUTENTICO; con un byte cambiado, ALTERADO.
+9. La línea de tiempo muestra cada paso con usuario, rol, órgano y fecha.
 
 ## Estado y pendientes
 
